@@ -4,18 +4,20 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight, Home, Library, Search } from "lucide-react";
+import { ChevronRight, Home, LogOut, Search } from "lucide-react";
 import { DriveNode, DriveTree, loadDriveTree } from "@/lib/drive";
 import { FolderGrid } from "@/components/FolderGrid";
 import { ComicReader } from "@/components/ComicReader";
+import { useAuth } from "@/hooks/useAuth";
+import logo from "@/assets/logo-spiderman.png";
 
 type Crumb = { id: string; name: string };
 
 const Index = () => {
+  const { user, signOut } = useAuth();
   const [tree, setTree] = useState<DriveTree | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
-  // path of crumbs WITHIN the active publisher (not including the publisher itself)
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
   const [search, setSearch] = useState("");
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
@@ -35,7 +37,6 @@ const Index = () => {
     [publishers, activePublisherId]
   );
 
-  // Resolve current folder by walking crumbs from publisher
   const currentFolder = useMemo<DriveNode | null>(() => {
     if (!activePublisher) return null;
     let node: DriveNode = activePublisher;
@@ -66,7 +67,6 @@ const Index = () => {
   };
 
   const handleCrumbClick = (idx: number) => {
-    // idx = -1 -> root of publisher
     setCrumbs((c) => c.slice(0, idx + 1));
   };
 
@@ -88,7 +88,7 @@ const Index = () => {
         <Skeleton className="h-10 w-full mb-6" />
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[3/4]" />
+            <Skeleton key={i} className="aspect-[2/3]" />
           ))}
         </div>
       </div>
@@ -97,14 +97,42 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Library className="w-6 h-6 text-primary" />
-          <h1 className="text-lg font-bold tracking-tight">Gibiteca</h1>
-          <span className="text-xs text-muted-foreground hidden sm:inline">
-            · {publishers.length} editoras
-          </span>
-          <div className="ml-auto relative w-full max-w-xs">
+          <img src={logo} alt="" className="w-9 h-9" />
+          <div className="leading-tight">
+            <h1 className="font-comic text-xl tracking-wide">
+              IMPÉRIO DOS <span className="text-accent">QUADRINHOS</span>
+            </h1>
+            <p className="text-[10px] text-muted-foreground hidden sm:block">
+              {publishers.length} editoras · acesso vitalício
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="relative w-full max-w-xs hidden sm:block">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar nesta pasta..."
+                className="pl-8 h-9 bg-secondary border-border"
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              title={user?.email ?? ""}
+              className="gap-1.5"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden md:inline">Sair</span>
+            </Button>
+          </div>
+        </div>
+        {/* mobile search */}
+        <div className="px-4 pb-3 sm:hidden">
+          <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={search}
@@ -127,7 +155,7 @@ const Index = () => {
               <TabsTrigger
                 key={p.id}
                 value={p.id}
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md text-xs font-semibold"
+                className="data-[state=active]:bg-cta data-[state=active]:text-primary-foreground data-[state=active]:shadow-cta rounded-md text-xs font-bold uppercase tracking-wide"
               >
                 {p.name}
               </TabsTrigger>
@@ -138,7 +166,6 @@ const Index = () => {
 
         {publishers.map((p) => (
           <TabsContent key={p.id} value={p.id} className="mt-6">
-            {/* Breadcrumb */}
             <nav className="flex items-center gap-1 text-sm mb-4 flex-wrap">
               <Button
                 variant="ghost"
