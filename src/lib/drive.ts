@@ -3,6 +3,7 @@ export type DriveNode = {
   name: string;
   type: "folder" | "file";
   children?: DriveNode[];
+  coverUrl?: string;
 };
 
 export type DriveTree = {
