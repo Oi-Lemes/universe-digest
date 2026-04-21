@@ -2,73 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Comic reader design system — dark theme inspired by comic stores. */
+/* Império dos Quadrinhos — design system inspirado na página de vendas. */
 
 @layer base {
   :root {
-    --background: 240 10% 6%;
-    --foreground: 40 30% 96%;
+    /* Dark heroic background */
+    --background: 230 35% 7%;
+    --foreground: 0 0% 98%;
 
-    --card: 240 12% 10%;
-    --card-foreground: 40 30% 96%;
+    --card: 230 30% 11%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 240 12% 10%;
-    --popover-foreground: 40 30% 96%;
+    --popover: 230 30% 11%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 14 100% 55%;
+    /* Comic red */
+    --primary: 0 84% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 8% 16%;
-    --secondary-foreground: 40 30% 96%;
+    --secondary: 230 25% 16%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 8% 14%;
-    --muted-foreground: 240 6% 65%;
+    --muted: 230 20% 14%;
+    --muted-foreground: 230 12% 70%;
 
+    /* Comic yellow */
     --accent: 48 100% 55%;
-    --accent-foreground: 240 10% 6%;
+    --accent-foreground: 230 35% 7%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 8% 18%;
-    --input: 240 8% 18%;
-    --ring: 14 100% 55%;
+    --border: 230 20% 20%;
+    --input: 230 20% 18%;
+    --ring: 0 84% 55%;
 
     --radius: 0.75rem;
 
-    --hero-gradient: linear-gradient(135deg, hsl(14 100% 55% / 0.25), hsl(280 80% 50% / 0.2));
-    --shadow-comic: 0 10px 40px -10px hsl(14 100% 55% / 0.4);
+    /* Brand-specific tokens */
+    --brand-red: 0 84% 55%;
+    --brand-red-strong: 0 90% 48%;
+    --brand-yellow: 48 100% 55%;
+    --brand-green: 142 70% 42%;
+    --brand-blue: 214 90% 55%;
 
-    --sidebar-background: 240 12% 8%;
-    --sidebar-foreground: 40 30% 96%;
-    --sidebar-primary: 14 100% 55%;
+    --gradient-hero: linear-gradient(135deg, hsl(0 84% 25% / 0.9), hsl(230 60% 15% / 0.95));
+    --gradient-cta: linear-gradient(135deg, hsl(0 84% 55%), hsl(0 90% 45%));
+    --gradient-gold: linear-gradient(135deg, hsl(48 100% 55%), hsl(40 100% 50%));
+    --shadow-cta: 0 10px 40px -10px hsl(0 84% 55% / 0.6);
+    --shadow-card: 0 8px 30px -10px hsl(0 0% 0% / 0.6);
+
+    --sidebar-background: 230 30% 9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 84% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 8% 14%;
-    --sidebar-accent-foreground: 40 30% 96%;
-    --sidebar-border: 240 8% 18%;
-    --sidebar-ring: 14 100% 55%;
+    --sidebar-accent: 230 20% 14%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 230 20% 20%;
+    --sidebar-ring: 0 84% 55%;
   }
 
   .dark {
-    --background: 240 10% 6%;
-    --foreground: 40 30% 96%;
-    --card: 240 12% 10%;
-    --card-foreground: 40 30% 96%;
-    --popover: 240 12% 10%;
-    --popover-foreground: 40 30% 96%;
-    --primary: 14 100% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 8% 16%;
-    --secondary-foreground: 40 30% 96%;
-    --muted: 240 8% 14%;
-    --muted-foreground: 240 6% 65%;
-    --accent: 48 100% 55%;
-    --accent-foreground: 240 10% 6%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 8% 18%;
-    --input: 240 8% 18%;
-    --ring: 14 100% 55%;
+    /* same as :root — app is always dark */
+    --background: 230 35% 7%;
+    --foreground: 0 0% 98%;
   }
 }
 
@@ -79,6 +76,33 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
     font-feature-settings: "ss01", "cv11";
+  }
+
+  .font-comic {
+    font-family: "Bangers", "Impact", system-ui, sans-serif;
+    letter-spacing: 0.04em;
+  }
+}
+
+@layer utilities {
+  .text-stroke {
+    -webkit-text-stroke: 1px hsl(230 35% 7%);
+  }
+  .bg-hero {
+    background-image: var(--gradient-hero);
+  }
+  .bg-cta {
+    background-image: var(--gradient-cta);
+  }
+  .bg-gold {
+    background-image: var(--gradient-gold);
+  }
+  .shadow-cta {
+    box-shadow: var(--shadow-cta);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
   }
 }
