@@ -2,3 +2,6 @@ project_id = "ruovikplrtcclvihfabv"
 
 [functions.yampi-webhook]
 verify_jwt = false
+
+[functions.process-email-queue]
+verify_jwt = true
