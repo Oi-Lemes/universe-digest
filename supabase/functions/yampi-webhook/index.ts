@@ -160,8 +160,21 @@ Deno.serve(async (req) => {
     const event = pickEvent(payload, req.headers);
     const status = pickStatus(payload);
     const decision = decideStatus(event, status);
+    const amount = pickAmount(payload);
+    const productName = pickProductName(payload);
+    const { plan, grants } = classifyPlan(amount);
 
-    console.log("Yampi webhook", { event, status, email, orderId, decision });
+    console.log("Yampi webhook", {
+      event,
+      status,
+      email,
+      orderId,
+      decision,
+      amount,
+      productName,
+      plan,
+      grants,
+    });
 
     if (!email || !decision) {
       return new Response(
@@ -174,41 +187,75 @@ Deno.serve(async (req) => {
     }
 
     if (decision === "active") {
-      const { error } = await admin
-        .from("access_grants")
-        .upsert(
+      if (!grants) {
+        // Basic offer (R$ 5,99) — record the order but DO NOT grant access.
+        // Don't overwrite an existing active grant from a previous Top purchase.
+        const { data: existing } = await admin
+          .from("access_grants")
+          .select("status")
+          .eq("email", email)
+          .maybeSingle();
+
+        if (existing?.status === "active") {
+          console.log("Skipping basic order — user already has active access", { email });
+        } else {
+          const { error } = await admin.from("access_grants").upsert(
+            {
+              email,
+              status: "manual_revoked",
+              order_id: orderId,
+              source: "yampi",
+              plan,
+              amount,
+              product_name: productName,
+              revoked_at: new Date().toISOString(),
+            },
+            { onConflict: "email" }
+          );
+          if (error) throw error;
+        }
+      } else {
+        const { error } = await admin.from("access_grants").upsert(
           {
             email,
             status: "active",
             order_id: orderId,
             source: "yampi",
+            plan,
+            amount,
+            product_name: productName,
             granted_at: new Date().toISOString(),
             revoked_at: null,
           },
           { onConflict: "email" }
         );
-      if (error) throw error;
+        if (error) throw error;
+      }
     } else {
-      // Revoke
-      const { error } = await admin
-        .from("access_grants")
-        .upsert(
-          {
-            email,
-            status: decision,
-            order_id: orderId,
-            source: "yampi",
-            revoked_at: new Date().toISOString(),
-          },
-          { onConflict: "email" }
-        );
+      // Refund / chargeback / cancel — always revoke.
+      const { error } = await admin.from("access_grants").upsert(
+        {
+          email,
+          status: decision,
+          order_id: orderId,
+          source: "yampi",
+          plan,
+          amount,
+          product_name: productName,
+          revoked_at: new Date().toISOString(),
+        },
+        { onConflict: "email" }
+      );
       if (error) throw error;
     }
 
-    return new Response(JSON.stringify({ ok: true, email, status: decision }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok: true, email, status: decision, plan, amount, granted: grants }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (e) {
     console.error("yampi-webhook error", e);
     return new Response(
