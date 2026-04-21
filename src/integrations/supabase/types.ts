@@ -16,33 +16,42 @@ export type Database = {
     Tables: {
       access_grants: {
         Row: {
+          amount: number | null
           created_at: string
           email: string
           granted_at: string
           id: string
           order_id: string | null
+          plan: string | null
+          product_name: string | null
           revoked_at: string | null
           source: string | null
           status: Database["public"]["Enums"]["access_status"]
           updated_at: string
         }
         Insert: {
+          amount?: number | null
           created_at?: string
           email: string
           granted_at?: string
           id?: string
           order_id?: string | null
+          plan?: string | null
+          product_name?: string | null
           revoked_at?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["access_status"]
           updated_at?: string
         }
         Update: {
+          amount?: number | null
           created_at?: string
           email?: string
           granted_at?: string
           id?: string
           order_id?: string | null
+          plan?: string | null
+          product_name?: string | null
           revoked_at?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["access_status"]
