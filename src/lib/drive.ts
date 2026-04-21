@@ -81,6 +81,7 @@ export function firstFileIn(node: DriveNode): DriveNode | null {
 
 /** Cover image URL for any node (folder uses first descendant viewable file). */
 export function coverUrl(node: DriveNode, size = 400): string | null {
+  if (node.coverUrl) return node.coverUrl;
   if (node.type === "file") {
     return isViewableInDrive(node.name) ? thumbnailUrl(node.id, size) : null;
   }
