@@ -9,7 +9,7 @@ import { DriveNode, DriveTree, loadDriveTree } from "@/lib/drive";
 import { FolderGrid } from "@/components/FolderGrid";
 import { ComicReader } from "@/components/ComicReader";
 import { useAuth } from "@/hooks/useAuth";
-import logo from "@/assets/logo-spiderman.png";
+import logo from "@/assets/logo-spiderman-new.png";
 
 type Crumb = { id: string; name: string };
 
