@@ -67,12 +67,10 @@ function pickStatus(payload: any): string {
 
 function decideStatus(event: string, status: string): GrantStatus | null {
   const blob = `${event} ${status}`;
-  // Refund / chargeback first
   if (blob.includes("chargeback")) return "chargeback";
   if (blob.includes("refund") || blob.includes("reembols") || blob.includes("estorn"))
     return "refunded";
   if (blob.includes("cancel")) return "refunded";
-  // Approved / paid
   if (
     blob.includes("paid") ||
     blob.includes("approved") ||
@@ -83,6 +81,58 @@ function decideStatus(event: string, status: string): GrantStatus | null {
   )
     return "active";
   return null;
+}
+
+// === Offer detection by amount paid ===
+// Basic (R$ 5,99) does NOT grant access. Top (R$ 16,90) and Popup (R$ 10) do.
+const ACCESS_MIN_AMOUNT = 10.0;
+
+function pickAmount(payload: any): number | null {
+  const raw =
+    payload?.resource?.totals?.total ??
+    payload?.resource?.total ??
+    payload?.resource?.value_total ??
+    payload?.data?.totals?.total ??
+    payload?.data?.total ??
+    payload?.data?.value_total ??
+    payload?.totals?.total ??
+    payload?.total ??
+    payload?.value_total ??
+    payload?.amount;
+  if (raw == null) return null;
+  const n = typeof raw === "string" ? parseFloat(raw.replace(",", ".")) : Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+function pickProductName(payload: any): string | null {
+  const items =
+    payload?.resource?.items?.data ??
+    payload?.resource?.items ??
+    payload?.data?.items?.data ??
+    payload?.data?.items ??
+    payload?.items;
+  if (Array.isArray(items) && items.length) {
+    const first = items[0];
+    const name =
+      first?.sku?.data?.title ??
+      first?.sku?.title ??
+      first?.product?.data?.name ??
+      first?.product?.name ??
+      first?.name ??
+      first?.title;
+    if (typeof name === "string") return name;
+  }
+  return null;
+}
+
+function classifyPlan(amount: number | null): {
+  plan: "top" | "popup" | "basic_blocked" | "unknown";
+  grants: boolean;
+} {
+  if (amount == null) return { plan: "unknown", grants: false };
+  if (amount < ACCESS_MIN_AMOUNT) return { plan: "basic_blocked", grants: false };
+  if (amount >= 15) return { plan: "top", grants: true };
+  return { plan: "popup", grants: true };
 }
 
 Deno.serve(async (req) => {
