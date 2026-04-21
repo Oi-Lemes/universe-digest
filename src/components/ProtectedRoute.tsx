@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo-spiderman.png";
 
 export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { loading, session, hasAccess, accessStatus, user, signOut } = useAuth();
+  const { loading, email, hasAccess, accessStatus, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -16,7 +16,7 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
     );
   }
 
-  if (!session) return <Navigate to="/login" replace />;
+  if (!email) return <Navigate to="/login" replace />;
 
   if (!hasAccess) {
     const reason =
@@ -35,7 +35,7 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
           <ShieldAlert className="w-10 h-10 mx-auto mb-3 text-destructive" />
           <h1 className="font-comic text-2xl mb-2">Acesso não liberado</h1>
           <p className="text-sm text-muted-foreground mb-1">
-            <strong>{user?.email}</strong>
+            <strong>{email}</strong>
           </p>
           <p className="text-sm text-muted-foreground mb-6">{reason}</p>
           <div className="space-y-2">
