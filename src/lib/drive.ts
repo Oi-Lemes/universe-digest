@@ -31,37 +31,53 @@ export function filePreviewUrl(id: string): string {
   return `https://drive.google.com/file/d/${id}/preview`;
 }
 
-export function folderEmbedUrl(id: string): string {
-  return `https://drive.google.com/embeddedfolderview?id=${id}#grid`;
+export function fileViewUrl(id: string): string {
+  return `https://drive.google.com/file/d/${id}/view`;
 }
 
-/** Find a node by id walking the tree. */
-export function findNode(tree: DriveTree, id: string): DriveNode | null {
-  if (id === tree.id)
-    return { id: tree.id, name: tree.name, type: "folder", children: tree.children };
-  const stack: DriveNode[] = [...tree.children];
-  while (stack.length) {
-    const n = stack.pop()!;
-    if (n.id === id) return n;
-    if (n.children) stack.push(...n.children);
+export function fileDownloadUrl(id: string): string {
+  return `https://drive.google.com/uc?export=download&id=${id}`;
+}
+
+export function thumbnailUrl(id: string, size = 400): string {
+  return `https://drive.google.com/thumbnail?id=${id}&sz=w${size}`;
+}
+
+const VIEWABLE_EXTS = ["pdf", "jpg", "jpeg", "png", "gif", "webp", "mp4", "webm", "mov"];
+
+export function fileExt(name: string): string {
+  const m = name.toLowerCase().match(/\.([a-z0-9]+)$/);
+  return m ? m[1] : "";
+}
+
+export function isViewableInDrive(name: string): boolean {
+  return VIEWABLE_EXTS.includes(fileExt(name));
+}
+
+/** Find the first file descending the tree — used to pick a cover for a folder. */
+export function firstFileIn(node: DriveNode): DriveNode | null {
+  if (!node.children) return null;
+  // prefer a file in this folder, alphabetic
+  const files = node.children
+    .filter((c) => c.type === "file")
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true }));
+  if (files.length) return files[0];
+  // otherwise descend into the first folder
+  const folders = node.children
+    .filter((c) => c.type === "folder")
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true }));
+  for (const f of folders) {
+    const found = firstFileIn(f);
+    if (found) return found;
   }
   return null;
 }
 
-/** Find the path (breadcrumb) from root to a node id. */
-export function findPath(tree: DriveTree, id: string): DriveNode[] {
-  const path: DriveNode[] = [];
-  const dfs = (nodes: DriveNode[]): boolean => {
-    for (const n of nodes) {
-      path.push(n);
-      if (n.id === id) return true;
-      if (n.children && dfs(n.children)) return true;
-      path.pop();
-    }
-    return false;
-  };
-  dfs(tree.children);
-  return path;
+/** Cover image URL for any node (folder uses first descendant file). */
+export function coverUrl(node: DriveNode, size = 400): string | null {
+  if (node.type === "file") return thumbnailUrl(node.id, size);
+  const first = firstFileIn(node);
+  return first ? thumbnailUrl(first.id, size) : null;
 }
 
 export function countDescendants(node: DriveNode): { folders: number; files: number } {
