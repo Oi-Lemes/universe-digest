@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, ShieldAlert, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo-spiderman.png";
+import logo from "@/assets/logo-spiderman-new.png";
 
 export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { loading, email, hasAccess, accessStatus, signOut } = useAuth();
