@@ -67,12 +67,10 @@ function pickStatus(payload: any): string {
 
 function decideStatus(event: string, status: string): GrantStatus | null {
   const blob = `${event} ${status}`;
-  // Refund / chargeback first
   if (blob.includes("chargeback")) return "chargeback";
   if (blob.includes("refund") || blob.includes("reembols") || blob.includes("estorn"))
     return "refunded";
   if (blob.includes("cancel")) return "refunded";
-  // Approved / paid
   if (
     blob.includes("paid") ||
     blob.includes("approved") ||
@@ -83,6 +81,58 @@ function decideStatus(event: string, status: string): GrantStatus | null {
   )
     return "active";
   return null;
+}
+
+// === Offer detection by amount paid ===
+// Basic (R$ 5,99) does NOT grant access. Top (R$ 16,90) and Popup (R$ 10) do.
+const ACCESS_MIN_AMOUNT = 10.0;
+
+function pickAmount(payload: any): number | null {
+  const raw =
+    payload?.resource?.totals?.total ??
+    payload?.resource?.total ??
+    payload?.resource?.value_total ??
+    payload?.data?.totals?.total ??
+    payload?.data?.total ??
+    payload?.data?.value_total ??
+    payload?.totals?.total ??
+    payload?.total ??
+    payload?.value_total ??
+    payload?.amount;
+  if (raw == null) return null;
+  const n = typeof raw === "string" ? parseFloat(raw.replace(",", ".")) : Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+function pickProductName(payload: any): string | null {
+  const items =
+    payload?.resource?.items?.data ??
+    payload?.resource?.items ??
+    payload?.data?.items?.data ??
+    payload?.data?.items ??
+    payload?.items;
+  if (Array.isArray(items) && items.length) {
+    const first = items[0];
+    const name =
+      first?.sku?.data?.title ??
+      first?.sku?.title ??
+      first?.product?.data?.name ??
+      first?.product?.name ??
+      first?.name ??
+      first?.title;
+    if (typeof name === "string") return name;
+  }
+  return null;
+}
+
+function classifyPlan(amount: number | null): {
+  plan: "top" | "popup" | "basic_blocked" | "unknown";
+  grants: boolean;
+} {
+  if (amount == null) return { plan: "unknown", grants: false };
+  if (amount < ACCESS_MIN_AMOUNT) return { plan: "basic_blocked", grants: false };
+  if (amount >= 15) return { plan: "top", grants: true };
+  return { plan: "popup", grants: true };
 }
 
 Deno.serve(async (req) => {
@@ -110,8 +160,21 @@ Deno.serve(async (req) => {
     const event = pickEvent(payload, req.headers);
     const status = pickStatus(payload);
     const decision = decideStatus(event, status);
+    const amount = pickAmount(payload);
+    const productName = pickProductName(payload);
+    const { plan, grants } = classifyPlan(amount);
 
-    console.log("Yampi webhook", { event, status, email, orderId, decision });
+    console.log("Yampi webhook", {
+      event,
+      status,
+      email,
+      orderId,
+      decision,
+      amount,
+      productName,
+      plan,
+      grants,
+    });
 
     if (!email || !decision) {
       return new Response(
@@ -124,41 +187,75 @@ Deno.serve(async (req) => {
     }
 
     if (decision === "active") {
-      const { error } = await admin
-        .from("access_grants")
-        .upsert(
+      if (!grants) {
+        // Basic offer (R$ 5,99) — record the order but DO NOT grant access.
+        // Don't overwrite an existing active grant from a previous Top purchase.
+        const { data: existing } = await admin
+          .from("access_grants")
+          .select("status")
+          .eq("email", email)
+          .maybeSingle();
+
+        if (existing?.status === "active") {
+          console.log("Skipping basic order — user already has active access", { email });
+        } else {
+          const { error } = await admin.from("access_grants").upsert(
+            {
+              email,
+              status: "manual_revoked",
+              order_id: orderId,
+              source: "yampi",
+              plan,
+              amount,
+              product_name: productName,
+              revoked_at: new Date().toISOString(),
+            },
+            { onConflict: "email" }
+          );
+          if (error) throw error;
+        }
+      } else {
+        const { error } = await admin.from("access_grants").upsert(
           {
             email,
             status: "active",
             order_id: orderId,
             source: "yampi",
+            plan,
+            amount,
+            product_name: productName,
             granted_at: new Date().toISOString(),
             revoked_at: null,
           },
           { onConflict: "email" }
         );
-      if (error) throw error;
+        if (error) throw error;
+      }
     } else {
-      // Revoke
-      const { error } = await admin
-        .from("access_grants")
-        .upsert(
-          {
-            email,
-            status: decision,
-            order_id: orderId,
-            source: "yampi",
-            revoked_at: new Date().toISOString(),
-          },
-          { onConflict: "email" }
-        );
+      // Refund / chargeback / cancel — always revoke.
+      const { error } = await admin.from("access_grants").upsert(
+        {
+          email,
+          status: decision,
+          order_id: orderId,
+          source: "yampi",
+          plan,
+          amount,
+          product_name: productName,
+          revoked_at: new Date().toISOString(),
+        },
+        { onConflict: "email" }
+      );
       if (error) throw error;
     }
 
-    return new Response(JSON.stringify({ ok: true, email, status: decision }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok: true, email, status: decision, plan, amount, granted: grants }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (e) {
     console.error("yampi-webhook error", e);
     return new Response(
