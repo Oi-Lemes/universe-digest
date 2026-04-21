@@ -2,10 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Loader2 } from "lucide-react";
-import { Link, Navigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
 import logo from "@/assets/logo-spiderman-new.png";
@@ -18,13 +17,12 @@ const emailSchema = z
   .max(255);
 
 const Login = () => {
-  const { session, loading } = useAuth();
+  const { hasAccess, loading, signIn } = useAuth();
   const [email, setEmail] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   if (loading) return null;
-  if (session) return <Navigate to="/" replace />;
+  if (hasAccess) return <Navigate to="/" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,18 +31,24 @@ const Login = () => {
       toast.error(parsed.error.errors[0].message);
       return;
     }
-    setSending(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: parsed.data,
-      options: { emailRedirectTo: `${window.location.origin}/` },
-    });
-    setSending(false);
-    if (error) {
-      toast.error(error.message);
+    setChecking(true);
+    const { ok, status } = await signIn(parsed.data);
+    setChecking(false);
+
+    if (ok) {
+      toast.success("Acesso liberado!");
       return;
     }
-    setSent(true);
-    toast.success("Link de acesso enviado para o seu email!");
+
+    const reason =
+      status === "refunded"
+        ? "Identificamos um reembolso da sua compra. Acesso removido."
+        : status === "chargeback"
+        ? "Identificamos um chargeback. Acesso suspenso."
+        : status === "manual_revoked"
+        ? "Seu acesso foi revogado. Fale com o suporte."
+        : "Este email não consta na nossa lista de compradores.";
+    toast.error(reason);
   };
 
   return (
@@ -62,59 +66,35 @@ const Login = () => {
             </p>
           </div>
 
-          {sent ? (
-            <div className="text-center space-y-3 py-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
-                <Mail className="w-6 h-6 text-accent" />
-              </div>
-              <h2 className="font-semibold text-lg">Confira seu email</h2>
-              <p className="text-sm text-muted-foreground">
-                Enviamos um link de acesso para <strong>{email}</strong>. Abra o link
-                para entrar no app.
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSent(false);
-                  setEmail("");
-                }}
-              >
-                Usar outro email
-              </Button>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email da compra</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus
+                className="h-11"
+              />
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email da compra</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoFocus
-                  className="h-11"
-                />
-              </div>
-              <Button
-                type="submit"
-                disabled={sending}
-                className="w-full h-11 bg-cta shadow-cta font-bold uppercase tracking-wide"
-              >
-                {sending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  "Receber link de acesso"
-                )}
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">
-                Use o mesmo email que você usou na compra. Sem senha — apenas um
-                link mágico no seu email.
-              </p>
-            </form>
-          )}
+            <Button
+              type="submit"
+              disabled={checking}
+              className="w-full h-11 bg-cta shadow-cta font-bold uppercase tracking-wide"
+            >
+              {checking ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Entrar"
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Use o mesmo email que você usou na compra.
+            </p>
+          </form>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-4">
