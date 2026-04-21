@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { filePreviewUrl } from "@/lib/drive";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 type Props = {
   fileId: string | null;
@@ -12,12 +11,10 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   return (
     <Dialog open={!!fileId} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-6xl h-[90vh] p-0 overflow-hidden bg-card border-border">
-        <VisuallyHidden>
-          <DialogTitle>{fileName}</DialogTitle>
-        </VisuallyHidden>
+        <DialogTitle className="sr-only">{fileName}</DialogTitle>
         <div className="flex flex-col h-full">
           <header className="flex items-center justify-between px-4 py-2 border-b border-border bg-secondary/40">
-            <h2 className="font-semibold truncate text-sm">{fileName}</h2>
+            <h2 className="font-semibold truncate text-sm pr-8">{fileName}</h2>
           </header>
           {fileId && (
             <iframe
