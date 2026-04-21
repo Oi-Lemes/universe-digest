@@ -54,18 +54,23 @@ export function isViewableInDrive(name: string): boolean {
   return VIEWABLE_EXTS.includes(fileExt(name));
 }
 
-/** Find the first file descending the tree — used to pick a cover for a folder. */
+/** Find the first viewable file (PDF/image) descending the tree — used to pick a cover. */
 export function firstFileIn(node: DriveNode): DriveNode | null {
   if (!node.children) return null;
-  // prefer a file in this folder, alphabetic
-  const files = node.children
+  const sortName = (a: DriveNode, b: DriveNode) =>
+    a.name.localeCompare(b.name, "pt-BR", { numeric: true });
+
+  const viewableHere = node.children
+    .filter((c) => c.type === "file" && isViewableInDrive(c.name))
+    .sort(sortName);
+  if (viewableHere.length) return viewableHere[0];
+
+  const filesHere = node.children
     .filter((c) => c.type === "file")
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true }));
-  if (files.length) return files[0];
-  // otherwise descend into the first folder
-  const folders = node.children
-    .filter((c) => c.type === "folder")
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true }));
+    .sort(sortName);
+  if (filesHere.length) return filesHere[0];
+
+  const folders = node.children.filter((c) => c.type === "folder").sort(sortName);
   for (const f of folders) {
     const found = firstFileIn(f);
     if (found) return found;
@@ -73,9 +78,11 @@ export function firstFileIn(node: DriveNode): DriveNode | null {
   return null;
 }
 
-/** Cover image URL for any node (folder uses first descendant file). */
+/** Cover image URL for any node (folder uses first descendant viewable file). */
 export function coverUrl(node: DriveNode, size = 400): string | null {
-  if (node.type === "file") return thumbnailUrl(node.id, size);
+  if (node.type === "file") {
+    return isViewableInDrive(node.name) ? thumbnailUrl(node.id, size) : null;
+  }
   const first = firstFileIn(node);
   return first ? thumbnailUrl(first.id, size) : null;
 }
