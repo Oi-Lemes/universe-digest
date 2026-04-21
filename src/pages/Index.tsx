@@ -14,7 +14,7 @@ import logo from "@/assets/logo-spiderman.png";
 type Crumb = { id: string; name: string };
 
 const Index = () => {
-  const { user, signOut } = useAuth();
+  const { email, signOut } = useAuth();
   const [tree, setTree] = useState<DriveTree | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
@@ -122,7 +122,7 @@ const Index = () => {
               variant="ghost"
               size="sm"
               onClick={signOut}
-              title={user?.email ?? ""}
+              title={email ?? ""}
               className="gap-1.5"
             >
               <LogOut className="w-4 h-4" />
