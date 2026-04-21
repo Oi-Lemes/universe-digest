@@ -8,7 +8,7 @@ import { Mail, Loader2 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
-import logo from "@/assets/logo-spiderman.png";
+import logo from "@/assets/logo-spiderman-new.png";
 
 const emailSchema = z
   .string()
