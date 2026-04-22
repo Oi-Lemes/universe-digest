@@ -230,6 +230,31 @@ Deno.serve(async (req) => {
           { onConflict: "email" }
         );
         if (error) throw error;
+
+        // Send "access granted" welcome email (idempotent per order_id)
+        try {
+          const { error: emailError } = await admin.functions.invoke(
+            "send-transactional-email",
+            {
+              body: {
+                templateName: "access-granted",
+                recipientEmail: email,
+                idempotencyKey: `access-granted-${orderId ?? email}`,
+                templateData: {
+                  productName: productName ?? undefined,
+                  plan,
+                },
+              },
+            }
+          );
+          if (emailError) {
+            console.error("Failed to enqueue access-granted email", emailError);
+          } else {
+            console.log("Access-granted email enqueued", { email, orderId });
+          }
+        } catch (emailErr) {
+          console.error("Email send threw", emailErr);
+        }
       }
     } else {
       // Refund / chargeback / cancel — always revoke.
