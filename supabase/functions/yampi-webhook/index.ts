@@ -19,15 +19,80 @@ const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 
 type GrantStatus = "active" | "refunded" | "chargeback" | "manual_revoked";
 
+function normalizeEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+}
+
+function findNestedEmail(value: unknown, depth = 0): string | null {
+  if (depth > 4 || value == null) return null;
+
+  const direct = normalizeEmail(value);
+  if (direct) return direct;
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const nested = findNestedEmail(item, depth + 1);
+      if (nested) return nested;
+    }
+    return null;
+  }
+
+  if (typeof value !== "object") return null;
+
+  const record = value as Record<string, unknown>;
+  const priorityKeys = [
+    "email",
+    "customer_email",
+    "buyer_email",
+    "client_email",
+    "contact_email",
+  ];
+
+  for (const key of priorityKeys) {
+    const match = normalizeEmail(record[key]);
+    if (match) return match;
+  }
+
+  for (const nestedValue of Object.values(record)) {
+    const nested = findNestedEmail(nestedValue, depth + 1);
+    if (nested) return nested;
+  }
+
+  return null;
+}
+
 function pickEmail(payload: any): string | null {
-  // Yampi payload variants: resource.customer.email | data.customer.email | customer.email
-  const email =
-    payload?.resource?.customer?.email ??
-    payload?.data?.customer?.email ??
-    payload?.customer?.email ??
-    payload?.resource?.email ??
-    payload?.email;
-  return typeof email === "string" ? email.trim().toLowerCase() : null;
+  const candidates = [
+    payload?.resource?.customer?.email,
+    payload?.resource?.customer?.data?.email,
+    payload?.resource?.customer_email,
+    payload?.resource?.buyer?.email,
+    payload?.resource?.client?.email,
+    payload?.resource?.contact?.email,
+    payload?.resource?.email,
+    payload?.data?.customer?.email,
+    payload?.data?.customer?.data?.email,
+    payload?.data?.customer_email,
+    payload?.data?.buyer?.email,
+    payload?.data?.client?.email,
+    payload?.data?.contact?.email,
+    payload?.data?.email,
+    payload?.customer?.email,
+    payload?.customer_email,
+    payload?.buyer?.email,
+    payload?.client?.email,
+    payload?.contact?.email,
+    payload?.email,
+  ];
+
+  for (const candidate of candidates) {
+    const email = normalizeEmail(candidate);
+    if (email) return email;
+  }
+
+  return findNestedEmail(payload?.resource) ?? findNestedEmail(payload?.data) ?? findNestedEmail(payload);
 }
 
 function pickOrderId(payload: any): string | null {
