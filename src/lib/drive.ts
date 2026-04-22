@@ -13,7 +13,7 @@ export type DriveTree = {
 };
 
 let cache: Promise<DriveTree> | null = null;
-const DRIVE_TREE_VERSION = "2026-04-22-5";
+const DRIVE_TREE_VERSION = "2026-04-22-6";
 
 export function loadDriveTree(): Promise<DriveTree> {
   if (!cache) {
