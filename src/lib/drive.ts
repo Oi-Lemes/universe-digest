@@ -13,10 +13,13 @@ export type DriveTree = {
 };
 
 let cache: Promise<DriveTree> | null = null;
+const DRIVE_TREE_VERSION = "2026-04-22-2";
 
 export function loadDriveTree(): Promise<DriveTree> {
   if (!cache) {
-    cache = fetch("/data/drive_tree.json").then((r) => {
+    cache = fetch(`/data/drive_tree.json?v=${DRIVE_TREE_VERSION}`, {
+      cache: "no-store",
+    }).then((r) => {
       if (!r.ok) throw new Error("Falha ao carregar árvore do Drive");
       return r.json() as Promise<DriveTree>;
     });
