@@ -32,7 +32,8 @@ export function folderUrl(id: string): string {
 }
 
 export function filePreviewUrl(id: string): string {
-  return `https://drive.google.com/file/d/${id}/preview`;
+  // rm=minimal hides the Drive viewer toolbar (open in new window, popout, etc.)
+  return `https://drive.google.com/file/d/${id}/preview?rm=minimal`;
 }
 
 export function fileViewUrl(id: string): string {
