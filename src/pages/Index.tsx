@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight, Home, LogOut, Search } from "lucide-react";
+import { ChevronRight, Home, LogOut } from "lucide-react";
 import { DriveNode, DriveTree, loadDriveTree } from "@/lib/drive";
 import { FolderGrid } from "@/components/FolderGrid";
 import { ComicReader } from "@/components/ComicReader";
+import { GlobalSearch } from "@/components/GlobalSearch";
+import { PublisherTab } from "@/components/PublisherTab";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
 
