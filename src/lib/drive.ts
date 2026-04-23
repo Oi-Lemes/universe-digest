@@ -40,7 +40,9 @@ export function fileViewUrl(id: string): string {
 }
 
 export function fileDownloadUrl(id: string): string {
-  return `https://drive.google.com/uc?export=download&id=${id}`;
+  // usercontent endpoint serves Content-Disposition: attachment and bypasses
+  // the "can't scan for viruses" interstitial for large files.
+  return `https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t`;
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
