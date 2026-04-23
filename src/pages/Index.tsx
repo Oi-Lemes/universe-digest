@@ -186,15 +186,12 @@ const Index = () => {
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <div className="relative w-full max-w-xs hidden sm:block">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar nesta pasta..."
-                className="pl-8 h-9 bg-secondary border-border"
-              />
-            </div>
+            <GlobalSearch
+              tree={tree}
+              onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
+              onOpenFolder={(pub, ids, names) => handleJumpTo(pub, ids, names)}
+              className="w-full max-w-xs hidden sm:block"
+            />
             <Button
               variant="ghost"
               size="sm"
@@ -209,15 +206,11 @@ const Index = () => {
         </div>
         {/* mobile search */}
         <div className="px-4 pb-3 sm:hidden">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar nesta pasta..."
-              className="pl-8 h-9 bg-secondary border-border"
-            />
-          </div>
+          <GlobalSearch
+            tree={tree}
+            onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
+            onOpenFolder={(pub, ids, names) => handleJumpTo(pub, ids, names)}
+          />
         </div>
       </header>
 
