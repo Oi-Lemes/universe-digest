@@ -26,12 +26,82 @@ const Index = () => {
     loadDriveTree()
       .then((t) => {
         setTree(t);
-        if (t.children.length) setActivePublisherId(t.children[0].id);
       })
       .catch((e) => setError(e.message));
   }, []);
 
-  const publishers = tree?.children ?? [];
+
+  // Ordem priorizada das editoras mais conhecidas no topo.
+  // Nomes devem bater (case-insensitive) com os do drive_tree.json.
+  const PUBLISHER_PRIORITY = [
+    "Marvel",
+    "DC",
+    "Vertigo",
+    "Image Comics",
+    "Dark Horse Comics",
+    "IDW",
+    "Boom! Studios",
+    "Dynamite",
+    "Avatar Press",
+    "Titan Comics",
+    "Panini",
+    "Disney",
+    "Sergio Bonelli",
+    "Tex",
+    "Zagor",
+    "Dargaud",
+    "Soleil",
+    "Star Comics",
+    "MAD",
+    "Ebal",
+    "Editora Abril",
+    "Editora Globo",
+    "Editora Indiana",
+    "Editoras Brasileiras",
+    "Mangás",
+    "Scott Pilgrim",
+    "Lobo Solitário 10 Volumes",
+    "Mundo Sombrio de Sabrina",
+    "Patsy Walker M.C.C. Felina",
+    "Bíblia em Quadrinhos",
+    "Infantil",
+    "Oriental",
+    "Independentes",
+    "Variados",
+    "Redbox",
+    "Sentinela",
+    "Beckett",
+    "Abstract Studios",
+    "Ablaze Publishing",
+    "Arzach",
+    "Éditions Atrabile",
+    "Atualizações Quinzenais",
+    "Bônus",
+  ];
+
+  const publishers = useMemo(() => {
+    const list = tree?.children ?? [];
+    const idx = (name: string) => {
+      const i = PUBLISHER_PRIORITY.findIndex(
+        (p) => p.toLowerCase() === name.toLowerCase()
+      );
+      return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+    };
+    return [...list].sort((a, b) => {
+      const ai = idx(a.name);
+      const bi = idx(b.name);
+      if (ai !== bi) return ai - bi;
+      return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
+    });
+  }, [tree]);
+
+  // Seleciona a primeira editora respeitando a ordem priorizada.
+  useEffect(() => {
+    if (!activePublisherId && publishers.length) {
+      setActivePublisherId(publishers[0].id);
+    }
+  }, [publishers, activePublisherId]);
+
   const activePublisher = useMemo(
     () => publishers.find((p) => p.id === activePublisherId) ?? null,
     [publishers, activePublisherId]
