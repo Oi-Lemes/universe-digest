@@ -30,7 +30,7 @@ export const PublisherTab = ({ id, name }: Props) => {
       value={id}
       style={style}
       className={cn(
-        "relative rounded-md font-bold uppercase gap-1.5 px-3 py-1.5 whitespace-nowrap",
+        "relative rounded-md font-bold uppercase gap-2.5 px-4 py-2.5 whitespace-nowrap",
         "border transition-all duration-200",
         // Inativo: tom da marca esmaecido + texto desbotado
         "border-[hsl(var(--pub-color)/0.35)]",
@@ -50,15 +50,22 @@ export const PublisherTab = ({ id, name }: Props) => {
       )}
     >
       {theme.logo && (
-        <img
-          src={theme.logo}
-          alt=""
-          aria-hidden
-          loading="lazy"
-          width={22}
-          height={22}
-          className="w-[22px] h-[22px] object-contain shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
-        />
+        <span
+          className={cn(
+            "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0 overflow-hidden",
+            "bg-white ring-1 ring-black/10 shadow-sm"
+          )}
+        >
+          <img
+            src={theme.logo}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            width={28}
+            height={28}
+            className="w-full h-full object-contain p-0.5"
+          />
+        </span>
       )}
       <span>{name}</span>
     </TabsTrigger>
