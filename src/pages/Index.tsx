@@ -95,6 +95,13 @@ const Index = () => {
     });
   }, [tree]);
 
+  // Seleciona a primeira editora respeitando a ordem priorizada.
+  useEffect(() => {
+    if (!activePublisherId && publishers.length) {
+      setActivePublisherId(publishers[0].id);
+    }
+  }, [publishers, activePublisherId]);
+
   const activePublisher = useMemo(
     () => publishers.find((p) => p.id === activePublisherId) ?? null,
     [publishers, activePublisherId]
