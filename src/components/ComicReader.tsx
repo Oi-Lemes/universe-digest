@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import {
   fileDownloadUrl,
   filePreviewUrl,
-  fileViewUrl,
   isViewableInDrive,
   fileExt,
 } from "@/lib/drive";
-import { Download, ExternalLink, FileWarning } from "lucide-react";
+import { Download, FileWarning } from "lucide-react";
 
 type Props = {
   fileId: string | null;
@@ -19,6 +18,22 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   const viewable = fileId ? isViewableInDrive(fileName) : false;
   const ext = fileName ? fileExt(fileName) : "";
 
+  const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!fileId) return;
+    // Force a real download trigger across browsers (Android Chrome, iOS Safari, desktop).
+    // The usercontent endpoint already returns Content-Disposition: attachment,
+    // so the browser starts a native download instead of navigating.
+    e.preventDefault();
+    const a = document.createElement("a");
+    a.href = fileDownloadUrl(fileId);
+    a.download = fileName;
+    a.rel = "noopener";
+    // iOS Safari requires the link to be in the DOM and to be a user-gesture click.
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   return (
     <Dialog open={!!fileId} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-6xl h-[90vh] p-0 overflow-hidden bg-card border-border">
@@ -27,18 +42,15 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
           <header className="flex items-center gap-2 px-4 py-2 border-b border-border bg-secondary/40">
             <h2 className="font-semibold truncate text-sm flex-1 pr-8">{fileName}</h2>
             {fileId && (
-              <>
-                <Button asChild size="sm" variant="secondary" className="h-7 gap-1">
-                  <a href={fileViewUrl(fileId)} target="_blank" rel="noreferrer">
-                    <ExternalLink className="w-3.5 h-3.5" /> Abrir no Drive
-                  </a>
-                </Button>
-                <Button asChild size="sm" variant="secondary" className="h-7 gap-1">
-                  <a href={fileDownloadUrl(fileId)} target="_blank" rel="noreferrer">
-                    <Download className="w-3.5 h-3.5" /> Baixar
-                  </a>
-                </Button>
-              </>
+              <Button asChild size="sm" variant="secondary" className="h-7 gap-1">
+                <a
+                  href={fileDownloadUrl(fileId)}
+                  onClick={handleDownload}
+                  download={fileName}
+                >
+                  <Download className="w-3.5 h-3.5" /> Baixar
+                </a>
+              </Button>
             )}
           </header>
 
@@ -61,28 +73,25 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
                   Formato {ext ? `.${ext}` : ""} não pode ser lido aqui
                 </h3>
                 <p className="text-muted-foreground max-w-md">
-                  O Google Drive não consegue exibir arquivos compactados como{" "}
+                  Arquivos compactados como{" "}
                   <code className="text-foreground">.cbr</code>,{" "}
                   <code className="text-foreground">.cbz</code> ou{" "}
-                  <code className="text-foreground">.rar</code> dentro do navegador.
+                  <code className="text-foreground">.rar</code> não podem ser exibidos no navegador.
                   <br />
                   Baixe a HQ e abra com um leitor como{" "}
                   <strong>YACReader</strong>, <strong>CDisplayEx</strong> ou{" "}
                   <strong>Simple Comic</strong>.
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button asChild>
-                  <a href={fileDownloadUrl(fileId)} target="_blank" rel="noreferrer">
-                    <Download className="w-4 h-4 mr-1.5" /> Baixar HQ
-                  </a>
-                </Button>
-                <Button asChild variant="secondary">
-                  <a href={fileViewUrl(fileId)} target="_blank" rel="noreferrer">
-                    <ExternalLink className="w-4 h-4 mr-1.5" /> Abrir no Drive
-                  </a>
-                </Button>
-              </div>
+              <Button asChild size="lg">
+                <a
+                  href={fileDownloadUrl(fileId)}
+                  onClick={handleDownload}
+                  download={fileName}
+                >
+                  <Download className="w-4 h-4 mr-1.5" /> Baixar HQ
+                </a>
+              </Button>
             </div>
           )}
         </div>
