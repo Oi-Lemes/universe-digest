@@ -26,7 +26,6 @@ const Index = () => {
     loadDriveTree()
       .then((t) => {
         setTree(t);
-        if (t.children.length) setActivePublisherId(t.children[0].id);
       })
       .catch((e) => setError(e.message));
   }, []);
