@@ -118,26 +118,33 @@ const Index = () => {
     return node;
   }, [activePublisher, crumbs]);
 
-  const items = useMemo<DriveNode[]>(() => {
-    const list = currentFolder?.children ?? [];
-    if (!search.trim()) return list;
-    const q = search.toLowerCase();
-    return list.filter((n) => n.name.toLowerCase().includes(q));
-  }, [currentFolder, search]);
+  const items = useMemo<DriveNode[]>(
+    () => currentFolder?.children ?? [],
+    [currentFolder]
+  );
 
   const handleSelectPublisher = (id: string) => {
     setActivePublisherId(id);
     setCrumbs([]);
-    setSearch("");
   };
 
   const handleOpenFolder = (node: DriveNode) => {
     setCrumbs((c) => [...c, { id: node.id, name: node.name }]);
-    setSearch("");
   };
 
   const handleCrumbClick = (idx: number) => {
     setCrumbs((c) => c.slice(0, idx + 1));
+  };
+
+  /** Jump to a folder anywhere in the tree (used by the global search). */
+  const handleJumpTo = (
+    publisher: DriveNode,
+    pathIds: string[],
+    pathNames: string[]
+  ) => {
+    setActivePublisherId(publisher.id);
+    setCrumbs(pathIds.map((id, i) => ({ id, name: pathNames[i] })));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (error) {
