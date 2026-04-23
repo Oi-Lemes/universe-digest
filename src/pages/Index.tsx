@@ -30,13 +30,6 @@ const Index = () => {
       .catch((e) => setError(e.message));
   }, []);
 
-  // Selecionar a primeira editora respeitando a nova ordem priorizada.
-  useEffect(() => {
-    if (!activePublisherId && tree && tree.children.length) {
-      // publishers é calculado abaixo via useMemo; usamos o mesmo critério aqui.
-      // Para evitar duplicação, deixamos o set acontecer quando publishers existir.
-    }
-  }, [tree, activePublisherId]);
 
   // Ordem priorizada das editoras mais conhecidas no topo.
   // Nomes devem bater (case-insensitive) com os do drive_tree.json.
