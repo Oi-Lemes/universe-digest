@@ -20,7 +20,6 @@ const Index = () => {
   const [error, setError] = useState<string | null>(null);
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
-  const [search, setSearch] = useState("");
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
