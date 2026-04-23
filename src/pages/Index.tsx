@@ -222,13 +222,7 @@ const Index = () => {
         <ScrollArea className="w-full whitespace-nowrap rounded-lg bg-secondary/40 border border-border">
           <TabsList className="bg-transparent h-auto p-1.5 gap-1 inline-flex w-max">
             {publishers.map((p) => (
-              <TabsTrigger
-                key={p.id}
-                value={p.id}
-                className="data-[state=active]:bg-cta data-[state=active]:text-primary-foreground data-[state=active]:shadow-cta rounded-md text-xs font-bold uppercase tracking-wide"
-              >
-                {p.name}
-              </TabsTrigger>
+              <PublisherTab key={p.id} id={p.id} name={p.name} />
             ))}
           </TabsList>
           <ScrollBar orientation="horizontal" />
@@ -265,11 +259,7 @@ const Index = () => {
               items={items}
               onOpenFolder={handleOpenFolder}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
-              emptyHint={
-                search.trim()
-                  ? `Nenhum resultado para "${search}".`
-                  : "Pasta vazia."
-              }
+              emptyHint="Pasta vazia."
             />
           </TabsContent>
         ))}
