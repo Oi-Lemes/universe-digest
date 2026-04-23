@@ -220,7 +220,7 @@ const Index = () => {
         className="max-w-7xl mx-auto px-4 py-4"
       >
         <ScrollArea className="w-full whitespace-nowrap rounded-lg bg-secondary/40 border border-border">
-          <TabsList className="bg-transparent h-auto p-1.5 gap-1 inline-flex w-max">
+          <TabsList className="bg-transparent h-auto p-2.5 gap-2 inline-flex w-max">
             {publishers.map((p) => (
               <PublisherTab key={p.id} id={p.id} name={p.name} />
             ))}
