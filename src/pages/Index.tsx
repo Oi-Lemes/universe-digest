@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight, Home, LogOut, Search } from "lucide-react";
+import { ChevronRight, Home, LogOut } from "lucide-react";
 import { DriveNode, DriveTree, loadDriveTree } from "@/lib/drive";
 import { FolderGrid } from "@/components/FolderGrid";
 import { ComicReader } from "@/components/ComicReader";
+import { GlobalSearch } from "@/components/GlobalSearch";
+import { PublisherTab } from "@/components/PublisherTab";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
 
@@ -19,7 +20,6 @@ const Index = () => {
   const [error, setError] = useState<string | null>(null);
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
-  const [search, setSearch] = useState("");
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
@@ -118,26 +118,33 @@ const Index = () => {
     return node;
   }, [activePublisher, crumbs]);
 
-  const items = useMemo<DriveNode[]>(() => {
-    const list = currentFolder?.children ?? [];
-    if (!search.trim()) return list;
-    const q = search.toLowerCase();
-    return list.filter((n) => n.name.toLowerCase().includes(q));
-  }, [currentFolder, search]);
+  const items = useMemo<DriveNode[]>(
+    () => currentFolder?.children ?? [],
+    [currentFolder]
+  );
 
   const handleSelectPublisher = (id: string) => {
     setActivePublisherId(id);
     setCrumbs([]);
-    setSearch("");
   };
 
   const handleOpenFolder = (node: DriveNode) => {
     setCrumbs((c) => [...c, { id: node.id, name: node.name }]);
-    setSearch("");
   };
 
   const handleCrumbClick = (idx: number) => {
     setCrumbs((c) => c.slice(0, idx + 1));
+  };
+
+  /** Jump to a folder anywhere in the tree (used by the global search). */
+  const handleJumpTo = (
+    publisher: DriveNode,
+    pathIds: string[],
+    pathNames: string[]
+  ) => {
+    setActivePublisherId(publisher.id);
+    setCrumbs(pathIds.map((id, i) => ({ id, name: pathNames[i] })));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (error) {
@@ -179,15 +186,12 @@ const Index = () => {
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <div className="relative w-full max-w-xs hidden sm:block">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar nesta pasta..."
-                className="pl-8 h-9 bg-secondary border-border"
-              />
-            </div>
+            <GlobalSearch
+              tree={tree}
+              onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
+              onOpenFolder={(pub, ids, names) => handleJumpTo(pub, ids, names)}
+              className="w-full max-w-xs hidden sm:block"
+            />
             <Button
               variant="ghost"
               size="sm"
@@ -202,15 +206,11 @@ const Index = () => {
         </div>
         {/* mobile search */}
         <div className="px-4 pb-3 sm:hidden">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar nesta pasta..."
-              className="pl-8 h-9 bg-secondary border-border"
-            />
-          </div>
+          <GlobalSearch
+            tree={tree}
+            onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
+            onOpenFolder={(pub, ids, names) => handleJumpTo(pub, ids, names)}
+          />
         </div>
       </header>
 
@@ -222,13 +222,7 @@ const Index = () => {
         <ScrollArea className="w-full whitespace-nowrap rounded-lg bg-secondary/40 border border-border">
           <TabsList className="bg-transparent h-auto p-1.5 gap-1 inline-flex w-max">
             {publishers.map((p) => (
-              <TabsTrigger
-                key={p.id}
-                value={p.id}
-                className="data-[state=active]:bg-cta data-[state=active]:text-primary-foreground data-[state=active]:shadow-cta rounded-md text-xs font-bold uppercase tracking-wide"
-              >
-                {p.name}
-              </TabsTrigger>
+              <PublisherTab key={p.id} id={p.id} name={p.name} />
             ))}
           </TabsList>
           <ScrollBar orientation="horizontal" />
@@ -265,11 +259,7 @@ const Index = () => {
               items={items}
               onOpenFolder={handleOpenFolder}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
-              emptyHint={
-                search.trim()
-                  ? `Nenhum resultado para "${search}".`
-                  : "Pasta vazia."
-              }
+              emptyHint="Pasta vazia."
             />
           </TabsContent>
         ))}
