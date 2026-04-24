@@ -14,6 +14,17 @@ import bonelli from "@/assets/publishers/bonelli.png";
 import boom from "@/assets/publishers/boom.png";
 import dynamite from "@/assets/publishers/dynamite.png";
 import shueisha from "@/assets/publishers/shueisha.png";
+import avatarPress from "@/assets/publishers/avatar-press.png";
+import titan from "@/assets/publishers/titan.png";
+import tex from "@/assets/publishers/tex.png";
+import zagor from "@/assets/publishers/zagor.png";
+import dargaud from "@/assets/publishers/dargaud.png";
+import soleil from "@/assets/publishers/soleil.png";
+import starComics from "@/assets/publishers/star-comics.png";
+import ebal from "@/assets/publishers/ebal.png";
+import abril from "@/assets/publishers/abril.png";
+import globo from "@/assets/publishers/globo.png";
+import mangas from "@/assets/publishers/mangas.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
