@@ -37,10 +37,6 @@ const Index = () => {
     "Marvel",
     "DC",
     "Shueisha",
-    "Nintendo",
-    "Capcom",
-    "Midway",
-    "Sega",
     "Vertigo",
     "Image Comics",
     "Dark Horse Comics",
@@ -116,112 +112,25 @@ const Index = () => {
   const publishers = useMemo(() => {
     const list = tree?.children ?? [];
 
-    /** Busca um node descendo por uma sequência de nomes (case-insensitive). */
-    const findPath = (root: DriveNode | DriveTree, parts: string[]): DriveNode | null => {
-      let node: any = root;
-      for (const p of parts) {
-        const next = (node.children ?? []).find(
-          (c: DriveNode) => c.name.trim().toLowerCase() === p.trim().toLowerCase()
-        );
-        if (!next) return null;
-        node = next;
-      }
-      return node as DriveNode;
-    };
-
-    const sortByName = (a: DriveNode, b: DriveNode) =>
-      a.name.localeCompare(b.name, "pt-BR", { numeric: true });
-
-    /** Cria uma editora virtual com ID estável; retorna null se não houver children. */
-    const buildVirtual = (
-      id: string,
-      name: string,
-      children: DriveNode[]
-    ): DriveNode | null => {
-      const filtered = children.filter(Boolean);
-      if (!filtered.length) return null;
-      return {
-        id,
-        name,
-        type: "folder",
-        children: [...filtered].sort(sortByName),
-      };
-    };
-
-    // ---- Shueisha (obras dentro de "Mangás") ----
+    // Monta a "editora virtual" Shueisha a partir das obras dentro de "Mangás".
     const mangas = list.find((n) => n.name.toLowerCase() === "mangás");
     const shueishaSet = new Set(SHUEISHA_TITLES.map((s) => s.toLowerCase()));
     const shueishaChildren = (mangas?.children ?? []).filter((n) =>
       shueishaSet.has(n.name.toLowerCase())
     );
-    const virtualShueisha = buildVirtual(
-      "virtual-shueisha",
-      "Shueisha",
-      shueishaChildren
-    );
+    const virtualShueisha: DriveNode | null =
+      shueishaChildren.length > 0
+        ? {
+            id: "virtual-shueisha",
+            name: "Shueisha",
+            type: "folder",
+            children: [...shueishaChildren].sort((a, b) =>
+              a.name.localeCompare(b.name, "pt-BR", { numeric: true })
+            ),
+          }
+        : null;
 
-    // ---- Nintendo (Zelda em Atualizações Quinzenais/Mangás) ----
-    const ATU = "Atualizações Quinzenais";
-    const INC = "Império dos Quadrinhos - Inclusão de conteúdos";
-    const zelda = findPath(tree as any, [ATU, INC, "Mangás", "Zelda"]);
-    const virtualNintendo = buildVirtual(
-      "virtual-nintendo",
-      "Nintendo",
-      [zelda].filter(Boolean) as DriveNode[]
-    );
-
-    // ---- Capcom (Mega Man em Atualizações Quinzenais/Quadrinhos) ----
-    const megaman = findPath(tree as any, [ATU, INC, "Quadrinhos", "Mega Man"]);
-    const virtualCapcom = buildVirtual(
-      "virtual-capcom",
-      "Capcom",
-      [megaman].filter(Boolean) as DriveNode[]
-    );
-
-    // ---- Midway (Mortal Kombat em DC e em Atualizações Quinzenais) ----
-    const mkDc = list
-      .find((n) => n.name === "DC")
-      ?.children?.find((c) => c.name.toLowerCase() === "mortal kombat");
-    const mkAtu = findPath(tree as any, [ATU, INC, "Quadrinhos", "Mortal Kombat"]);
-    const mkAtuCompleto = findPath(tree as any, [
-      ATU,
-      INC,
-      "Quadrinhos",
-      "Mortal Kombat - Completo",
-    ]);
-    // Renomeia para evitar dois "Mortal Kombat" iguais lado a lado
-    const mkChildren: DriveNode[] = [];
-    if (mkDc) mkChildren.push({ ...mkDc, name: "Mortal Kombat - Sangue e Trovão (DC)" });
-    if (mkAtu) mkChildren.push({ ...mkAtu, name: "Mortal Kombat X" });
-    if (mkAtuCompleto) mkChildren.push(mkAtuCompleto);
-    const virtualMidway = buildVirtual("virtual-midway", "Midway", mkChildren);
-
-    // ---- Sega (Sonic avulso em Variados) ----
-    const variados = list.find((n) => n.name.toLowerCase() === "variados");
-    const sonicFiles =
-      variados?.children?.filter((c) => c.name.toLowerCase().includes("sonic")) ?? [];
-    const sonicGroup: DriveNode | null = sonicFiles.length
-      ? {
-          id: "virtual-sega-sonic",
-          name: "Sonic the Hedgehog",
-          type: "folder",
-          children: [...sonicFiles].sort(sortByName),
-        }
-      : null;
-    const virtualSega = buildVirtual(
-      "virtual-sega",
-      "Sega",
-      [sonicGroup].filter(Boolean) as DriveNode[]
-    );
-
-    const merged = [
-      ...list,
-      virtualShueisha,
-      virtualNintendo,
-      virtualCapcom,
-      virtualMidway,
-      virtualSega,
-    ].filter(Boolean) as DriveNode[];
+    const merged = virtualShueisha ? [...list, virtualShueisha] : list;
 
     const idx = (name: string) => {
       const i = PUBLISHER_PRIORITY.findIndex(
