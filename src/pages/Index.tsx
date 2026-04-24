@@ -80,8 +80,58 @@ const Index = () => {
     "Bônus",
   ];
 
+  // Obras Shueisha (Weekly Shōnen Jump, Jump SQ, Young Jump etc.) presentes em "Mangás".
+  // Match case-insensitive com o nome da pasta no drive_tree.
+  const SHUEISHA_TITLES = [
+    "ONE PIECE",
+    "NARUTO",
+    "BORUTO",
+    "BORUTO TWO BLUE VORTEX",
+    "BLEACH",
+    "Dragon Ball",
+    "DRAGON BALL",
+    "DEMON SLAYER",
+    "JUJUTSU KAISEN",
+    "BLACK CLOVER",
+    "DEATH NOTE",
+    "ONE PUNCH MAN",
+    "JOJO COMPLETO",
+    "CDZ - Saint Seiya",
+    "THE LOST CANVAS CDZ",
+    "SAMURAI X",
+    "Slam Dunk",
+    "YU YU HAKUSHO",
+    "Yu-Gi-Oh!",
+    "Captain Tsubasa",
+    "Shueisha_s Shōnen Jump",
+    "GANTZ",
+    "THE ELUSIVE SAMURAI",
+    "FULLMETAL ALCHEMIST",
+  ];
+
   const publishers = useMemo(() => {
     const list = tree?.children ?? [];
+
+    // Monta a "editora virtual" Shueisha a partir das obras dentro de "Mangás".
+    const mangas = list.find((n) => n.name.toLowerCase() === "mangás");
+    const shueishaSet = new Set(SHUEISHA_TITLES.map((s) => s.toLowerCase()));
+    const shueishaChildren = (mangas?.children ?? []).filter((n) =>
+      shueishaSet.has(n.name.toLowerCase())
+    );
+    const virtualShueisha: DriveNode | null =
+      shueishaChildren.length > 0
+        ? {
+            id: "virtual-shueisha",
+            name: "Shueisha",
+            type: "folder",
+            children: [...shueishaChildren].sort((a, b) =>
+              a.name.localeCompare(b.name, "pt-BR", { numeric: true })
+            ),
+          }
+        : null;
+
+    const merged = virtualShueisha ? [...list, virtualShueisha] : list;
+
     const idx = (name: string) => {
       const i = PUBLISHER_PRIORITY.findIndex(
         (p) => p.toLowerCase() === name.toLowerCase()
