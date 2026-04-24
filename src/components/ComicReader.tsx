@@ -55,14 +55,20 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
           </header>
 
           {fileId && viewable && (
-            <iframe
-              key={fileId}
-              src={filePreviewUrl(fileId)}
-              className="flex-1 w-full bg-background"
-              allow="autoplay"
-              allowFullScreen
-              title={fileName}
-            />
+            <div className="relative flex-1 bg-background">
+              <iframe
+                key={fileId}
+                src={filePreviewUrl(fileId)}
+                className="h-full w-full bg-background"
+                allow="autoplay"
+                allowFullScreen
+                title={fileName}
+              />
+              <div
+                aria-hidden="true"
+                className="absolute bottom-0 right-0 z-10 h-24 w-24 bg-background"
+              />
+            </div>
           )}
 
           {fileId && !viewable && (
