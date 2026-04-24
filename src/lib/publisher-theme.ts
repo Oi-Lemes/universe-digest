@@ -51,6 +51,15 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.1em",
     fontSize: "0.78rem",
   },
+  shueisha: {
+    color: "0 88% 50%",
+    colorAlt: "0 0% 8%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Reggae One", "RocknRoll One", "Bungee", Impact, sans-serif',
+    logo: shueisha,
+    letterSpacing: "0.05em",
+    fontSize: "0.82rem",
+  },
   vertigo: {
     color: "350 85% 45%",
     colorAlt: "0 0% 5%",
