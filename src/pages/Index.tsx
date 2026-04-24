@@ -36,6 +36,7 @@ const Index = () => {
   const PUBLISHER_PRIORITY = [
     "Marvel",
     "DC",
+    "Shueisha",
     "Vertigo",
     "Image Comics",
     "Dark Horse Comics",
