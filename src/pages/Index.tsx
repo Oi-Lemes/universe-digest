@@ -117,10 +117,14 @@ const Index = () => {
     const list = tree?.children ?? [];
 
     /** Busca um node descendo por uma sequência de nomes (case-insensitive). */
-    const findPath = (root: DriveNode | DriveTree, parts: string[]): DriveNode | null => {
+    const findPath = (
+      root: DriveNode | DriveTree | null | undefined,
+      parts: string[]
+    ): DriveNode | null => {
+      if (!root) return null;
       let node: any = root;
       for (const p of parts) {
-        const next = (node.children ?? []).find(
+        const next = (node?.children ?? []).find(
           (c: DriveNode) => c.name.trim().toLowerCase() === p.trim().toLowerCase()
         );
         if (!next) return null;
