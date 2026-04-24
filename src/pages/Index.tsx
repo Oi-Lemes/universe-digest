@@ -138,7 +138,7 @@ const Index = () => {
       );
       return i === -1 ? Number.MAX_SAFE_INTEGER : i;
     };
-    return [...list].sort((a, b) => {
+    return [...merged].sort((a, b) => {
       const ai = idx(a.name);
       const bi = idx(b.name);
       if (ai !== bi) return ai - bi;
