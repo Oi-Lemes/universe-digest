@@ -13,6 +13,7 @@ import mad from "@/assets/publishers/mad.png";
 import bonelli from "@/assets/publishers/bonelli.png";
 import boom from "@/assets/publishers/boom.png";
 import dynamite from "@/assets/publishers/dynamite.png";
+import shueisha from "@/assets/publishers/shueisha.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
