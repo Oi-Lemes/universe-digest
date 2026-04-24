@@ -14,6 +14,17 @@ import bonelli from "@/assets/publishers/bonelli.png";
 import boom from "@/assets/publishers/boom.png";
 import dynamite from "@/assets/publishers/dynamite.png";
 import shueisha from "@/assets/publishers/shueisha.png";
+import avatarPress from "@/assets/publishers/avatar-press.png";
+import titan from "@/assets/publishers/titan.png";
+import tex from "@/assets/publishers/tex.png";
+import zagor from "@/assets/publishers/zagor.png";
+import dargaud from "@/assets/publishers/dargaud.png";
+import soleil from "@/assets/publishers/soleil.png";
+import starComics from "@/assets/publishers/star-comics.png";
+import ebal from "@/assets/publishers/ebal.png";
+import abril from "@/assets/publishers/abril.png";
+import globo from "@/assets/publishers/globo.png";
+import mangas from "@/assets/publishers/mangas.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -149,6 +160,105 @@ const THEMES: Record<string, PublisherTheme> = {
     logo: dynamite,
     letterSpacing: "0.06em",
     fontSize: "0.78rem",
+  },
+  "avatar press": {
+    color: "0 0% 8%",
+    colorAlt: "0 80% 35%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
+    logo: avatarPress,
+    letterSpacing: "0.08em",
+    fontSize: "0.92rem",
+  },
+  "titan comics": {
+    color: "220 80% 40%",
+    colorAlt: "220 90% 25%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Russo One", "Anton", Impact, sans-serif',
+    logo: titan,
+    letterSpacing: "0.1em",
+    fontSize: "0.78rem",
+  },
+  tex: {
+    color: "25 70% 38%",
+    colorAlt: "20 80% 22%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Rye", "IM Fell English SC", serif',
+    logo: tex,
+    letterSpacing: "0.08em",
+    fontSize: "0.85rem",
+  },
+  zagor: {
+    color: "0 88% 45%",
+    colorAlt: "0 0% 8%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Pirata One", "Black Ops One", Impact, sans-serif',
+    logo: zagor,
+    letterSpacing: "0.06em",
+    fontSize: "0.95rem",
+  },
+  dargaud: {
+    color: "220 80% 28%",
+    colorAlt: "220 70% 18%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Cinzel", "Playfair Display", serif',
+    logo: dargaud,
+    letterSpacing: "0.12em",
+    fontSize: "0.78rem",
+  },
+  soleil: {
+    color: "42 95% 50%",
+    colorAlt: "30 95% 42%",
+    foreground: "0 0% 8%",
+    fontFamily: '"Cinzel", "Playfair Display", serif',
+    logo: soleil,
+    letterSpacing: "0.1em",
+    fontSize: "0.78rem",
+  },
+  "star comics": {
+    color: "285 70% 42%",
+    colorAlt: "275 80% 28%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Bungee", "Russo One", Impact, sans-serif',
+    logo: starComics,
+    letterSpacing: "0.08em",
+    fontSize: "0.78rem",
+  },
+  ebal: {
+    color: "140 65% 28%",
+    colorAlt: "140 70% 18%",
+    foreground: "0 0% 100%",
+    fontFamily: '"IM Fell English SC", "Special Elite", serif',
+    logo: ebal,
+    letterSpacing: "0.1em",
+    fontSize: "0.85rem",
+  },
+  "editora abril": {
+    color: "0 88% 48%",
+    colorAlt: "0 90% 35%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Anton", Impact, sans-serif',
+    logo: abril,
+    letterSpacing: "0.12em",
+    fontSize: "0.82rem",
+  },
+  "editora globo": {
+    color: "220 75% 32%",
+    colorAlt: "220 80% 20%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Russo One", Impact, sans-serif',
+    logo: globo,
+    letterSpacing: "0.08em",
+    fontSize: "0.78rem",
+  },
+  "mangás": {
+    color: "0 0% 8%",
+    colorAlt: "0 85% 45%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Reggae One", "RocknRoll One", "Bungee", Impact, sans-serif',
+    logo: mangas,
+    letterSpacing: "0.05em",
+    fontSize: "0.82rem",
   },
 };
 
