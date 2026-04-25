@@ -37,6 +37,7 @@ const Index = () => {
     "Marvel",
     "DC",
     "Shueisha",
+    "Turma da Mônica",
     "Vertigo",
     "Image Comics",
     "Dark Horse Comics",
