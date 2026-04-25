@@ -130,7 +130,54 @@ const Index = () => {
           }
         : null;
 
-    const merged = virtualShueisha ? [...list, virtualShueisha] : list;
+    // Editora virtual "Turma da Mônica":
+    // - Move "Turma da Mônica" e "Parque da Mônica" de dentro de "Infantil".
+    // - Move "Turma da Mônica Jovem" de dentro de "Panini".
+    const isMonicaName = (name: string) => /m[ôo]nica/i.test(name);
+
+    const infantil = list.find((n) => n.name.toLowerCase() === "infantil");
+    const panini = list.find((n) => n.name.toLowerCase() === "panini");
+
+    const monicaChildren: DriveNode[] = [];
+    if (infantil?.children) {
+      monicaChildren.push(
+        ...infantil.children.filter((n) => isMonicaName(n.name))
+      );
+    }
+    if (panini?.children) {
+      monicaChildren.push(
+        ...panini.children.filter((n) => isMonicaName(n.name))
+      );
+    }
+
+    const virtualMonica: DriveNode | null =
+      monicaChildren.length > 0
+        ? {
+            id: "virtual-turma-da-monica",
+            name: "Turma da Mônica",
+            type: "folder",
+            children: [...monicaChildren].sort((a, b) =>
+              a.name.localeCompare(b.name, "pt-BR", { numeric: true })
+            ),
+          }
+        : null;
+
+    // Realoca: remove as pastas movidas dos pais originais (sem mutar o original).
+    const filtered = list.map((n) => {
+      if (n.name.toLowerCase() === "infantil" && n.children) {
+        return { ...n, children: n.children.filter((c) => !isMonicaName(c.name)) };
+      }
+      if (n.name.toLowerCase() === "panini" && n.children) {
+        return { ...n, children: n.children.filter((c) => !isMonicaName(c.name)) };
+      }
+      return n;
+    });
+
+    const merged = [
+      ...filtered,
+      ...(virtualShueisha ? [virtualShueisha] : []),
+      ...(virtualMonica ? [virtualMonica] : []),
+    ];
 
     const idx = (name: string) => {
       const i = PUBLISHER_PRIORITY.findIndex(
