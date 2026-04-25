@@ -55,6 +55,7 @@ const Index = () => {
     "Star Comics",
     "MAD",
     "Ebal",
+    "Turma da Mônica",
     "Editora Abril",
     "Editora Globo",
     "Editora Indiana",
