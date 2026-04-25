@@ -25,6 +25,7 @@ import ebal from "@/assets/publishers/ebal.png";
 import abril from "@/assets/publishers/abril.png";
 import globo from "@/assets/publishers/globo.png";
 import mangas from "@/assets/publishers/mangas.png";
+import turmaDaMonica from "@/assets/publishers/turma-da-monica.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -258,6 +259,15 @@ const THEMES: Record<string, PublisherTheme> = {
     fontFamily: '"Reggae One", "RocknRoll One", "Bungee", Impact, sans-serif',
     logo: mangas,
     letterSpacing: "0.05em",
+    fontSize: "0.82rem",
+  },
+  "turma da mônica": {
+    color: "0 85% 52%",
+    colorAlt: "48 100% 55%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Fredoka", "Patrick Hand", "Bangers", sans-serif',
+    logo: turmaDaMonica,
+    letterSpacing: "0.04em",
     fontSize: "0.82rem",
   },
 };
