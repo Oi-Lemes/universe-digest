@@ -13,7 +13,7 @@ export type DriveTree = {
 };
 
 let cache: Promise<DriveTree> | null = null;
-const DRIVE_TREE_VERSION = "2026-04-25-2";
+const DRIVE_TREE_VERSION = "2026-04-25-3";
 
 export function loadDriveTree(): Promise<DriveTree> {
   if (!cache) {
@@ -92,7 +92,11 @@ export function coverUrl(node: DriveNode, size = 400): string | null {
     return isViewableInDrive(node.name) ? thumbnailUrl(node.id, size) : null;
   }
   const first = firstFileIn(node);
-  return first ? thumbnailUrl(first.id, size) : null;
+  if (!first) return null;
+  // Prefer an explicit coverUrl set on the descendant (used when Drive
+  // thumbnails 404 for old PDFs); fall back to the Drive thumbnail.
+  if (first.coverUrl) return first.coverUrl;
+  return thumbnailUrl(first.id, size);
 }
 
 export function countDescendants(node: DriveNode): { folders: number; files: number } {
