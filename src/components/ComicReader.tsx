@@ -64,10 +64,6 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
                 allowFullScreen
                 title={fileName}
               />
-              <div
-                aria-hidden="true"
-                className="absolute bottom-0 right-0 z-10 h-24 w-24 bg-background"
-              />
             </div>
           )}
 
