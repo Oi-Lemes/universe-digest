@@ -277,16 +277,78 @@ const Index = () => {
     );
 
     // ---------- Editora virtual: Turma da Mônica ----------
-    const isMonicaName = (name: string) => /m[ôo]nica/i.test(name);
+    // Detecta nomes ligados ao Mauricio de Sousa (Turma da Mônica e personagens).
+    // Usado tanto pra puxar pastas/arquivos pra aba "Turma da Mônica" quanto pra
+    // tirá-los de "Clássicos" / "Variados". Inclui exclusões pra falsos positivos.
+    const isMonicaName = (name: string) => {
+      const n = name.toLowerCase();
+      // Exclusões (mesmo termo, contexto diferente)
+      if (/s[íi]tio\s+do\s+pica/.test(n)) return false; // Sítio do Picapau Amarelo (Lobato)
+      if (/horacio\s+(quiroga|altuna)/.test(n)) return false;
+      // Inclusões: personagens e marcas Mauricio de Sousa
+      const re = /(m[ôo]nica|mauricio\s+de\s+sou[sz]a|maur[íi]cio\s+de\s+sou[sz]a|\bmsp\b|\bcebolinha\b|casc[ãa]o|\bmagali\b|magal[íi]ce|chico\s*-?\s*bento|\bpenadinho\b|\bpiteco\b|hor[áa]cio|\bbidu\b|franjinha|\bnimbus\b|do\s*-?\s*contra|\bjeremias\b|papa[\s-]?capim|turma\s+da\s+mata|turma\s+do\s+penadinho|turma\s+do\s+chico|floresta\s+azul|pelezinho|ronaldinho\s+ga[uú]cho|\bastronauta\b|sambinha)/i;
+      return re.test(name);
+    };
+
+    // Coleta recursivamente pastas/arquivos do Mauricio espalhados em outras editoras
+    // (exceto a própria Turma da Mônica), pra mover pra aba dela.
+    type MonicaPick = { node: DriveNode; topPublisher: string };
+    const monicaPicks: MonicaPick[] = [];
+    const monicaPickedIds = new Set<string>();
+    const collectMonica = (
+      node: DriveNode,
+      topPublisher: string,
+      depth: number
+    ): void => {
+      if (depth >= 1) {
+        // Não mexer em editoras que já são "do Mauricio" ou são intocáveis
+        const tp = topPublisher.toLowerCase();
+        if (tp === "turma da mônica" || tp === "infantil" && false) return;
+        if (isMonicaName(node.name)) {
+          monicaPicks.push({ node, topPublisher });
+          monicaPickedIds.add(node.id);
+          return; // pega o item inteiro, não desce
+        }
+      }
+      for (const c of node.children ?? []) {
+        const newTop = depth >= 1 ? topPublisher : c.name;
+        collectMonica(c, newTop, depth + 1);
+      }
+    };
+    for (const pub of list) {
+      const tp = pub.name.toLowerCase();
+      // pula editoras que já agrupam Mônica ou onde NÃO queremos mexer
+      if (tp === "turma da mônica") continue;
+      collectMonica(pub, pub.name, 1);
+    }
+
+    // Renomeia pra deixar a origem clara, ex: "Almanaque Piteco e Horácio (Panini)"
+    const renamedMonicaPicks: DriveNode[] = monicaPicks
+      // Não duplicar com o que Infantil/Panini já dá pelo filtro tradicional abaixo
+      .filter(({ node, topPublisher }) => {
+        const tp = topPublisher.toLowerCase();
+        return !(tp === "infantil" || tp === "panini");
+      })
+      .map(({ node, topPublisher }) => {
+        const alreadyHasOrigin = node.name
+          .toLowerCase()
+          .includes(topPublisher.toLowerCase());
+        return alreadyHasOrigin
+          ? node
+          : { ...node, name: `${node.name} (${topPublisher})` };
+      });
+
     const monicaChildren: DriveNode[] = [
       ...(infantil?.children?.filter((n) => isMonicaName(n.name)) ?? []),
       ...(panini?.children?.filter((n) => isMonicaName(n.name)) ?? []),
+      ...renamedMonicaPicks,
     ];
     const virtualMonica = buildVirtual(
       "virtual-turma-da-monica",
       "Turma da Mônica",
       monicaChildren
     );
+
 
     // ---------- Editora virtual: Junji Ito ----------
     const junjiItoFolder = findChild(bonusTerror, (n) =>
