@@ -388,6 +388,8 @@ const Index = () => {
       "Clássicos",
       classicosFiles
     );
+
+    // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
     // IDs dos títulos da Shueisha já promovidos para não duplicar.
     const shueishaIds = new Set(
       (virtualShueisha?.children ?? []).map((n) => n.id)
@@ -461,6 +463,10 @@ const Index = () => {
         return stripChildren(n, (c) => movedIds.has(c.id));
       if (lname === "editoras brasileiras")
         return stripChildren(n, (c) => movedIds.has(c.id));
+      if (lname === "variados") {
+        // Tira os PDFs vintage que viraram a aba "Clássicos".
+        return stripChildren(n, (c) => classicosIds.has(c.id));
+      }
       if (lname === "bônus") {
         // Remove o Junji Ito de dentro de Bônus → Mangás e Quadrinhos de terror.
         return {
@@ -492,6 +498,7 @@ const Index = () => {
       ...(virtualBone ? [virtualBone] : []),
       ...(virtualChaves ? [virtualChaves] : []),
       ...(virtualTrapalhoes ? [virtualTrapalhoes] : []),
+      ...(virtualClassicos ? [virtualClassicos] : []),
     ];
 
     const idx = (name: string) => {
