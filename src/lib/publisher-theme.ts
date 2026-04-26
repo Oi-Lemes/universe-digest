@@ -265,8 +265,8 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.78rem",
   },
   "mangás": {
-    color: "0 0% 8%",
-    colorAlt: "0 85% 45%",
+    color: "0 88% 58%",
+    colorAlt: "0 0% 8%",
     foreground: "0 0% 100%",
     fontFamily: '"Reggae One", "RocknRoll One", "Bungee", Impact, sans-serif',
     logo: mangas,
@@ -274,7 +274,7 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.82rem",
   },
   "turma da mônica": {
-    color: "0 85% 52%",
+    color: "0 85% 58%",
     colorAlt: "48 100% 55%",
     foreground: "0 0% 100%",
     fontFamily: '"Fredoka", "Patrick Hand", "Bangers", sans-serif',
@@ -283,8 +283,8 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.82rem",
   },
   "junji ito": {
-    color: "0 0% 6%",
-    colorAlt: "0 85% 35%",
+    color: "0 85% 55%",
+    colorAlt: "0 0% 6%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: junjiIto,
