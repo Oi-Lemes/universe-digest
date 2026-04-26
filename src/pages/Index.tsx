@@ -285,8 +285,10 @@ const Index = () => {
       // Exclusões (mesmo termo, contexto diferente)
       if (/s[íi]tio\s+do\s+pica/.test(n)) return false; // Sítio do Picapau Amarelo (Lobato)
       if (/horacio\s+(quiroga|altuna)/.test(n)) return false;
+      if (/tokyo|revengers/.test(n)) return false; // mangá
+      if (/pouso\s+do\s+astronauta/.test(n)) return false; // HQ indie, não MSP
       // Inclusões: personagens e marcas Mauricio de Sousa
-      const re = /(m[ôo]nica|mauricio\s+de\s+sou[sz]a|maur[íi]cio\s+de\s+sou[sz]a|\bmsp\b|\bcebolinha\b|casc[ãa]o|\bmagali\b|magal[íi]ce|chico\s*-?\s*bento|\bpenadinho\b|\bpiteco\b|hor[áa]cio|\bbidu\b|franjinha|\bnimbus\b|do\s*-?\s*contra|\bjeremias\b|papa[\s-]?capim|turma\s+da\s+mata|turma\s+do\s+penadinho|turma\s+do\s+chico|floresta\s+azul|pelezinho|ronaldinho\s+ga[uú]cho|\bastronauta\b|sambinha)/i;
+      const re = /(m[ôo]nica|mauricio\s+de\s+sou[sz]a|maur[íi]cio\s+de\s+sou[sz]a|\bmsp\b|\bcebolinha\b|casc[ãa]o|\bmagali\b|magal[íi]ce|chico\s*-?\s*bento|\bpenadinho\b|\bpiteco\b|hor[áa]cio|\bbidu\b|franjinha|\bnimbus\b|\bdo[\s-]+contra\b|papa[\s-]?capim|turma\s+da\s+mata|turma\s+do\s+penadinho|turma\s+do\s+chico|floresta\s+azul|pelezinho|ronaldinho\s+ga[uú]cho|\bastronauta\b|sambinha)/i;
       return re.test(name);
     };
 
