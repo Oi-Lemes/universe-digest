@@ -480,6 +480,15 @@ const Index = () => {
       ? { ...junjiItoFolder, id: "virtual-junji-ito", name: "Junji Ito" }
       : null;
 
+    // ---------- Editora virtual: Terror ----------
+    // Pega TODA a pasta "Mangás e Quadrinhos de terror" (exceto Junji Ito que tem aba própria).
+    const terrorChildren = (bonusTerror?.children ?? []).filter(
+      (c) => !/junji\s*ito/i.test(c.name)
+    );
+    const virtualTerror = bonusTerror
+      ? buildVirtual("virtual-terror", "Terror", terrorChildren)
+      : null;
+
     // ---------- Editora virtual: Homem-Aranha (Abril) ----------
     const homemAranhaAbrilFolder = findChild(
       editoraAbril,
