@@ -523,35 +523,59 @@ const Index = () => {
         ? { ...node, children: node.children.filter((c) => !shouldRemove(c)) }
         : node;
 
+    // Remove em qualquer profundidade pastas/arquivos cujo id esteja em ids,
+    // e também limpa pastas que ficaram vazias por conta da remoção (exceto raiz).
+    const deepStrip = (node: DriveNode, ids: Set<string>): DriveNode => {
+      if (!node.children) return node;
+      const next = node.children
+        .filter((c) => !ids.has(c.id))
+        .map((c) => (c.type === "folder" ? deepStrip(c, ids) : c))
+        // Pasta filha que ficou sem nenhum descendente -> remove também
+        .filter((c) => {
+          if (c.type !== "folder") return true;
+          const hasAnyFile = (n: DriveNode): boolean =>
+            (n.children ?? []).some((cc) =>
+              cc.type === "file" ? true : hasAnyFile(cc)
+            );
+          return hasAnyFile(c);
+        });
+      return { ...node, children: next };
+    };
+
     const filtered = list.map((n): DriveNode => {
       const lname = lower(n.name);
+      let cur: DriveNode = n;
+      // Remove em profundidade qualquer pasta vintage que migrou para Clássicos.
+      if (classicosFolderIds.size > 0 && !CLASSICOS_BLACKLIST_TOPS.has(lname)) {
+        cur = deepStrip(cur, classicosFolderIds);
+      }
       if (lname === "mangás" && enrichedMangas) return enrichedMangas;
       if (lname === "infantil") {
         return stripChildren(
-          n,
+          cur,
           (c) => isMonicaName(c.name) || movedIds.has(c.id)
         );
       }
       if (lname === "panini") {
-        return stripChildren(n, (c) => isMonicaName(c.name));
+        return stripChildren(cur, (c) => isMonicaName(c.name));
       }
-      if (lname === "disney") return stripChildren(n, (c) => movedIds.has(c.id));
+      if (lname === "disney") return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "sergio bonelli")
-        return stripChildren(n, (c) => movedIds.has(c.id));
-      if (lname === "dargaud") return stripChildren(n, (c) => movedIds.has(c.id));
+        return stripChildren(cur, (c) => movedIds.has(c.id));
+      if (lname === "dargaud") return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editora abril")
-        return stripChildren(n, (c) => movedIds.has(c.id));
+        return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editoras brasileiras")
-        return stripChildren(n, (c) => movedIds.has(c.id));
+        return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "variados") {
         // Tira os PDFs vintage que viraram a aba "Clássicos".
-        return stripChildren(n, (c) => classicosIds.has(c.id));
+        return stripChildren(cur, (c) => classicosLooseIds.has(c.id));
       }
       if (lname === "bônus") {
-        // Remove o Junji Ito de dentro de Bônus → Mangás e Quadrinhos de terror.
+        // Remove Junji Ito de dentro de Bônus -> Mangás e Quadrinhos de terror.
         return {
-          ...n,
-          children: (n.children ?? []).map((sub) => {
+          ...cur,
+          children: (cur.children ?? []).map((sub) => {
             if (/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name)) {
               return stripChildren(sub, (c) => movedIds.has(c.id));
             }
@@ -559,7 +583,7 @@ const Index = () => {
           }),
         };
       }
-      return n;
+      return cur;
     });
 
     const merged = [
