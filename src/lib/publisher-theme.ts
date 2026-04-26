@@ -93,8 +93,9 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.95rem",
   },
   "image comics": {
-    color: "0 0% 8%",
-    colorAlt: "0 0% 25%",
+    // Texto branco-azulado vibrante; gradiente fica preto puro
+    color: "210 30% 88%",
+    colorAlt: "0 0% 8%",
     foreground: "0 0% 100%",
     fontFamily: '"Bungee", Impact, sans-serif',
     logo: image,
@@ -102,7 +103,7 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.75rem",
   },
   "dark horse comics": {
-    color: "30 75% 45%",
+    color: "30 95% 60%",
     colorAlt: "20 80% 25%",
     foreground: "0 0% 100%",
     fontFamily: '"Black Ops One", "Anton", Impact, sans-serif',
@@ -111,7 +112,7 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.78rem",
   },
   idw: {
-    color: "0 0% 12%",
+    color: "0 0% 92%",
     colorAlt: "0 0% 30%",
     foreground: "0 0% 100%",
     fontFamily: '"Anton", Impact, sans-serif',
