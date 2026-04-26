@@ -13,7 +13,19 @@ export type DriveTree = {
 };
 
 let cache: Promise<DriveTree> | null = null;
-const DRIVE_TREE_VERSION = "2026-04-25-7";
+const DRIVE_TREE_VERSION = "2026-04-25-8";
+
+/**
+ * Aplica capas manuais (cover_overrides.json) em pastas/arquivos cujo id
+ * está mapeado. Útil pra acervos onde o Drive não gera thumbnail (CBR/CBZ).
+ * O id no JSON é o id da pasta (ou arquivo) — vira node.coverUrl.
+ */
+function applyCoverOverrides(node: DriveNode, overrides: Record<string, string>): DriveNode {
+  const url = overrides[node.id];
+  const next: DriveNode = url && !node.coverUrl ? { ...node, coverUrl: url } : node;
+  if (!next.children) return next;
+  return { ...next, children: next.children.map((c) => applyCoverOverrides(c, overrides)) };
+}
 
 /**
  * Remove "clones literais" gerados pelo Drive: um arquivo cujo nome é
@@ -52,14 +64,21 @@ function dedupeClones(node: DriveNode): DriveNode {
 
 export function loadDriveTree(): Promise<DriveTree> {
   if (!cache) {
-    cache = fetch(`/data/drive_tree.json?v=${DRIVE_TREE_VERSION}`, {
-      cache: "no-store",
-    }).then(async (r) => {
-      if (!r.ok) throw new Error("Falha ao carregar árvore do Drive");
-      const tree = (await r.json()) as DriveTree;
+    cache = (async () => {
+      const [treeRes, overridesRes] = await Promise.all([
+        fetch(`/data/drive_tree.json?v=${DRIVE_TREE_VERSION}`, { cache: "no-store" }),
+        fetch(`/data/cover_overrides.json?v=${DRIVE_TREE_VERSION}`, { cache: "no-store" }),
+      ]);
+      if (!treeRes.ok) throw new Error("Falha ao carregar árvore do Drive");
+      const tree = (await treeRes.json()) as DriveTree;
+      const overrides: Record<string, string> = overridesRes.ok
+        ? await overridesRes.json().catch(() => ({}))
+        : {};
       // Remove duplicatas geradas pelo Drive ("Foo (1).pdf" quando "Foo.pdf" existe).
-      return dedupeClones(tree as unknown as DriveNode) as DriveTree;
-    });
+      const deduped = dedupeClones(tree as unknown as DriveNode) as DriveTree;
+      // Aplica capas manuais (acervos CBR/CBZ que o Drive não thumbnaila).
+      return applyCoverOverrides(deduped as unknown as DriveNode, overrides) as unknown as DriveTree;
+    })();
   }
   return cache;
 }
