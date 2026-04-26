@@ -13,15 +13,52 @@ export type DriveTree = {
 };
 
 let cache: Promise<DriveTree> | null = null;
-const DRIVE_TREE_VERSION = "2026-04-25-6";
+const DRIVE_TREE_VERSION = "2026-04-25-7";
+
+/**
+ * Remove "clones literais" gerados pelo Drive: um arquivo cujo nome é
+ * exatamente outro + sufixo " (1)" / "(1)" / "(2)" etc. antes da extensão,
+ * desde que o "original" (sem o sufixo) exista na MESMA pasta.
+ *
+ * Exemplos removidos:
+ *   "Foo.pdf" + "Foo (1).pdf"     → remove o (1)
+ *   "Bar.cbr" + "Bar(1).cbr"      → remove o (1)
+ *   "X.PDF"   + "X (1).PDF" + "X (2).PDF" → mantém só "X.PDF"
+ *
+ * Não remove arquivos onde o (N) faz parte do nome original (ex: anos
+ * "(2022)") porque exigimos que exista a versão SEM o sufixo na mesma pasta.
+ */
+const CLONE_PAT = /^(.+?)\s*\((\d+)\)(\.[A-Za-z0-9]+)$/;
+function dedupeClones(node: DriveNode): DriveNode {
+  if (!node.children) return node;
+  const existing = new Set(
+    node.children
+      .filter((c) => c.type === "file")
+      .map((c) => c.name.toLowerCase())
+  );
+  const filtered = node.children.filter((c) => {
+    if (c.type !== "file") return true;
+    const m = CLONE_PAT.exec(c.name);
+    if (!m) return true;
+    const original = (m[1].trim() + m[3]).toLowerCase();
+    // Se o "original" sem (N) existe nesta mesma pasta, este é clone -> remove.
+    return !existing.has(original);
+  });
+  return {
+    ...node,
+    children: filtered.map((c) => (c.type === "folder" ? dedupeClones(c) : c)),
+  };
+}
 
 export function loadDriveTree(): Promise<DriveTree> {
   if (!cache) {
     cache = fetch(`/data/drive_tree.json?v=${DRIVE_TREE_VERSION}`, {
       cache: "no-store",
-    }).then((r) => {
+    }).then(async (r) => {
       if (!r.ok) throw new Error("Falha ao carregar árvore do Drive");
-      return r.json() as Promise<DriveTree>;
+      const tree = (await r.json()) as DriveTree;
+      // Remove duplicatas geradas pelo Drive ("Foo (1).pdf" quando "Foo.pdf" existe).
+      return dedupeClones(tree as unknown as DriveNode) as DriveTree;
     });
   }
   return cache;
