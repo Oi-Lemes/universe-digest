@@ -306,10 +306,10 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.04em",
     fontSize: "0.82rem",
   },
-  // Junji Ito — cinza-pesadelo + preto-tinta (vibe terror P&B)
+  // Junji Ito — cinza-pesadelo + vermelho-sangue (terror P&B com respingo)
   "junji ito": {
-    color: "0 0% 38%",
-    colorAlt: "0 0% 4%",
+    color: "0 0% 42%",
+    colorAlt: "0 75% 30%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: junjiIto,
