@@ -340,16 +340,30 @@ const Index = () => {
           : { ...node, name: `${node.name} (${topPublisher})` };
       });
 
+    // Pasta "Clássicos do Cinema" (Infantil) → paródias MSP de filmes.
+    // Vai pra aba Turma da Mônica com nome corrigido.
+    const classicosCinemaFolder = findChild(infantil, (n) =>
+      /^cl[áa]ssicos\s+do\s+cinema$/i.test(n.name)
+    );
+    const renamedClassicosCinema = classicosCinemaFolder
+      ? {
+          ...classicosCinemaFolder,
+          name: "Clássicos do Cinema da Turma da Mônica",
+        }
+      : null;
+
     const monicaChildren: DriveNode[] = [
       ...(infantil?.children?.filter((n) => isMonicaName(n.name)) ?? []),
       ...(panini?.children?.filter((n) => isMonicaName(n.name)) ?? []),
       ...renamedMonicaPicks,
+      ...(renamedClassicosCinema ? [renamedClassicosCinema] : []),
     ];
     const virtualMonica = buildVirtual(
       "virtual-turma-da-monica",
       "Turma da Mônica",
       monicaChildren
     );
+
 
 
     // ---------- Editora virtual: Junji Ito ----------
