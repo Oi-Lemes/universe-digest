@@ -416,16 +416,57 @@ const Index = () => {
       : null;
 
     // ---------- Editora virtual: Clássicos ----------
-    // Pega os PDFs vintage soltos em "Variados" e move para uma aba dedicada.
+    // Combina:
+    //   1) PDFs vintage soltos em "Variados"
+    //   2) Pastas inteiras vintage espalhadas por outras editoras (CLASSICOS_FOLDER_NAMES)
     const variados = list.find((n) => lower(n.name) === "variados");
-    const classicosFiles = (variados?.children ?? []).filter(
+    const classicosLooseFiles = (variados?.children ?? []).filter(
       (c) => c.type === "file" && isClassico(c.name)
     );
-    const classicosIds = new Set(classicosFiles.map((c) => c.id));
+    const classicosLooseIds = new Set(classicosLooseFiles.map((c) => c.id));
+
+    // Coleta pastas vintage recursivamente, ignorando editoras-raiz da blacklist.
+    type ClassicoFound = { folder: DriveNode; topPublisher: string };
+    const classicosFolders: ClassicoFound[] = [];
+    const classicosFolderIds = new Set<string>();
+    const collectClassicoFolders = (
+      node: DriveNode,
+      topPublisher: string,
+      depth: number
+    ): void => {
+      if (depth >= 1 && node.type === "folder") {
+        if (CLASSICOS_BLACKLIST_TOPS.has(lower(topPublisher))) return;
+        if (CLASSICOS_FOLDER_NAMES.has(lower(node.name))) {
+          classicosFolders.push({ folder: node, topPublisher });
+          classicosFolderIds.add(node.id);
+          return; // não desce mais — pega a pasta toda
+        }
+      }
+      for (const c of node.children ?? []) {
+        const newTop = depth >= 1 ? topPublisher : c.name;
+        collectClassicoFolders(c, newTop, depth + 1);
+      }
+    };
+    for (const pub of list) {
+      collectClassicoFolders(pub, pub.name, 1);
+    }
+
+    // Renomeia as pastas movidas pra deixar claro de onde vieram (ex: "Sandman (Vertigo)")
+    const renamedClassicoFolders: DriveNode[] = classicosFolders.map(
+      ({ folder, topPublisher }) => {
+        const alreadyHasOrigin = folder.name
+          .toLowerCase()
+          .includes(topPublisher.toLowerCase());
+        return alreadyHasOrigin
+          ? folder
+          : { ...folder, name: `${folder.name} (${topPublisher})` };
+      }
+    );
+
     const virtualClassicos = buildVirtual(
       "virtual-classicos",
       "Clássicos",
-      classicosFiles
+      [...classicosLooseFiles, ...renamedClassicoFolders]
     );
 
     // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
