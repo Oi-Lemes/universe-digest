@@ -80,6 +80,7 @@ const Index = () => {
     "Oriental",
     "Independentes",
     "Variados",
+    "Clássicos",
     "Redbox",
     "Sentinela",
     "Beckett",
@@ -89,6 +90,66 @@ const Index = () => {
     "Éditions Atrabile",
     "Bônus",
   ];
+
+  // ---- Curadoria "Clássicos": pega edições vintage soltas em "Variados". ----
+  // Heurística: keywords clássicas (EBAL, RGE, Cruzeiro, Cedibra, Bloch,
+  // Artenova, Edição Maravilhosa, Almanaques antigos…) ou ano <= 2005 no nome.
+  const CLASSICOS_KEYWORDS = [
+    "ebal",
+    "rge",
+    "cruzeiro",
+    "cedibra",
+    "bloch",
+    "artenova",
+    "taika",
+    "edicao maravilhosa",
+    "edição maravilhosa",
+    "edio-maravilhosa",
+    "edio maravilhosa",
+    "grandes figuras",
+    "romances eternos",
+    "almanaque",
+    "edição ouro",
+    "série ouro",
+    "serie ouro",
+    "agente secreto",
+    "sombra",
+    "fantasma-especial",
+    "far-west",
+    "per-lim-pim-pim",
+    "pingo de gente",
+    "mestre kim",
+    "robinson",
+    "riquinho",
+    "super-homem-crnicas",
+    "graphic album 05",
+    "coleção gibi especial",
+    "biblia em quadrinhos",
+    "bíblia em quadrinhos",
+    "bone-36-1999",
+    "fofão",
+    "pica-pau",
+    "addams 001, 10.1974",
+    "almanaque zero",
+    "superalmanaque",
+    "familia addams",
+    "spirit (1985)",
+    "spirit (1987)",
+    "spirit (1991)",
+    "spirit (1997)",
+    "spirit 01",
+    "spirit 05",
+    "cinemin",
+    "will eisner - 1991",
+    "vizinhança - avenida dropsie",
+  ];
+  const CLASSICOS_YEAR_RE = /\b(19[5-9]\d|200[0-5])\b/;
+  const isClassico = (name: string) => {
+    const n = name.toLowerCase();
+    if (CLASSICOS_KEYWORDS.some((k) => n.includes(k))) return true;
+    if (CLASSICOS_YEAR_RE.test(name)) return true;
+    return false;
+  };
 
   // Mangás populares hoje "enterrados" em Atualizações Quinzenais → Inclusão → Mangás.
   // Vamos mesclá-los na aba "Mangás" para ficarem visíveis sem criar nova editora.
