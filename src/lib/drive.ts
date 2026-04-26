@@ -13,7 +13,19 @@ export type DriveTree = {
 };
 
 let cache: Promise<DriveTree> | null = null;
-const DRIVE_TREE_VERSION = "2026-04-25-7";
+const DRIVE_TREE_VERSION = "2026-04-25-8";
+
+/**
+ * Aplica capas manuais (cover_overrides.json) em pastas/arquivos cujo id
+ * está mapeado. Útil pra acervos onde o Drive não gera thumbnail (CBR/CBZ).
+ * O id no JSON é o id da pasta (ou arquivo) — vira node.coverUrl.
+ */
+function applyCoverOverrides(node: DriveNode, overrides: Record<string, string>): DriveNode {
+  const url = overrides[node.id];
+  const next: DriveNode = url && !node.coverUrl ? { ...node, coverUrl: url } : node;
+  if (!next.children) return next;
+  return { ...next, children: next.children.map((c) => applyCoverOverrides(c, overrides)) };
+}
 
 /**
  * Remove "clones literais" gerados pelo Drive: um arquivo cujo nome é
