@@ -81,6 +81,7 @@ const Index = () => {
     "Independentes",
     "Variados",
     "Clássicos",
+    "Cultura & Biografias",
     "Redbox",
     "Sentinela",
     "Beckett",
@@ -111,6 +112,93 @@ const Index = () => {
     if (CLASSICOS_KEYWORDS.some((k) => n.includes(k))) return true;
     if (CLASSICOS_YEAR_RE.test(name)) return true;
     return false;
+  };
+
+  // ---- Curadoria "Cultura & Biografias" ----
+  // Pega arquivos de literatura adaptada, biografias, história, ciência,
+  // educação e curiosidades que estão soltos em "Variados".
+  // Tem PRIORIDADE sobre "Clássicos" — se bater aqui, sai dos Clássicos.
+  const CULTURA_KEYWORDS = [
+    // Marcadores explícitos
+    "biografia", "biograf", "biografica", "biográfica",
+    "literatura brasileira", "literatura ", "romances eternos",
+    "grandes figuras em quadrinhos", "edição maravilhosa", "edicao maravilhosa",
+    "edio-maravilhosa", "edio maravilhosa",
+    // Bíblia / religioso
+    "bíblia em quadrinhos", "biblia em quadrinhos", "jacó e esáu",
+    "jaco e esau", "rebelião de corá", "rebeliao de cora", "gênesis - robert",
+    "genesis - robert", "parabolas", "parábolas",
+    // Autores brasileiros / portugueses (literatura)
+    "machado de assis", "lima barreto", "lima barret", "jose de alencar",
+    "josé de alencar", "graciliano ramos", "lygia fagundes",
+    "euclides da cunha", "manuel antônio", "manuel antonio",
+    "luis fernando verissimo", "luís fernando verissimo", "sergio porto",
+    "sérgio porto", "edney silvestre", "samir machado", "stefan zweig",
+    "pero vaz", "carta ao rei", "lira neto", "drauzio varella",
+    "marcelo rezende", "leandro narloch", "orlandeli",
+    // Autores estrangeiros / clássicos universais
+    "aldous huxley", "jonathan franzen", "fiodor dostoievski",
+    "dostoievski", "dostoiévski", "stephen collins", "guy durandin",
+    "vera portocarrero", "albert einstein", "bertrand russell",
+    "paul strathern", "sophie chauveau", "jared diamond",
+    "harald welzer", "fernando baez", "robert louis stevenson",
+    "scott mccloud", "scott-mccloud", "alison bechdel", "robert crumb",
+    "contardo calligaris", "ron martinez", "mick wall", "denilson monteiro",
+    "ozzy osbourne", "alexandre rangel", "foenkinos", "cesar almeida",
+    "mademoiselle caroline",
+    // Obras literárias famosas adaptadas
+    "tom sawyer", "ilha do tesouro", "robin hood", "beowulf",
+    "ilíada", "iliada", "odisseia", "baleia branca", "admiravel mundo novo",
+    "admirável mundo novo", "anne frank", "diário de anne",
+    "diario de anne", "dom joao carioca", "dom joão carioca",
+    "guerra dos farrapos", "as cariocas", "antes do baile verde",
+    "amor verissimo", "amor veríssimo", "aqui e acolá",
+    "contos completos", "varias historias", "várias historias",
+    "reliquias de casa velha", "relíquias de casa velha",
+    "cartomante", "uns braços", "uns bracos", "pavão misterioso",
+    "pavao misterioso", "enfermeiro machado", "homem que sabia javanês",
+    "homem que sabia javanes", "sertanejo", "sgt de milicias",
+    "sgt de milícias", "memorias de um sgt", "memórias de um sgt",
+    "musico extraordinario", "músico extraordinário",
+    "alexandre e outros herois", "miss edi", "bobok",
+    // História / não ficção
+    "arte da guerra em quadrinhos", "auschwitz", "história universal",
+    "historia universal da destruic", "guerras climaticas",
+    "guerras climáticas", "colapso - jared", "guia politicamente incorreto",
+    "amazonia em quadrinhos", "amazônia em quadrinhos",
+    "história em quadrinhos equi", "historia em quadrinhos equi",
+    "história do universo", "historia do universo", "big bang",
+    "25-de-abril-pt", "historia-da-nossa-terra", "história-da-nossa-terra",
+    "contrastes e confrontos",
+    // Curiosidades / saúde / educação / ciência
+    "cálculo em quadrinhos", "calculo em quadrinhos",
+    "genética e dna", "genetica e dna", "alimentação saud",
+    "alimentacao saud", "autismo", "bullying",
+    "educação ambiental", "educacao ambiental", "mentiras na propaganda",
+    "origem do mundo", "origem-do-mundo", "liv strömquist",
+    "liv stromquist", "liv strmquist", "conheça freud", "conheca freud",
+    "freud em quadrinhos", "obras completas - dr. sigmund",
+    "futebol e raça", "futebol e raca", "bruna surfistinha",
+    "carcereiros", "como dizer tudo em ingles", "como dizer tudo em inglês",
+    "como vejo o mundo", "como ficar sozinho",
+    "como e porque sou romancista", "como é porque sou romancista",
+    "cartas a um jovem", "arquivos da loucura",
+    "diferença invisível", "diferenca invisivel",
+    "desvendando os quadrinhos", "reinventando os quadrinhos",
+    "fun home", "maus vol", "14° dalai lama",
+    "narradora das neves", "aos cuidados de rafaela",
+    "cemiterio perdido dos filmes", "cemitério perdido dos filmes",
+    "corta pra mim", "aqueles tempos", "a força da vida",
+    "a forca da vida", "ficcao de polpa", "ficção de polpa",
+    "gigantesca barba do mal", "eu matei o libório", "eu matei o liborio",
+    "banzai - o melhor", "chacrinha", "lennon", "leonardo da vinci",
+    "black sabbath", "dr. ozz", "anne frank",
+    "aprendar fácil", "aprendar facil", "gibi bullying",
+    "quebrando o silêncio", "quebrando o silencio",
+  ];
+  const isCultura = (name: string) => {
+    const n = name.toLowerCase();
+    return CULTURA_KEYWORDS.some((k) => n.includes(k));
   };
 
   // ---- Pastas inteiras (de outras editoras) que vão para "Clássicos" ----
@@ -470,13 +558,29 @@ const Index = () => {
         }
       : null;
 
+    // ---------- Editora virtual: Cultura & Biografias ----------
+    // Pega arquivos de literatura, biografias, história, ciência e curiosidades
+    // que estão soltos em "Variados". Tem PRIORIDADE sobre "Clássicos".
+    const variados = list.find((n) => lower(n.name) === "variados");
+    const culturaLooseFiles = (variados?.children ?? []).filter(
+      (c) => c.type === "file" && isCultura(c.name) && !isMonicaName(c.name)
+    );
+    const culturaLooseIds = new Set(culturaLooseFiles.map((c) => c.id));
+    const virtualCultura = buildVirtual(
+      "virtual-cultura-biografias",
+      "Cultura & Biografias",
+      culturaLooseFiles
+    );
+
     // ---------- Editora virtual: Clássicos ----------
     // Combina:
-    //   1) PDFs vintage soltos em "Variados"
+    //   1) PDFs vintage soltos em "Variados" (excluindo os que viraram Cultura)
     //   2) Pastas inteiras vintage espalhadas por outras editoras (CLASSICOS_FOLDER_NAMES)
-    const variados = list.find((n) => lower(n.name) === "variados");
     const classicosLooseFiles = (variados?.children ?? []).filter(
-      (c) => c.type === "file" && isClassico(c.name)
+      (c) =>
+        c.type === "file" &&
+        isClassico(c.name) &&
+        !culturaLooseIds.has(c.id)
     );
     const classicosLooseIds = new Set(classicosLooseFiles.map((c) => c.id));
 
@@ -654,8 +758,11 @@ const Index = () => {
       if (lname === "editoras brasileiras")
         return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "variados") {
-        // Tira os PDFs vintage que viraram a aba "Clássicos".
-        return stripChildren(cur, (c) => classicosLooseIds.has(c.id));
+        // Tira os PDFs que viraram as abas "Cultura & Biografias" e "Clássicos".
+        return stripChildren(
+          cur,
+          (c) => classicosLooseIds.has(c.id) || culturaLooseIds.has(c.id)
+        );
       }
       if (lname === "bônus") {
         // Remove Junji Ito de dentro de Bônus -> Mangás e Quadrinhos de terror.
@@ -689,6 +796,7 @@ const Index = () => {
       ...(virtualChaves ? [virtualChaves] : []),
       ...(virtualTrapalhoes ? [virtualTrapalhoes] : []),
       ...(virtualClassicos ? [virtualClassicos] : []),
+      ...(virtualCultura ? [virtualCultura] : []),
     ];
 
     const idx = (name: string) => {
