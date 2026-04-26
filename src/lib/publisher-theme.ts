@@ -96,20 +96,20 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.06em",
     fontSize: "0.95rem",
   },
-  // Image Comics — preto + branco-aço (logo I preto)
+  // Image Comics — preto-aço + cinza-prata (logo "I" preto sobre cinza)
   "image comics": {
-    color: "210 15% 75%",
-    colorAlt: "0 0% 6%",
-    foreground: "0 0% 8%",
+    color: "0 0% 12%",
+    colorAlt: "210 12% 65%",
+    foreground: "0 0% 100%",
     fontFamily: '"Bungee", Impact, sans-serif',
     logo: image,
     letterSpacing: "0.05em",
     fontSize: "0.75rem",
   },
-  // Dark Horse — laranja-âmbar + marrom escuro (cavalo preto sobre âmbar)
+  // Dark Horse — laranja-âmbar + marrom-cavalo
   "dark horse comics": {
     color: "30 95% 55%",
-    colorAlt: "0 0% 10%",
+    colorAlt: "20 70% 22%",
     foreground: "0 0% 100%",
     fontFamily: '"Black Ops One", "Anton", Impact, sans-serif',
     logo: darkHorse,
