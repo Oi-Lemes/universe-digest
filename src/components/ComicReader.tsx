@@ -7,6 +7,10 @@ import {
   fileExt,
 } from "@/lib/drive";
 import { Download, FileWarning } from "lucide-react";
+import { ComicArchiveReader } from "./ComicArchiveReader";
+
+// CBR/CBZ/RAR/ZIP — extracted client-side via libarchive.js (WASM).
+const ARCHIVE_EXTS = new Set(["cbr", "cbz", "rar", "zip"]);
 
 type Props = {
   fileId: string | null;
@@ -15,8 +19,9 @@ type Props = {
 };
 
 export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
-  const viewable = fileId ? isViewableInDrive(fileName) : false;
   const ext = fileName ? fileExt(fileName) : "";
+  const isArchive = !!fileId && ARCHIVE_EXTS.has(ext);
+  const viewable = fileId ? isViewableInDrive(fileName) : false;
 
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!fileId) return;
@@ -54,7 +59,11 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
             )}
           </header>
 
-          {fileId && viewable && (
+          {fileId && isArchive && (
+            <ComicArchiveReader fileId={fileId} fileName={fileName} />
+          )}
+
+          {fileId && !isArchive && viewable && (
             <div className="relative flex-1 bg-background">
               <iframe
                 key={fileId}
@@ -67,7 +76,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
             </div>
           )}
 
-          {fileId && !viewable && (
+          {fileId && !isArchive && !viewable && (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
               <FileWarning className="w-16 h-16 text-destructive" strokeWidth={1.5} />
               <div>
