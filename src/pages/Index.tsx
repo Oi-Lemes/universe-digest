@@ -195,6 +195,13 @@ const Index = () => {
     "black sabbath", "dr. ozz", "anne frank",
     "aprendar fácil", "aprendar facil", "gibi bullying",
     "quebrando o silêncio", "quebrando o silencio",
+    // Filosofia / ensaios / curadoria adicional
+    "filsofos-em-ao", "filósofos em ação", "filosofos em acao",
+    "golias-tom-gauld", "tom gauld",
+    "natureza - a biblia do naturali", "ralph waldo emerson",
+    "brasil pais do futuro", "brasil país do futuro",
+    "robert crumb - meus problemas", "robert crumb - minha vida",
+    "romances eternos - br0004", "homero",
   ];
   const isCultura = (name: string) => {
     const n = name.toLowerCase();
