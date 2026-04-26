@@ -16,7 +16,9 @@ type Props = {
  */
 export const PublisherTab = ({ id, name }: Props) => {
   const theme = getPublisherTheme(name);
-  const isClassicos = name.trim().toLowerCase() === "clássicos";
+  const lname = name.trim().toLowerCase();
+  const isClassicos = lname === "clássicos";
+  const isCultura = lname === "cultura & biografias";
   const style: CSSProperties = {
     ["--pub-color" as string]: theme.color,
     ["--pub-color-alt" as string]: theme.colorAlt,
@@ -63,6 +65,20 @@ export const PublisherTab = ({ id, name }: Props) => {
           "data-[state=active]:!bg-[radial-gradient(ellipse_at_center,hsl(45_90%_82%)_0%,hsl(38_80%_60%)_60%,hsl(350_60%_28%)_100%)]",
           "data-[state=active]:!text-[hsl(48_100%_96%)]",
           "data-[state=active]:shadow-[0_10px_28px_-6px_hsl(38_85%_45%/0.85),inset_0_1px_0_hsl(48_100%_92%/0.4)]",
+        ],
+        // Destaque especial "Cultura & Biografias": couro de biblioteca esmeralda + filete dourado
+        isCultura && [
+          "!bg-[radial-gradient(ellipse_at_top,hsl(150_45%_30%)_0%,hsl(155_55%_22%)_55%,hsl(30_45%_22%)_100%)]",
+          "!text-[hsl(45_85%_88%)]",
+          "!border-[hsl(42_75%_55%)]",
+          "shadow-[0_4px_14px_-4px_hsl(155_60%_18%/0.7),inset_0_1px_0_hsl(45_80%_70%/0.35)]",
+          "ring-1 ring-[hsl(42_75%_55%/0.55)]",
+          "[text-shadow:0_1px_2px_hsl(0_0%_0%/0.6)]",
+          "hover:!bg-[radial-gradient(ellipse_at_top,hsl(150_55%_38%)_0%,hsl(155_60%_28%)_55%,hsl(30_55%_28%)_100%)]",
+          "data-[state=active]:!bg-[radial-gradient(ellipse_at_center,hsl(150_55%_42%)_0%,hsl(155_65%_28%)_60%,hsl(30_55%_22%)_100%)]",
+          "data-[state=active]:!text-[hsl(45_95%_94%)]",
+          "data-[state=active]:!border-[hsl(42_85%_62%)]",
+          "data-[state=active]:shadow-[0_10px_28px_-6px_hsl(155_70%_18%/0.9),inset_0_1px_0_hsl(45_85%_70%/0.45)]",
         ]
       )}
     >
@@ -72,6 +88,8 @@ export const PublisherTab = ({ id, name }: Props) => {
             "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0 overflow-hidden",
             isClassicos
               ? "bg-[hsl(45_60%_15%)] ring-1 ring-[hsl(48_100%_70%/0.6)] shadow-inner"
+              : isCultura
+              ? "bg-[hsl(45_70%_92%)] ring-1 ring-[hsl(42_75%_55%/0.7)] shadow-inner"
               : "bg-white ring-1 ring-black/10 shadow-sm"
           )}
         >
