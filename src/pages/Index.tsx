@@ -758,8 +758,11 @@ const Index = () => {
       if (lname === "editoras brasileiras")
         return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "variados") {
-        // Tira os PDFs vintage que viraram a aba "Clássicos".
-        return stripChildren(cur, (c) => classicosLooseIds.has(c.id));
+        // Tira os PDFs que viraram as abas "Cultura & Biografias" e "Clássicos".
+        return stripChildren(
+          cur,
+          (c) => classicosLooseIds.has(c.id) || culturaLooseIds.has(c.id)
+        );
       }
       if (lname === "bônus") {
         // Remove Junji Ito de dentro de Bônus -> Mangás e Quadrinhos de terror.
