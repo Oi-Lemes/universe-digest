@@ -19,8 +19,9 @@ type Props = {
 };
 
 export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
-  const viewable = fileId ? isViewableInDrive(fileName) : false;
   const ext = fileName ? fileExt(fileName) : "";
+  const isArchive = !!fileId && ARCHIVE_EXTS.has(ext);
+  const viewable = fileId ? isViewableInDrive(fileName) : false;
 
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!fileId) return;
