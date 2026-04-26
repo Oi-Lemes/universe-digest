@@ -662,6 +662,57 @@ const Index = () => {
       [...cleanedLoose, ...cleanedClassicoFolders]
     );
 
+    // ---------- Realocação de arquivos avulsos de "Variados" ----------
+    // Pega PDFs soltos no Variados que claramente pertencem a outras abas
+    // (MAD, Disney, Astérix, Bonelli, Junji Ito, DC, Trapalhões, Bíblia,
+    // Image, Marvel) e injeta na pasta da editora correspondente.
+    // Roda DEPOIS da extração de Cultura/Clássicos — não pega o que já saiu.
+    type ReallocTarget =
+      | "mad" | "disney" | "asterix" | "bonelli" | "junji" | "dc"
+      | "trapalhoes" | "biblia" | "image" | "marvel" | "mangas";
+    const reallocTarget = (rawName: string): ReallocTarget | null => {
+      const n = rawName.toLowerCase();
+      // Junji Ito / Shintarou Kago / Dementia
+      if (/(junji[\s-]?ito|cat[\s-]?diary[\s-]?junji|shintarou[\s-]?kago|dementia[\s-]?21)/.test(n)) return "junji";
+      // MAD
+      if (/(^|[^a-z])mad([\s\-#]|$)/.test(n) && !/madame|madagascar|madrasta/.test(n)) return "mad";
+      // Astérix
+      if (/(^|[\s\-_])(asterix|astérix)([\s\-_]|$)/.test(n)) return "asterix";
+      // Disney / Cartoon clássicos animados
+      if (/(almanaque\s+disney|essencial\s+disney|cl[sá]ssicos[\s-]?disney|aristogatas|carros\s*-\s*radiator|kung-?fu\s+panda|hora\s+de\s+aventura|marceline|album\s+dinheirinho|marte\s+ataca\s+popeye|little\s+pony|tio\s+patinhas|barks\s*&|barks\s+and\s+rosa)/.test(n)) return "disney";
+      // Sergio Bonelli (Dylan Dog etc.)
+      if (/(dylan[\s-]?dog|martin\s+myst[èe]re|mister\s+no|dampyr|nathan\s+never)/.test(n)) return "bonelli";
+      // DC
+      if (/(morte\s+do\s+superman|detective\s+comics|batman[\s-]?arkham|superman[\s-]?vs[\s-]?muhammad)/.test(n)) return "dc";
+      // Marvel
+      if (/(sergio\s+arag.n.s\s+massacra\s+a\s+marvel)/.test(n)) return "marvel";
+      // Trapalhões
+      if (/(as[\s_]?aventuras[\s_]?dos[\s_]?trapalho|trapalho)/.test(n)) return "trapalhoes";
+      // Bíblia em Quadrinhos (avulsos)
+      if (/(b[íi]blia\s+em\s+quadrinhos|jac[óo]\s+e\s+es[áa]u|rebeli[ãa]o\s+de\s+cor[áa]|g[êe]nesis\s*-\s*robert\s+crumb|parabolas\s+de\s+todo|par[áa]bolas\s+de\s+todo)/.test(n)) return "biblia";
+      // Image Comics (Liga Extraordinária / Lady Killer)
+      if (/(liga\s+extraordin[áa]ria|lady\s+killer)/.test(n)) return "image";
+      // Mangás avulsos
+      if (/(mang[áa]\s*-\s*lipsticklove|mang[áa]\s*-\s*samurai\s*x)/.test(n)) return "mangas";
+      return null;
+    };
+
+    // Só pega arquivos que ainda estão no Variados (não migraram pra Cultura/Clássicos)
+    const reallocBuckets: Record<ReallocTarget, DriveNode[]> = {
+      mad: [], disney: [], asterix: [], bonelli: [], junji: [], dc: [],
+      trapalhoes: [], biblia: [], image: [], marvel: [], mangas: [],
+    };
+    const reallocIds = new Set<string>();
+    for (const c of variados?.children ?? []) {
+      if (c.type !== "file") continue;
+      if (classicosLooseIds.has(c.id) || culturaLooseIds.has(c.id)) continue;
+      const t = reallocTarget(c.name);
+      if (t) {
+        reallocBuckets[t].push(c);
+        reallocIds.add(c.id);
+      }
+    }
+
     // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
     // IDs dos títulos da Shueisha já promovidos para não duplicar.
     const shueishaIds = new Set(
