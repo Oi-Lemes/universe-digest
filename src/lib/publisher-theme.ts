@@ -56,10 +56,10 @@ export type PublisherTheme = {
 };
 
 const THEMES: Record<string, PublisherTheme> = {
-  // Marvel — vermelho oficial #ED1D24 + preto
+  // Marvel — vermelho oficial #ED1D24 + preto-azulado profundo
   marvel: {
     color: "357 84% 52%",
-    colorAlt: "0 0% 8%",
+    colorAlt: "230 40% 12%",
     foreground: "0 0% 100%",
     fontFamily: '"Bowlby One", "Anton", Impact, sans-serif',
     logo: marvel,
@@ -76,40 +76,40 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.1em",
     fontSize: "0.78rem",
   },
-  // Shueisha / Shonen Jump — vermelho-laranja Jump + branco gelo
+  // Shueisha / Shonen Jump — vermelho-laranja Jump + branco-gelo
   shueisha: {
     color: "8 92% 52%",
-    colorAlt: "0 0% 12%",
+    colorAlt: "0 0% 96%",
     foreground: "0 0% 100%",
     fontFamily: '"Reggae One", "RocknRoll One", "Bungee", Impact, sans-serif',
     logo: shueisha,
     letterSpacing: "0.05em",
     fontSize: "0.82rem",
   },
-  // Vertigo — bordô sangue + preto fosco (vibe horror/maduro)
+  // Vertigo — bordô-sangue + roxo-meia-noite (vibe horror/maduro)
   vertigo: {
     color: "345 75% 38%",
-    colorAlt: "0 0% 4%",
+    colorAlt: "270 50% 18%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: vertigo,
     letterSpacing: "0.06em",
     fontSize: "0.95rem",
   },
-  // Image Comics — preto + branco-aço (logo I preto)
+  // Image Comics — preto-aço + cinza-prata (logo "I" preto sobre cinza)
   "image comics": {
-    color: "210 15% 75%",
-    colorAlt: "0 0% 6%",
-    foreground: "0 0% 8%",
+    color: "0 0% 12%",
+    colorAlt: "210 12% 65%",
+    foreground: "0 0% 100%",
     fontFamily: '"Bungee", Impact, sans-serif',
     logo: image,
     letterSpacing: "0.05em",
     fontSize: "0.75rem",
   },
-  // Dark Horse — laranja-âmbar + marrom escuro (cavalo preto sobre âmbar)
+  // Dark Horse — laranja-âmbar + marrom-cavalo
   "dark horse comics": {
     color: "30 95% 55%",
-    colorAlt: "0 0% 10%",
+    colorAlt: "20 70% 22%",
     foreground: "0 0% 100%",
     fontFamily: '"Black Ops One", "Anton", Impact, sans-serif',
     logo: darkHorse,
@@ -146,10 +146,10 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.06em",
     fontSize: "0.75rem",
   },
-  // MAD Magazine — amarelo MAD + preto (Alfred E. Neuman)
+  // MAD Magazine — amarelo MAD + vermelho-stamp
   mad: {
     color: "50 100% 55%",
-    colorAlt: "0 0% 6%",
+    colorAlt: "355 80% 45%",
     foreground: "0 0% 8%",
     fontFamily: '"Bungee", Impact, sans-serif',
     logo: mad,
@@ -176,20 +176,20 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.06em",
     fontSize: "0.78rem",
   },
-  // Dynamite — vermelho-chama + preto-pólvora
+  // Dynamite — vermelho-chama + dourado-explosão (vibe pulp)
   dynamite: {
     color: "12 90% 50%",
-    colorAlt: "0 0% 10%",
+    colorAlt: "42 95% 50%",
     foreground: "0 0% 100%",
     fontFamily: '"Russo One", Impact, sans-serif',
     logo: dynamite,
     letterSpacing: "0.06em",
     fontSize: "0.78rem",
   },
-  // Avatar Press — vermelho-sangue puro + preto
+  // Avatar Press — vermelho-sangue + roxo-vinho (horror gráfico)
   "avatar press": {
     color: "355 85% 45%",
-    colorAlt: "0 0% 4%",
+    colorAlt: "300 55% 18%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: avatarPress,
@@ -276,10 +276,10 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.12em",
     fontSize: "0.82rem",
   },
-  // Editora Globo — azul-Globo + grafite (esfera Globo)
+  // Editora Globo — azul-Globo + verde-esfera (Globo logo)
   "editora globo": {
     color: "210 80% 38%",
-    colorAlt: "0 0% 12%",
+    colorAlt: "150 55% 30%",
     foreground: "0 0% 100%",
     fontFamily: '"Russo One", Impact, sans-serif',
     logo: globo,
@@ -306,10 +306,10 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.04em",
     fontSize: "0.82rem",
   },
-  // Junji Ito — cinza-pesadelo + preto-tinta (vibe terror P&B)
+  // Junji Ito — cinza-pesadelo + vermelho-sangue (terror P&B com respingo)
   "junji ito": {
-    color: "0 0% 38%",
-    colorAlt: "0 0% 4%",
+    color: "0 0% 42%",
+    colorAlt: "0 75% 30%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: junjiIto,
