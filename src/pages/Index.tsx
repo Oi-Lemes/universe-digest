@@ -376,7 +376,18 @@ const Index = () => {
         }
       : null;
 
-    // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
+    // ---------- Editora virtual: Clássicos ----------
+    // Pega os PDFs vintage soltos em "Variados" e move para uma aba dedicada.
+    const variados = list.find((n) => lower(n.name) === "variados");
+    const classicosFiles = (variados?.children ?? []).filter(
+      (c) => c.type === "file" && isClassico(c.name)
+    );
+    const classicosIds = new Set(classicosFiles.map((c) => c.id));
+    const virtualClassicos = buildVirtual(
+      "virtual-classicos",
+      "Clássicos",
+      classicosFiles
+    );
     // IDs dos títulos da Shueisha já promovidos para não duplicar.
     const shueishaIds = new Set(
       (virtualShueisha?.children ?? []).map((n) => n.id)
