@@ -1036,6 +1036,7 @@ const Index = () => {
             </a>
           </Button>
           <div className="ml-auto flex items-center gap-2">
+            <OnlinePresence />
             <GlobalSearch
               tree={tree}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
