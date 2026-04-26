@@ -41,6 +41,7 @@ const Index = () => {
     "Mangás",
     "Turma da Mônica",
     "Junji Ito",
+    "Terror",
     "Homem-Aranha (Abril)",
     "Hulk (Abril)",
     "Almanaque Disney",
@@ -479,6 +480,15 @@ const Index = () => {
       ? { ...junjiItoFolder, id: "virtual-junji-ito", name: "Junji Ito" }
       : null;
 
+    // ---------- Editora virtual: Terror ----------
+    // Pega TODA a pasta "Mangás e Quadrinhos de terror" (exceto Junji Ito que tem aba própria).
+    const terrorChildren = (bonusTerror?.children ?? []).filter(
+      (c) => !/junji\s*ito/i.test(c.name)
+    );
+    const virtualTerror = bonusTerror
+      ? buildVirtual("virtual-terror", "Terror", terrorChildren)
+      : null;
+
     // ---------- Editora virtual: Homem-Aranha (Abril) ----------
     const homemAranhaAbrilFolder = findChild(
       editoraAbril,
@@ -874,15 +884,13 @@ const Index = () => {
         );
       }
       if (lname === "bônus") {
-        // Remove Junji Ito de dentro de Bônus -> Mangás e Quadrinhos de terror.
+        // Remove inteiramente a pasta "Mangás e Quadrinhos de terror" de Bônus —
+        // o conteúdo agora vive nas abas "Junji Ito" e "Terror".
         return {
           ...cur,
-          children: (cur.children ?? []).map((sub) => {
-            if (/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name)) {
-              return stripChildren(sub, (c) => movedIds.has(c.id));
-            }
-            return sub;
-          }),
+          children: (cur.children ?? []).filter(
+            (sub) => !/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name)
+          ),
         };
       }
       return cur;
@@ -895,6 +903,7 @@ const Index = () => {
       ...(virtualShueisha ? [virtualShueisha] : []),
       ...(virtualMonica ? [virtualMonica] : []),
       ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
+      ...(virtualTerror ? [virtualTerror] : []),
       ...(virtualHomemAranhaAbril ? [virtualHomemAranhaAbril] : []),
       ...(virtualHulkAbril ? [virtualHulkAbril] : []),
       ...(virtualAlmanaqueDisney ? [virtualAlmanaqueDisney] : []),

@@ -38,6 +38,7 @@ import tintin from "@/assets/publishers/tintin.png";
 import chaves from "@/assets/publishers/chaves.png";
 import classicos from "@/assets/publishers/classicos.png";
 import cultura from "@/assets/publishers/cultura.png";
+import terror from "@/assets/publishers/terror.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -426,6 +427,16 @@ const THEMES: Record<string, PublisherTheme> = {
     logo: cultura,
     letterSpacing: "0.16em",
     fontSize: "0.82rem",
+  },
+  // Terror — sangue carmim + preto profundo (cripta/horror)
+  "terror": {
+    color: "0 78% 38%",
+    colorAlt: "0 0% 6%",
+    foreground: "0 75% 96%",
+    fontFamily: '"Creepster", "Nosifer", "Bangers", Impact, sans-serif',
+    logo: terror,
+    letterSpacing: "0.14em",
+    fontSize: "0.85rem",
   },
 };
 
