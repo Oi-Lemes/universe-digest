@@ -428,6 +428,16 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.16em",
     fontSize: "0.82rem",
   },
+  // Terror — sangue carmim + preto profundo (cripta/horror)
+  "terror": {
+    color: "0 78% 38%",
+    colorAlt: "0 0% 6%",
+    foreground: "0 75% 96%",
+    fontFamily: '"Creepster", "Nosifer", "Bangers", Impact, sans-serif',
+    logo: terror,
+    letterSpacing: "0.14em",
+    fontSize: "0.85rem",
+  },
 };
 
 export function getPublisherTheme(name: string): PublisherTheme {
