@@ -91,56 +91,18 @@ const Index = () => {
     "Bônus",
   ];
 
-  // ---- Curadoria "Clássicos": pega edições vintage soltas em "Variados". ----
-  // Heurística: keywords clássicas (EBAL, RGE, Cruzeiro, Cedibra, Bloch,
-  // Artenova, Edição Maravilhosa, Almanaques antigos…) ou ano <= 2005 no nome.
+  // ---- Curadoria "Clássicos": pega edições vintage soltas em "Variados" ----
   const CLASSICOS_KEYWORDS = [
-    "ebal",
-    "rge",
-    "cruzeiro",
-    "cedibra",
-    "bloch",
-    "artenova",
-    "taika",
-    "edicao maravilhosa",
-    "edição maravilhosa",
-    "edio-maravilhosa",
-    "edio maravilhosa",
-    "grandes figuras",
-    "romances eternos",
-    "almanaque",
-    "edição ouro",
-    "série ouro",
-    "serie ouro",
-    "agente secreto",
-    "sombra",
-    "fantasma-especial",
-    "far-west",
-    "per-lim-pim-pim",
-    "pingo de gente",
-    "mestre kim",
-    "robinson",
-    "riquinho",
-    "super-homem-crnicas",
-    "graphic album 05",
-    "coleção gibi especial",
-    "biblia em quadrinhos",
-    "bíblia em quadrinhos",
-    "bone-36-1999",
-    "fofão",
-    "pica-pau",
-    "addams 001, 10.1974",
-    "almanaque zero",
-    "superalmanaque",
-    "familia addams",
-    "spirit (1985)",
-    "spirit (1987)",
-    "spirit (1991)",
-    "spirit (1997)",
-    "spirit 01",
-    "spirit 05",
-    "cinemin",
-    "will eisner - 1991",
+    "ebal", "rge", "cruzeiro", "cedibra", "bloch", "artenova", "taika",
+    "edicao maravilhosa", "edição maravilhosa", "edio-maravilhosa", "edio maravilhosa",
+    "grandes figuras", "romances eternos", "almanaque", "edição ouro",
+    "série ouro", "serie ouro", "agente secreto", "sombra", "fantasma-especial",
+    "far-west", "per-lim-pim-pim", "pingo de gente", "mestre kim", "robinson",
+    "riquinho", "super-homem-crnicas", "graphic album 05", "coleção gibi especial",
+    "biblia em quadrinhos", "bíblia em quadrinhos", "bone-36-1999", "fofão",
+    "pica-pau", "addams 001, 10.1974", "almanaque zero", "superalmanaque",
+    "familia addams", "spirit (1985)", "spirit (1987)", "spirit (1991)",
+    "spirit (1997)", "spirit 01", "spirit 05", "cinemin", "will eisner - 1991",
     "vizinhança - avenida dropsie",
   ];
   const CLASSICOS_YEAR_RE = /\b(19[5-9]\d|200[0-5])\b/;
@@ -150,6 +112,83 @@ const Index = () => {
     if (CLASSICOS_YEAR_RE.test(name)) return true;
     return false;
   };
+
+  // ---- Pastas inteiras (de outras editoras) que vão para "Clássicos" ----
+  // Match exato pelo nome da pasta (case-insensitive). Editoras que NÃO devem
+  // ter pastas movidas: Turma da Mônica, Chaves, Os Trapalhões.
+  const CLASSICOS_FOLDER_NAMES = new Set<string>([
+    // Editora Brasileira / EBAL / RGE
+    "ebal",
+    "edição maravilhosa", "edicao maravilhosa",
+    "grandes figuras em quadrinhos",
+    "fantasma rge",
+    "zorro (ebal)",
+    "almanaque piteco e horácio",
+    // Bônus terror antigo
+    "3 geracao - kripta (rge)",
+    "almanaque de terror",
+    "almanaque de terror 2",
+    "almanaque terror especial",
+    "classicos do pavor",
+    // MAD anos 70/80
+    "(1974-1980)", "(1984-2000)",
+    // Tex
+    "tex grandes clássicos", "tex, os grandes classicos", "almanaque tex",
+    "tex 1971", "tex 1999", "tex 2000",
+    // Marvel — clássicos lendários só
+    "almanaque marvel",
+    "almanaque conan - (1982-1992)",
+    "cavaleiro da lua (1976)",
+    "cavaleiro da lua (1980)",
+    "fist of khonshu moon knight (1985)",
+    "marc spector moon knight (1989)",
+    "(1972) defensores",
+    "1977", // Eternos 1977
+    "massacre dos filhos da meia-noite (1993)",
+    // DC lendários
+    "hellblazer - constantine (1988-2016)",
+    "monstro do pântano (1972-2020)",
+    "os livros da magia (1990-2000)",
+    "patrulha do destino (1989-2019)",
+    "os ínvisiveis (1996-2000)",
+    "100 balas (1999-2002)",
+    "coringa - a última risada (2001-2002)",
+    "cronologia raridades diversas a partir de 1950 (antigas)",
+    "v de vingança (1997)",
+    "watchmen (1986-2018)",
+    // Vertigo
+    "sandman (1989-1997)",
+    // Dark Horse / vintage
+    "aliens 1988",
+    "aliens - frenzy (1995)",
+    "aliens - labirinth (1993)",
+    "aliens - salvation (1993)",
+    "aliens - stronghold (1994)",
+    "(1996) tarzan vs predador",
+    "(1997) predador vs juiz dredd",
+    "(2001) liga da justica vs predador",
+    // Disney
+    "clássicos de walt disney",
+    // Infantil
+    "clássicos do cinema",
+    "horacio (1969-1974)",
+    "horacio completo 1969 a 1974",
+    "mortadelo e salaminho cedibra",
+    // Atualizações antigas
+    "looney tunes (1995)", "invasão (1990)", "plop! (1973)",
+    // Zagor
+    "zagor - almanaque de aventura",
+    // Soleil
+    "merlin - 2001 (soleil",
+  ]);
+  // Editoras que NÃO devem ter pastas movidas
+  const CLASSICOS_BLACKLIST_TOPS = new Set<string>([
+    "turma da mônica", "chaves", "os trapalhões",
+    "mangás", "shueisha", "junji ito",
+    "almanaque disney", "mágico vento",
+    "astérix", "tintin", "bone",
+    "homem-aranha (abril)", "hulk (abril)",
+  ]);
 
   // Mangás populares hoje "enterrados" em Atualizações Quinzenais → Inclusão → Mangás.
   // Vamos mesclá-los na aba "Mangás" para ficarem visíveis sem criar nova editora.
