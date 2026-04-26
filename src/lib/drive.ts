@@ -64,14 +64,21 @@ function dedupeClones(node: DriveNode): DriveNode {
 
 export function loadDriveTree(): Promise<DriveTree> {
   if (!cache) {
-    cache = fetch(`/data/drive_tree.json?v=${DRIVE_TREE_VERSION}`, {
-      cache: "no-store",
-    }).then(async (r) => {
-      if (!r.ok) throw new Error("Falha ao carregar árvore do Drive");
-      const tree = (await r.json()) as DriveTree;
+    cache = (async () => {
+      const [treeRes, overridesRes] = await Promise.all([
+        fetch(`/data/drive_tree.json?v=${DRIVE_TREE_VERSION}`, { cache: "no-store" }),
+        fetch(`/data/cover_overrides.json?v=${DRIVE_TREE_VERSION}`, { cache: "no-store" }),
+      ]);
+      if (!treeRes.ok) throw new Error("Falha ao carregar árvore do Drive");
+      const tree = (await treeRes.json()) as DriveTree;
+      const overrides: Record<string, string> = overridesRes.ok
+        ? await overridesRes.json().catch(() => ({}))
+        : {};
       // Remove duplicatas geradas pelo Drive ("Foo (1).pdf" quando "Foo.pdf" existe).
-      return dedupeClones(tree as unknown as DriveNode) as DriveTree;
-    });
+      const deduped = dedupeClones(tree as unknown as DriveNode) as DriveTree;
+      // Aplica capas manuais (acervos CBR/CBZ que o Drive não thumbnaila).
+      return applyCoverOverrides(deduped as unknown as DriveNode, overrides) as unknown as DriveTree;
+    })();
   }
   return cache;
 }
