@@ -7,6 +7,10 @@ import {
   fileExt,
 } from "@/lib/drive";
 import { Download, FileWarning } from "lucide-react";
+import { ComicArchiveReader } from "./ComicArchiveReader";
+
+// CBR/CBZ/RAR/ZIP — extracted client-side via libarchive.js (WASM).
+const ARCHIVE_EXTS = new Set(["cbr", "cbz", "rar", "zip"]);
 
 type Props = {
   fileId: string | null;
