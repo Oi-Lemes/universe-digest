@@ -796,6 +796,7 @@ const Index = () => {
       ...(virtualChaves ? [virtualChaves] : []),
       ...(virtualTrapalhoes ? [virtualTrapalhoes] : []),
       ...(virtualClassicos ? [virtualClassicos] : []),
+      ...(virtualCultura ? [virtualCultura] : []),
     ];
 
     const idx = (name: string) => {
