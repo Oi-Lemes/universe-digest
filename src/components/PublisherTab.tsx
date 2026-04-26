@@ -80,6 +80,20 @@ export const PublisherTab = ({ id, name }: Props) => {
           "data-[state=active]:!text-[hsl(45_95%_94%)]",
           "data-[state=active]:!border-[hsl(42_85%_62%)]",
           "data-[state=active]:shadow-[0_10px_28px_-6px_hsl(155_70%_18%/0.9),inset_0_1px_0_hsl(45_85%_70%/0.45)]",
+        ],
+        // Destaque especial "Terror": sangue + cripta + filete carmesim
+        isTerror && [
+          "!bg-[radial-gradient(ellipse_at_top,hsl(0_70%_28%)_0%,hsl(0_80%_14%)_55%,hsl(0_0%_4%)_100%)]",
+          "!text-[hsl(0_85%_94%)]",
+          "!border-[hsl(0_85%_45%)]",
+          "shadow-[0_4px_14px_-4px_hsl(0_85%_25%/0.75),inset_0_1px_0_hsl(0_70%_60%/0.25)]",
+          "ring-1 ring-[hsl(0_85%_40%/0.55)]",
+          "[text-shadow:0_1px_2px_hsl(0_0%_0%/0.85)]",
+          "hover:!bg-[radial-gradient(ellipse_at_top,hsl(0_75%_36%)_0%,hsl(0_85%_18%)_55%,hsl(0_0%_6%)_100%)]",
+          "data-[state=active]:!bg-[radial-gradient(ellipse_at_center,hsl(0_85%_42%)_0%,hsl(0_85%_22%)_60%,hsl(0_0%_4%)_100%)]",
+          "data-[state=active]:!text-[hsl(0_90%_96%)]",
+          "data-[state=active]:!border-[hsl(0_90%_55%)]",
+          "data-[state=active]:shadow-[0_10px_28px_-6px_hsl(0_90%_30%/0.95),inset_0_1px_0_hsl(0_70%_60%/0.35)]",
         ]
       )}
     >
@@ -91,6 +105,8 @@ export const PublisherTab = ({ id, name }: Props) => {
               ? "bg-[hsl(45_60%_15%)] ring-1 ring-[hsl(48_100%_70%/0.6)] shadow-inner"
               : isCultura
               ? "bg-[hsl(45_70%_92%)] ring-1 ring-[hsl(42_75%_55%/0.7)] shadow-inner"
+              : isTerror
+              ? "bg-[hsl(0_0%_8%)] ring-1 ring-[hsl(0_85%_45%/0.7)] shadow-inner"
               : "bg-white ring-1 ring-black/10 shadow-sm"
           )}
         >
