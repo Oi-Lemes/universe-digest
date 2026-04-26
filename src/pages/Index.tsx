@@ -606,6 +606,10 @@ const Index = () => {
       if (classicosFolderIds.size > 0 && !CLASSICOS_BLACKLIST_TOPS.has(lname)) {
         cur = deepStrip(cur, classicosFolderIds);
       }
+      // Remove em profundidade qualquer item do Mauricio que migrou pra Mônica.
+      if (monicaPickedIds.size > 0 && lname !== "turma da mônica") {
+        cur = deepStrip(cur, monicaPickedIds);
+      }
       if (lname === "mangás" && enrichedMangas) return enrichedMangas;
       if (lname === "infantil") {
         return stripChildren(
