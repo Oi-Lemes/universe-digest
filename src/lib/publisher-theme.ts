@@ -148,8 +148,8 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.78rem",
   },
   "sergio bonelli": {
-    color: "0 0% 8%",
-    colorAlt: "0 70% 35%",
+    color: "0 75% 58%",
+    colorAlt: "0 0% 8%",
     foreground: "0 0% 100%",
     fontFamily: '"Anton", Impact, sans-serif',
     logo: bonelli,
