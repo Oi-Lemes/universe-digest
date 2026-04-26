@@ -786,6 +786,31 @@ const Index = () => {
       return { ...node, children: next };
     };
 
+    // ---------- Helper para anexar bucket à pasta destino ----------
+    // Cria uma subpasta "Avulsos (de Variados)" dentro do destino com os
+    // arquivos realocados, mantendo a organização original.
+    const appendBucket = (
+      target: DriveNode | null | undefined,
+      bucket: DriveNode[]
+    ): DriveNode | null | undefined => {
+      if (!target || bucket.length === 0) return target;
+      const sub: DriveNode = {
+        id: `${target.id}-avulsos-variados`,
+        name: "Avulsos (de Variados)",
+        type: "folder",
+        children: [...bucket].sort(sortPtBr),
+      };
+      return {
+        ...target,
+        children: [...(target.children ?? []), sub].sort(sortPtBr),
+      };
+    };
+
+    // Aplica nos virtuais (que vão direto pro merged)
+    const virtualJunjiItoFinal = appendBucket(virtualJunjiIto, reallocBuckets.junji);
+    const virtualAsterixFinal = appendBucket(virtualAsterix, reallocBuckets.asterix);
+    const virtualTrapalhoesFinal = appendBucket(virtualTrapalhoes, reallocBuckets.trapalhoes);
+
     const filtered = list.map((n): DriveNode => {
       const lname = lower(n.name);
       let cur: DriveNode = n;
@@ -797,7 +822,9 @@ const Index = () => {
       if (monicaPickedIds.size > 0 && lname !== "turma da mônica") {
         cur = deepStrip(cur, monicaPickedIds);
       }
-      if (lname === "mangás" && enrichedMangas) return enrichedMangas;
+      if (lname === "mangás" && enrichedMangas) {
+        return appendBucket(enrichedMangas, reallocBuckets.mangas) ?? enrichedMangas;
+      }
       if (lname === "infantil") {
         return stripChildren(
           cur,
@@ -807,19 +834,42 @@ const Index = () => {
       if (lname === "panini") {
         return stripChildren(cur, (c) => isMonicaName(c.name));
       }
-      if (lname === "disney") return stripChildren(cur, (c) => movedIds.has(c.id));
-      if (lname === "sergio bonelli")
-        return stripChildren(cur, (c) => movedIds.has(c.id));
+      if (lname === "disney") {
+        const stripped = stripChildren(cur, (c) => movedIds.has(c.id));
+        return appendBucket(stripped, reallocBuckets.disney) ?? stripped;
+      }
+      if (lname === "sergio bonelli") {
+        const stripped = stripChildren(cur, (c) => movedIds.has(c.id));
+        return appendBucket(stripped, reallocBuckets.bonelli) ?? stripped;
+      }
       if (lname === "dargaud") return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editora abril")
         return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editoras brasileiras")
         return stripChildren(cur, (c) => movedIds.has(c.id));
+      if (lname === "mad") {
+        return appendBucket(cur, reallocBuckets.mad) ?? cur;
+      }
+      if (lname === "marvel") {
+        return appendBucket(cur, reallocBuckets.marvel) ?? cur;
+      }
+      if (lname === "dc") {
+        return appendBucket(cur, reallocBuckets.dc) ?? cur;
+      }
+      if (lname === "image comics") {
+        return appendBucket(cur, reallocBuckets.image) ?? cur;
+      }
+      if (lname === "bíblia em quadrinhos") {
+        return appendBucket(cur, reallocBuckets.biblia) ?? cur;
+      }
       if (lname === "variados") {
-        // Tira os PDFs que viraram as abas "Cultura & Biografias" e "Clássicos".
+        // Tira PDFs que viraram Cultura, Clássicos, ou foram realocados.
         return stripChildren(
           cur,
-          (c) => classicosLooseIds.has(c.id) || culturaLooseIds.has(c.id)
+          (c) =>
+            classicosLooseIds.has(c.id) ||
+            culturaLooseIds.has(c.id) ||
+            reallocIds.has(c.id)
         );
       }
       if (lname === "bônus") {
@@ -843,16 +893,16 @@ const Index = () => {
       ),
       ...(virtualShueisha ? [virtualShueisha] : []),
       ...(virtualMonica ? [virtualMonica] : []),
-      ...(virtualJunjiIto ? [virtualJunjiIto] : []),
+      ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
       ...(virtualHomemAranhaAbril ? [virtualHomemAranhaAbril] : []),
       ...(virtualHulkAbril ? [virtualHulkAbril] : []),
       ...(virtualAlmanaqueDisney ? [virtualAlmanaqueDisney] : []),
       ...(virtualMagicoVento ? [virtualMagicoVento] : []),
-      ...(virtualAsterix ? [virtualAsterix] : []),
+      ...(virtualAsterixFinal ? [virtualAsterixFinal] : []),
       ...(virtualTintin ? [virtualTintin] : []),
       ...(virtualBone ? [virtualBone] : []),
       ...(virtualChaves ? [virtualChaves] : []),
-      ...(virtualTrapalhoes ? [virtualTrapalhoes] : []),
+      ...(virtualTrapalhoesFinal ? [virtualTrapalhoesFinal] : []),
       ...(virtualClassicos ? [virtualClassicos] : []),
       ...(virtualCultura ? [virtualCultura] : []),
     ];
