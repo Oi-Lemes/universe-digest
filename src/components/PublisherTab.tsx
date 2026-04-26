@@ -19,6 +19,7 @@ export const PublisherTab = ({ id, name }: Props) => {
   const lname = name.trim().toLowerCase();
   const isClassicos = lname === "clássicos";
   const isCultura = lname === "cultura & biografias";
+  const isTerror = lname === "terror";
   const style: CSSProperties = {
     ["--pub-color" as string]: theme.color,
     ["--pub-color-alt" as string]: theme.colorAlt,
