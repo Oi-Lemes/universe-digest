@@ -93,8 +93,9 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.95rem",
   },
   "image comics": {
-    color: "0 0% 8%",
-    colorAlt: "0 0% 25%",
+    // Texto branco-azulado vibrante; gradiente fica preto puro
+    color: "210 30% 88%",
+    colorAlt: "0 0% 8%",
     foreground: "0 0% 100%",
     fontFamily: '"Bungee", Impact, sans-serif',
     logo: image,
@@ -102,7 +103,7 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.75rem",
   },
   "dark horse comics": {
-    color: "30 75% 45%",
+    color: "30 95% 60%",
     colorAlt: "20 80% 25%",
     foreground: "0 0% 100%",
     fontFamily: '"Black Ops One", "Anton", Impact, sans-serif',
@@ -111,7 +112,7 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.78rem",
   },
   idw: {
-    color: "0 0% 12%",
+    color: "0 0% 92%",
     colorAlt: "0 0% 30%",
     foreground: "0 0% 100%",
     fontFamily: '"Anton", Impact, sans-serif',
@@ -147,8 +148,8 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.78rem",
   },
   "sergio bonelli": {
-    color: "0 0% 8%",
-    colorAlt: "0 70% 35%",
+    color: "0 75% 58%",
+    colorAlt: "0 0% 8%",
     foreground: "0 0% 100%",
     fontFamily: '"Anton", Impact, sans-serif',
     logo: bonelli,
@@ -174,8 +175,8 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.78rem",
   },
   "avatar press": {
-    color: "0 0% 8%",
-    colorAlt: "0 80% 35%",
+    color: "0 80% 58%",
+    colorAlt: "0 0% 8%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: avatarPress,
@@ -264,8 +265,8 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.78rem",
   },
   "mangás": {
-    color: "0 0% 8%",
-    colorAlt: "0 85% 45%",
+    color: "0 88% 58%",
+    colorAlt: "0 0% 8%",
     foreground: "0 0% 100%",
     fontFamily: '"Reggae One", "RocknRoll One", "Bungee", Impact, sans-serif',
     logo: mangas,
@@ -273,7 +274,7 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.82rem",
   },
   "turma da mônica": {
-    color: "0 85% 52%",
+    color: "0 85% 58%",
     colorAlt: "48 100% 55%",
     foreground: "0 0% 100%",
     fontFamily: '"Fredoka", "Patrick Hand", "Bangers", sans-serif',
@@ -282,8 +283,8 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.82rem",
   },
   "junji ito": {
-    color: "0 0% 6%",
-    colorAlt: "0 85% 35%",
+    color: "0 85% 55%",
+    colorAlt: "0 0% 6%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: junjiIto,

@@ -91,56 +91,18 @@ const Index = () => {
     "Bônus",
   ];
 
-  // ---- Curadoria "Clássicos": pega edições vintage soltas em "Variados". ----
-  // Heurística: keywords clássicas (EBAL, RGE, Cruzeiro, Cedibra, Bloch,
-  // Artenova, Edição Maravilhosa, Almanaques antigos…) ou ano <= 2005 no nome.
+  // ---- Curadoria "Clássicos": pega edições vintage soltas em "Variados" ----
   const CLASSICOS_KEYWORDS = [
-    "ebal",
-    "rge",
-    "cruzeiro",
-    "cedibra",
-    "bloch",
-    "artenova",
-    "taika",
-    "edicao maravilhosa",
-    "edição maravilhosa",
-    "edio-maravilhosa",
-    "edio maravilhosa",
-    "grandes figuras",
-    "romances eternos",
-    "almanaque",
-    "edição ouro",
-    "série ouro",
-    "serie ouro",
-    "agente secreto",
-    "sombra",
-    "fantasma-especial",
-    "far-west",
-    "per-lim-pim-pim",
-    "pingo de gente",
-    "mestre kim",
-    "robinson",
-    "riquinho",
-    "super-homem-crnicas",
-    "graphic album 05",
-    "coleção gibi especial",
-    "biblia em quadrinhos",
-    "bíblia em quadrinhos",
-    "bone-36-1999",
-    "fofão",
-    "pica-pau",
-    "addams 001, 10.1974",
-    "almanaque zero",
-    "superalmanaque",
-    "familia addams",
-    "spirit (1985)",
-    "spirit (1987)",
-    "spirit (1991)",
-    "spirit (1997)",
-    "spirit 01",
-    "spirit 05",
-    "cinemin",
-    "will eisner - 1991",
+    "ebal", "rge", "cruzeiro", "cedibra", "bloch", "artenova", "taika",
+    "edicao maravilhosa", "edição maravilhosa", "edio-maravilhosa", "edio maravilhosa",
+    "grandes figuras", "romances eternos", "almanaque", "edição ouro",
+    "série ouro", "serie ouro", "agente secreto", "sombra", "fantasma-especial",
+    "far-west", "per-lim-pim-pim", "pingo de gente", "mestre kim", "robinson",
+    "riquinho", "super-homem-crnicas", "graphic album 05", "coleção gibi especial",
+    "biblia em quadrinhos", "bíblia em quadrinhos", "bone-36-1999", "fofão",
+    "pica-pau", "addams 001, 10.1974", "almanaque zero", "superalmanaque",
+    "familia addams", "spirit (1985)", "spirit (1987)", "spirit (1991)",
+    "spirit (1997)", "spirit 01", "spirit 05", "cinemin", "will eisner - 1991",
     "vizinhança - avenida dropsie",
   ];
   const CLASSICOS_YEAR_RE = /\b(19[5-9]\d|200[0-5])\b/;
@@ -150,6 +112,83 @@ const Index = () => {
     if (CLASSICOS_YEAR_RE.test(name)) return true;
     return false;
   };
+
+  // ---- Pastas inteiras (de outras editoras) que vão para "Clássicos" ----
+  // Match exato pelo nome da pasta (case-insensitive). Editoras que NÃO devem
+  // ter pastas movidas: Turma da Mônica, Chaves, Os Trapalhões.
+  const CLASSICOS_FOLDER_NAMES = new Set<string>([
+    // Editora Brasileira / EBAL / RGE
+    "ebal",
+    "edição maravilhosa", "edicao maravilhosa",
+    "grandes figuras em quadrinhos",
+    "fantasma rge",
+    "zorro (ebal)",
+    "almanaque piteco e horácio",
+    // Bônus terror antigo
+    "3 geracao - kripta (rge)",
+    "almanaque de terror",
+    "almanaque de terror 2",
+    "almanaque terror especial",
+    "classicos do pavor",
+    // MAD anos 70/80
+    "(1974-1980)", "(1984-2000)",
+    // Tex
+    "tex grandes clássicos", "tex, os grandes classicos", "almanaque tex",
+    "tex 1971", "tex 1999", "tex 2000",
+    // Marvel — clássicos lendários só
+    "almanaque marvel",
+    "almanaque conan - (1982-1992)",
+    "cavaleiro da lua (1976)",
+    "cavaleiro da lua (1980)",
+    "fist of khonshu moon knight (1985)",
+    "marc spector moon knight (1989)",
+    "(1972) defensores",
+    "1977", // Eternos 1977
+    "massacre dos filhos da meia-noite (1993)",
+    // DC lendários
+    "hellblazer - constantine (1988-2016)",
+    "monstro do pântano (1972-2020)",
+    "os livros da magia (1990-2000)",
+    "patrulha do destino (1989-2019)",
+    "os ínvisiveis (1996-2000)",
+    "100 balas (1999-2002)",
+    "coringa - a última risada (2001-2002)",
+    "cronologia raridades diversas a partir de 1950 (antigas)",
+    "v de vingança (1997)",
+    "watchmen (1986-2018)",
+    // Vertigo
+    "sandman (1989-1997)",
+    // Dark Horse / vintage
+    "aliens 1988",
+    "aliens - frenzy (1995)",
+    "aliens - labirinth (1993)",
+    "aliens - salvation (1993)",
+    "aliens - stronghold (1994)",
+    "(1996) tarzan vs predador",
+    "(1997) predador vs juiz dredd",
+    "(2001) liga da justica vs predador",
+    // Disney
+    "clássicos de walt disney",
+    // Infantil
+    "clássicos do cinema",
+    "horacio (1969-1974)",
+    "horacio completo 1969 a 1974",
+    "mortadelo e salaminho cedibra",
+    // Atualizações antigas
+    "looney tunes (1995)", "invasão (1990)", "plop! (1973)",
+    // Zagor
+    "zagor - almanaque de aventura",
+    // Soleil
+    "merlin - 2001 (soleil",
+  ]);
+  // Editoras que NÃO devem ter pastas movidas
+  const CLASSICOS_BLACKLIST_TOPS = new Set<string>([
+    "turma da mônica", "chaves", "os trapalhões",
+    "mangás", "shueisha", "junji ito",
+    "almanaque disney", "mágico vento",
+    "astérix", "tintin", "bone",
+    "homem-aranha (abril)", "hulk (abril)",
+  ]);
 
   // Mangás populares hoje "enterrados" em Atualizações Quinzenais → Inclusão → Mangás.
   // Vamos mesclá-los na aba "Mangás" para ficarem visíveis sem criar nova editora.
@@ -377,16 +416,57 @@ const Index = () => {
       : null;
 
     // ---------- Editora virtual: Clássicos ----------
-    // Pega os PDFs vintage soltos em "Variados" e move para uma aba dedicada.
+    // Combina:
+    //   1) PDFs vintage soltos em "Variados"
+    //   2) Pastas inteiras vintage espalhadas por outras editoras (CLASSICOS_FOLDER_NAMES)
     const variados = list.find((n) => lower(n.name) === "variados");
-    const classicosFiles = (variados?.children ?? []).filter(
+    const classicosLooseFiles = (variados?.children ?? []).filter(
       (c) => c.type === "file" && isClassico(c.name)
     );
-    const classicosIds = new Set(classicosFiles.map((c) => c.id));
+    const classicosLooseIds = new Set(classicosLooseFiles.map((c) => c.id));
+
+    // Coleta pastas vintage recursivamente, ignorando editoras-raiz da blacklist.
+    type ClassicoFound = { folder: DriveNode; topPublisher: string };
+    const classicosFolders: ClassicoFound[] = [];
+    const classicosFolderIds = new Set<string>();
+    const collectClassicoFolders = (
+      node: DriveNode,
+      topPublisher: string,
+      depth: number
+    ): void => {
+      if (depth >= 1 && node.type === "folder") {
+        if (CLASSICOS_BLACKLIST_TOPS.has(lower(topPublisher))) return;
+        if (CLASSICOS_FOLDER_NAMES.has(lower(node.name))) {
+          classicosFolders.push({ folder: node, topPublisher });
+          classicosFolderIds.add(node.id);
+          return; // não desce mais — pega a pasta toda
+        }
+      }
+      for (const c of node.children ?? []) {
+        const newTop = depth >= 1 ? topPublisher : c.name;
+        collectClassicoFolders(c, newTop, depth + 1);
+      }
+    };
+    for (const pub of list) {
+      collectClassicoFolders(pub, pub.name, 1);
+    }
+
+    // Renomeia as pastas movidas pra deixar claro de onde vieram (ex: "Sandman (Vertigo)")
+    const renamedClassicoFolders: DriveNode[] = classicosFolders.map(
+      ({ folder, topPublisher }) => {
+        const alreadyHasOrigin = folder.name
+          .toLowerCase()
+          .includes(topPublisher.toLowerCase());
+        return alreadyHasOrigin
+          ? folder
+          : { ...folder, name: `${folder.name} (${topPublisher})` };
+      }
+    );
+
     const virtualClassicos = buildVirtual(
       "virtual-classicos",
       "Clássicos",
-      classicosFiles
+      [...classicosLooseFiles, ...renamedClassicoFolders]
     );
 
     // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
@@ -443,35 +523,59 @@ const Index = () => {
         ? { ...node, children: node.children.filter((c) => !shouldRemove(c)) }
         : node;
 
+    // Remove em qualquer profundidade pastas/arquivos cujo id esteja em ids,
+    // e também limpa pastas que ficaram vazias por conta da remoção (exceto raiz).
+    const deepStrip = (node: DriveNode, ids: Set<string>): DriveNode => {
+      if (!node.children) return node;
+      const next = node.children
+        .filter((c) => !ids.has(c.id))
+        .map((c) => (c.type === "folder" ? deepStrip(c, ids) : c))
+        // Pasta filha que ficou sem nenhum descendente -> remove também
+        .filter((c) => {
+          if (c.type !== "folder") return true;
+          const hasAnyFile = (n: DriveNode): boolean =>
+            (n.children ?? []).some((cc) =>
+              cc.type === "file" ? true : hasAnyFile(cc)
+            );
+          return hasAnyFile(c);
+        });
+      return { ...node, children: next };
+    };
+
     const filtered = list.map((n): DriveNode => {
       const lname = lower(n.name);
+      let cur: DriveNode = n;
+      // Remove em profundidade qualquer pasta vintage que migrou para Clássicos.
+      if (classicosFolderIds.size > 0 && !CLASSICOS_BLACKLIST_TOPS.has(lname)) {
+        cur = deepStrip(cur, classicosFolderIds);
+      }
       if (lname === "mangás" && enrichedMangas) return enrichedMangas;
       if (lname === "infantil") {
         return stripChildren(
-          n,
+          cur,
           (c) => isMonicaName(c.name) || movedIds.has(c.id)
         );
       }
       if (lname === "panini") {
-        return stripChildren(n, (c) => isMonicaName(c.name));
+        return stripChildren(cur, (c) => isMonicaName(c.name));
       }
-      if (lname === "disney") return stripChildren(n, (c) => movedIds.has(c.id));
+      if (lname === "disney") return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "sergio bonelli")
-        return stripChildren(n, (c) => movedIds.has(c.id));
-      if (lname === "dargaud") return stripChildren(n, (c) => movedIds.has(c.id));
+        return stripChildren(cur, (c) => movedIds.has(c.id));
+      if (lname === "dargaud") return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editora abril")
-        return stripChildren(n, (c) => movedIds.has(c.id));
+        return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editoras brasileiras")
-        return stripChildren(n, (c) => movedIds.has(c.id));
+        return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "variados") {
         // Tira os PDFs vintage que viraram a aba "Clássicos".
-        return stripChildren(n, (c) => classicosIds.has(c.id));
+        return stripChildren(cur, (c) => classicosLooseIds.has(c.id));
       }
       if (lname === "bônus") {
-        // Remove o Junji Ito de dentro de Bônus → Mangás e Quadrinhos de terror.
+        // Remove Junji Ito de dentro de Bônus -> Mangás e Quadrinhos de terror.
         return {
-          ...n,
-          children: (n.children ?? []).map((sub) => {
+          ...cur,
+          children: (cur.children ?? []).map((sub) => {
             if (/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name)) {
               return stripChildren(sub, (c) => movedIds.has(c.id));
             }
@@ -479,7 +583,7 @@ const Index = () => {
           }),
         };
       }
-      return n;
+      return cur;
     });
 
     const merged = [
