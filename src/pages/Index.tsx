@@ -884,15 +884,13 @@ const Index = () => {
         );
       }
       if (lname === "bônus") {
-        // Remove Junji Ito de dentro de Bônus -> Mangás e Quadrinhos de terror.
+        // Remove inteiramente a pasta "Mangás e Quadrinhos de terror" de Bônus —
+        // o conteúdo agora vive nas abas "Junji Ito" e "Terror".
         return {
           ...cur,
-          children: (cur.children ?? []).map((sub) => {
-            if (/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name)) {
-              return stripChildren(sub, (c) => movedIds.has(c.id));
-            }
-            return sub;
-          }),
+          children: (cur.children ?? []).filter(
+            (sub) => !/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name)
+          ),
         };
       }
       return cur;
