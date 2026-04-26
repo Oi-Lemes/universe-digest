@@ -26,6 +26,16 @@ import abril from "@/assets/publishers/abril.png";
 import globo from "@/assets/publishers/globo.png";
 import mangas from "@/assets/publishers/mangas.png";
 import turmaDaMonica from "@/assets/publishers/turma-da-monica.png";
+import junjiIto from "@/assets/publishers/junji-ito.png";
+import homemAranhaAbril from "@/assets/publishers/homem-aranha-abril.png";
+import hulkAbril from "@/assets/publishers/hulk-abril.png";
+import almanaqueDisney from "@/assets/publishers/almanaque-disney.png";
+import magicoVento from "@/assets/publishers/magico-vento.png";
+import trapalhoes from "@/assets/publishers/trapalhoes.png";
+import bone from "@/assets/publishers/bone.png";
+import asterix from "@/assets/publishers/asterix.png";
+import tintin from "@/assets/publishers/tintin.png";
+import chaves from "@/assets/publishers/chaves.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -267,6 +277,96 @@ const THEMES: Record<string, PublisherTheme> = {
     foreground: "0 0% 100%",
     fontFamily: '"Fredoka", "Patrick Hand", "Bangers", sans-serif',
     logo: turmaDaMonica,
+    letterSpacing: "0.04em",
+    fontSize: "0.82rem",
+  },
+  "junji ito": {
+    color: "0 0% 6%",
+    colorAlt: "0 85% 35%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
+    logo: junjiIto,
+    letterSpacing: "0.08em",
+    fontSize: "0.82rem",
+  },
+  "homem-aranha (abril)": {
+    color: "0 90% 48%",
+    colorAlt: "214 95% 38%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Bowlby One", "Anton", Impact, sans-serif',
+    logo: homemAranhaAbril,
+    letterSpacing: "0.06em",
+    fontSize: "0.78rem",
+  },
+  "hulk (abril)": {
+    color: "120 70% 32%",
+    colorAlt: "120 80% 18%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Bowlby One", "Anton", Impact, sans-serif',
+    logo: hulkAbril,
+    letterSpacing: "0.08em",
+    fontSize: "0.78rem",
+  },
+  "almanaque disney": {
+    color: "0 85% 50%",
+    colorAlt: "48 100% 50%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Fredoka", "Patrick Hand", "Bangers", sans-serif',
+    logo: almanaqueDisney,
+    letterSpacing: "0.04em",
+    fontSize: "0.82rem",
+  },
+  "mágico vento": {
+    color: "28 75% 38%",
+    colorAlt: "190 70% 40%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Rye", "Anton", Impact, serif',
+    logo: magicoVento,
+    letterSpacing: "0.06em",
+    fontSize: "0.82rem",
+  },
+  "os trapalhões": {
+    color: "48 100% 50%",
+    colorAlt: "0 85% 50%",
+    foreground: "0 0% 10%",
+    fontFamily: '"Fredoka", "Patrick Hand", "Bangers", sans-serif',
+    logo: trapalhoes,
+    letterSpacing: "0.04em",
+    fontSize: "0.82rem",
+  },
+  "bone": {
+    color: "0 0% 18%",
+    colorAlt: "200 60% 50%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Patrick Hand", "Fredoka", sans-serif',
+    logo: bone,
+    letterSpacing: "0.04em",
+    fontSize: "0.82rem",
+  },
+  "astérix": {
+    color: "0 85% 50%",
+    colorAlt: "48 100% 45%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Fredoka", "Bangers", Impact, sans-serif',
+    logo: asterix,
+    letterSpacing: "0.05em",
+    fontSize: "0.82rem",
+  },
+  "tintin": {
+    color: "214 90% 45%",
+    colorAlt: "0 85% 50%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Russo One", "Anton", Impact, sans-serif',
+    logo: tintin,
+    letterSpacing: "0.08em",
+    fontSize: "0.78rem",
+  },
+  "chaves": {
+    color: "28 80% 45%",
+    colorAlt: "48 100% 50%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Fredoka", "Bangers", Impact, sans-serif',
+    logo: chaves,
     letterSpacing: "0.04em",
     fontSize: "0.82rem",
   },
