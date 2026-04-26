@@ -9,6 +9,7 @@ import { FolderGrid } from "@/components/FolderGrid";
 import { ComicReader } from "@/components/ComicReader";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { PublisherTab } from "@/components/PublisherTab";
+import { OnlinePresence } from "@/components/OnlinePresence";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
 
