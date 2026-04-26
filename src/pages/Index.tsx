@@ -195,6 +195,13 @@ const Index = () => {
     "black sabbath", "dr. ozz", "anne frank",
     "aprendar fácil", "aprendar facil", "gibi bullying",
     "quebrando o silêncio", "quebrando o silencio",
+    // Filosofia / ensaios / curadoria adicional
+    "filsofos-em-ao", "filósofos em ação", "filosofos em acao",
+    "golias-tom-gauld", "tom gauld",
+    "natureza - a biblia do naturali", "ralph waldo emerson",
+    "brasil pais do futuro", "brasil país do futuro",
+    "robert crumb - meus problemas", "robert crumb - minha vida",
+    "romances eternos - br0004", "homero",
   ];
   const isCultura = (name: string) => {
     const n = name.toLowerCase();
@@ -655,6 +662,57 @@ const Index = () => {
       [...cleanedLoose, ...cleanedClassicoFolders]
     );
 
+    // ---------- Realocação de arquivos avulsos de "Variados" ----------
+    // Pega PDFs soltos no Variados que claramente pertencem a outras abas
+    // (MAD, Disney, Astérix, Bonelli, Junji Ito, DC, Trapalhões, Bíblia,
+    // Image, Marvel) e injeta na pasta da editora correspondente.
+    // Roda DEPOIS da extração de Cultura/Clássicos — não pega o que já saiu.
+    type ReallocTarget =
+      | "mad" | "disney" | "asterix" | "bonelli" | "junji" | "dc"
+      | "trapalhoes" | "biblia" | "image" | "marvel" | "mangas";
+    const reallocTarget = (rawName: string): ReallocTarget | null => {
+      const n = rawName.toLowerCase();
+      // Junji Ito / Shintarou Kago / Dementia
+      if (/(junji[\s-]?ito|cat[\s-]?diary[\s-]?junji|shintarou[\s-]?kago|dementia[\s-]?21)/.test(n)) return "junji";
+      // MAD
+      if (/(^|[^a-z])mad([\s\-#]|$)/.test(n) && !/madame|madagascar|madrasta/.test(n)) return "mad";
+      // Astérix
+      if (/(^|[\s\-_])(asterix|astérix)([\s\-_]|$)/.test(n)) return "asterix";
+      // Disney / Cartoon clássicos animados
+      if (/(almanaque\s+disney|essencial\s+disney|cl[sá]ssicos[\s-]?disney|aristogatas|carros\s*-\s*radiator|kung-?fu\s+panda|hora\s+de\s+aventura|marceline|album\s+dinheirinho|marte\s+ataca\s+popeye|little\s+pony|tio\s+patinhas|barks\s*&|barks\s+and\s+rosa)/.test(n)) return "disney";
+      // Sergio Bonelli (Dylan Dog etc.)
+      if (/(dylan[\s-]?dog|martin\s+myst[èe]re|mister\s+no|dampyr|nathan\s+never)/.test(n)) return "bonelli";
+      // DC
+      if (/(morte\s+do\s+superman|detective\s+comics|batman[\s-]?arkham|superman[\s-]?vs[\s-]?muhammad)/.test(n)) return "dc";
+      // Marvel
+      if (/(sergio\s+arag.n.s\s+massacra\s+a\s+marvel)/.test(n)) return "marvel";
+      // Trapalhões
+      if (/(as[\s_]?aventuras[\s_]?dos[\s_]?trapalho|trapalho)/.test(n)) return "trapalhoes";
+      // Bíblia em Quadrinhos (avulsos)
+      if (/(b[íi]blia\s+em\s+quadrinhos|jac[óo]\s+e\s+es[áa]u|rebeli[ãa]o\s+de\s+cor[áa]|g[êe]nesis\s*-\s*robert\s+crumb|parabolas\s+de\s+todo|par[áa]bolas\s+de\s+todo)/.test(n)) return "biblia";
+      // Image Comics (Liga Extraordinária / Lady Killer)
+      if (/(liga\s+extraordin[áa]ria|lady\s+killer)/.test(n)) return "image";
+      // Mangás avulsos
+      if (/(mang[áa]\s*-\s*lipsticklove|mang[áa]\s*-\s*samurai\s*x)/.test(n)) return "mangas";
+      return null;
+    };
+
+    // Só pega arquivos que ainda estão no Variados (não migraram pra Cultura/Clássicos)
+    const reallocBuckets: Record<ReallocTarget, DriveNode[]> = {
+      mad: [], disney: [], asterix: [], bonelli: [], junji: [], dc: [],
+      trapalhoes: [], biblia: [], image: [], marvel: [], mangas: [],
+    };
+    const reallocIds = new Set<string>();
+    for (const c of variados?.children ?? []) {
+      if (c.type !== "file") continue;
+      if (classicosLooseIds.has(c.id) || culturaLooseIds.has(c.id)) continue;
+      const t = reallocTarget(c.name);
+      if (t) {
+        reallocBuckets[t].push(c);
+        reallocIds.add(c.id);
+      }
+    }
+
     // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
     // IDs dos títulos da Shueisha já promovidos para não duplicar.
     const shueishaIds = new Set(
@@ -728,6 +786,31 @@ const Index = () => {
       return { ...node, children: next };
     };
 
+    // ---------- Helper para anexar bucket à pasta destino ----------
+    // Cria uma subpasta "Avulsos (de Variados)" dentro do destino com os
+    // arquivos realocados, mantendo a organização original.
+    const appendBucket = (
+      target: DriveNode | null | undefined,
+      bucket: DriveNode[]
+    ): DriveNode | null | undefined => {
+      if (!target || bucket.length === 0) return target;
+      const sub: DriveNode = {
+        id: `${target.id}-avulsos-variados`,
+        name: "Avulsos (de Variados)",
+        type: "folder",
+        children: [...bucket].sort(sortPtBr),
+      };
+      return {
+        ...target,
+        children: [...(target.children ?? []), sub].sort(sortPtBr),
+      };
+    };
+
+    // Aplica nos virtuais (que vão direto pro merged)
+    const virtualJunjiItoFinal = appendBucket(virtualJunjiIto, reallocBuckets.junji);
+    const virtualAsterixFinal = appendBucket(virtualAsterix, reallocBuckets.asterix);
+    const virtualTrapalhoesFinal = appendBucket(virtualTrapalhoes, reallocBuckets.trapalhoes);
+
     const filtered = list.map((n): DriveNode => {
       const lname = lower(n.name);
       let cur: DriveNode = n;
@@ -739,7 +822,9 @@ const Index = () => {
       if (monicaPickedIds.size > 0 && lname !== "turma da mônica") {
         cur = deepStrip(cur, monicaPickedIds);
       }
-      if (lname === "mangás" && enrichedMangas) return enrichedMangas;
+      if (lname === "mangás" && enrichedMangas) {
+        return appendBucket(enrichedMangas, reallocBuckets.mangas) ?? enrichedMangas;
+      }
       if (lname === "infantil") {
         return stripChildren(
           cur,
@@ -749,19 +834,42 @@ const Index = () => {
       if (lname === "panini") {
         return stripChildren(cur, (c) => isMonicaName(c.name));
       }
-      if (lname === "disney") return stripChildren(cur, (c) => movedIds.has(c.id));
-      if (lname === "sergio bonelli")
-        return stripChildren(cur, (c) => movedIds.has(c.id));
+      if (lname === "disney") {
+        const stripped = stripChildren(cur, (c) => movedIds.has(c.id));
+        return appendBucket(stripped, reallocBuckets.disney) ?? stripped;
+      }
+      if (lname === "sergio bonelli") {
+        const stripped = stripChildren(cur, (c) => movedIds.has(c.id));
+        return appendBucket(stripped, reallocBuckets.bonelli) ?? stripped;
+      }
       if (lname === "dargaud") return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editora abril")
         return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editoras brasileiras")
         return stripChildren(cur, (c) => movedIds.has(c.id));
+      if (lname === "mad") {
+        return appendBucket(cur, reallocBuckets.mad) ?? cur;
+      }
+      if (lname === "marvel") {
+        return appendBucket(cur, reallocBuckets.marvel) ?? cur;
+      }
+      if (lname === "dc") {
+        return appendBucket(cur, reallocBuckets.dc) ?? cur;
+      }
+      if (lname === "image comics") {
+        return appendBucket(cur, reallocBuckets.image) ?? cur;
+      }
+      if (lname === "bíblia em quadrinhos") {
+        return appendBucket(cur, reallocBuckets.biblia) ?? cur;
+      }
       if (lname === "variados") {
-        // Tira os PDFs que viraram as abas "Cultura & Biografias" e "Clássicos".
+        // Tira PDFs que viraram Cultura, Clássicos, ou foram realocados.
         return stripChildren(
           cur,
-          (c) => classicosLooseIds.has(c.id) || culturaLooseIds.has(c.id)
+          (c) =>
+            classicosLooseIds.has(c.id) ||
+            culturaLooseIds.has(c.id) ||
+            reallocIds.has(c.id)
         );
       }
       if (lname === "bônus") {
@@ -785,16 +893,16 @@ const Index = () => {
       ),
       ...(virtualShueisha ? [virtualShueisha] : []),
       ...(virtualMonica ? [virtualMonica] : []),
-      ...(virtualJunjiIto ? [virtualJunjiIto] : []),
+      ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
       ...(virtualHomemAranhaAbril ? [virtualHomemAranhaAbril] : []),
       ...(virtualHulkAbril ? [virtualHulkAbril] : []),
       ...(virtualAlmanaqueDisney ? [virtualAlmanaqueDisney] : []),
       ...(virtualMagicoVento ? [virtualMagicoVento] : []),
-      ...(virtualAsterix ? [virtualAsterix] : []),
+      ...(virtualAsterixFinal ? [virtualAsterixFinal] : []),
       ...(virtualTintin ? [virtualTintin] : []),
       ...(virtualBone ? [virtualBone] : []),
       ...(virtualChaves ? [virtualChaves] : []),
-      ...(virtualTrapalhoes ? [virtualTrapalhoes] : []),
+      ...(virtualTrapalhoesFinal ? [virtualTrapalhoesFinal] : []),
       ...(virtualClassicos ? [virtualClassicos] : []),
       ...(virtualCultura ? [virtualCultura] : []),
     ];
