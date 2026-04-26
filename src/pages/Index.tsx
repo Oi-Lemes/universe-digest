@@ -41,6 +41,7 @@ const Index = () => {
     "Mangás",
     "Turma da Mônica",
     "Junji Ito",
+    "Terror",
     "Homem-Aranha (Abril)",
     "Hulk (Abril)",
     "Almanaque Disney",
