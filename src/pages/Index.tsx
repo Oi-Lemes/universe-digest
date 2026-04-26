@@ -3,7 +3,7 @@ import { Tabs, TabsList, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight, Home, LogOut, HardDrive } from "lucide-react";
+import { ChevronRight, Home, LogOut } from "lucide-react";
 import { DriveNode, DriveTree, loadDriveTree } from "@/lib/drive";
 import { FolderGrid } from "@/components/FolderGrid";
 import { ComicReader } from "@/components/ComicReader";
