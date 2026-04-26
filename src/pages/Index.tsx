@@ -152,63 +152,254 @@ const Index = () => {
   const publishers = useMemo(() => {
     const list = tree?.children ?? [];
 
-    // Monta a "editora virtual" Shueisha a partir das obras dentro de "Mangás".
-    const mangas = list.find((n) => n.name.toLowerCase() === "mangás");
-    const shueishaSet = new Set(SHUEISHA_TITLES.map((s) => s.toLowerCase()));
-    const shueishaChildren = (mangas?.children ?? []).filter((n) =>
-      shueishaSet.has(n.name.toLowerCase())
+    // ---------- Helpers ----------
+    const findChild = (parent: DriveNode | undefined, predicate: (n: DriveNode) => boolean) =>
+      parent?.children?.find(predicate);
+    const sortPtBr = (a: DriveNode, b: DriveNode) =>
+      a.name.localeCompare(b.name, "pt-BR", { numeric: true });
+    const lower = (s: string) => s.trim().toLowerCase();
+
+    const buildVirtual = (
+      id: string,
+      name: string,
+      children: DriveNode[]
+    ): DriveNode | null =>
+      children.length > 0
+        ? {
+            id,
+            name,
+            type: "folder",
+            children: [...children].sort(sortPtBr),
+          }
+        : null;
+
+    // ---------- Localiza pastas-fonte ----------
+    const mangas = list.find((n) => lower(n.name) === "mangás");
+    const infantil = list.find((n) => lower(n.name) === "infantil");
+    const panini = list.find((n) => lower(n.name) === "panini");
+    const disney = list.find((n) => lower(n.name) === "disney");
+    const bonelli = list.find((n) => lower(n.name) === "sergio bonelli");
+    const dargaud = list.find((n) => lower(n.name) === "dargaud");
+    const editoraAbril = list.find((n) => lower(n.name) === "editora abril");
+    const editorasBr = list.find((n) => lower(n.name) === "editoras brasileiras");
+    const bonus = list.find((n) => lower(n.name) === "bônus");
+    const atualizacoes = list.find((n) =>
+      /atualiza[cç][ãa]o|atualiza[cç][õo]es\s+quinzenais/i.test(n.name)
     );
-    const virtualShueisha: DriveNode | null =
-      shueishaChildren.length > 0
-        ? {
-            id: "virtual-shueisha",
-            name: "Shueisha",
-            type: "folder",
-            children: [...shueishaChildren].sort((a, b) =>
-              a.name.localeCompare(b.name, "pt-BR", { numeric: true })
-            ),
-          }
-        : null;
 
-    // Editora virtual "Turma da Mônica":
-    // - Move "Turma da Mônica" e "Parque da Mônica" de dentro de "Infantil".
-    // - Move "Turma da Mônica Jovem" de dentro de "Panini".
+    // Bônus → "Mangás e Quadrinhos de terror" (pasta com Junji Ito, Calafrio, etc.)
+    const bonusTerror = findChild(bonus, (n) =>
+      /mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(n.name)
+    );
+
+    // Atualizações Quinzenais → Inclusão de conteúdos → Mangás
+    const atualizacoesInclusao = findChild(atualizacoes, (n) =>
+      /inclus[ãa]o\s+de\s+conte/i.test(n.name)
+    );
+    const atualizacoesMangas = findChild(atualizacoesInclusao, (n) =>
+      lower(n.name).startsWith("mang")
+    );
+
+    // ---------- Editora virtual: Shueisha ----------
+    const shueishaSet = new Set(SHUEISHA_TITLES.map(lower));
+    const virtualShueisha = buildVirtual(
+      "virtual-shueisha",
+      "Shueisha",
+      (mangas?.children ?? []).filter((n) => shueishaSet.has(lower(n.name)))
+    );
+
+    // ---------- Editora virtual: Turma da Mônica ----------
     const isMonicaName = (name: string) => /m[ôo]nica/i.test(name);
+    const monicaChildren: DriveNode[] = [
+      ...(infantil?.children?.filter((n) => isMonicaName(n.name)) ?? []),
+      ...(panini?.children?.filter((n) => isMonicaName(n.name)) ?? []),
+    ];
+    const virtualMonica = buildVirtual(
+      "virtual-turma-da-monica",
+      "Turma da Mônica",
+      monicaChildren
+    );
 
-    const infantil = list.find((n) => n.name.toLowerCase() === "infantil");
-    const panini = list.find((n) => n.name.toLowerCase() === "panini");
+    // ---------- Editora virtual: Junji Ito ----------
+    const junjiItoFolder = findChild(bonusTerror, (n) =>
+      /junji\s*ito/i.test(n.name)
+    );
+    const virtualJunjiIto = junjiItoFolder
+      ? { ...junjiItoFolder, id: "virtual-junji-ito", name: "Junji Ito" }
+      : null;
 
-    const monicaChildren: DriveNode[] = [];
-    if (infantil?.children) {
-      monicaChildren.push(
-        ...infantil.children.filter((n) => isMonicaName(n.name))
-      );
-    }
-    if (panini?.children) {
-      monicaChildren.push(
-        ...panini.children.filter((n) => isMonicaName(n.name))
-      );
-    }
+    // ---------- Editora virtual: Homem-Aranha (Abril) ----------
+    const homemAranhaAbrilFolder = findChild(
+      editoraAbril,
+      (n) => lower(n.name) === "homem aranha"
+    );
+    const virtualHomemAranhaAbril = homemAranhaAbrilFolder
+      ? {
+          ...homemAranhaAbrilFolder,
+          id: "virtual-homem-aranha-abril",
+          name: "Homem-Aranha (Abril)",
+        }
+      : null;
 
-    const virtualMonica: DriveNode | null =
-      monicaChildren.length > 0
-        ? {
-            id: "virtual-turma-da-monica",
-            name: "Turma da Mônica",
-            type: "folder",
-            children: [...monicaChildren].sort((a, b) =>
-              a.name.localeCompare(b.name, "pt-BR", { numeric: true })
+    // ---------- Editora virtual: Hulk (Abril) ----------
+    const hulkAbrilFolder = findChild(editoraAbril, (n) =>
+      /incr[íi]vel\s+hulk/i.test(n.name)
+    );
+    const virtualHulkAbril = hulkAbrilFolder
+      ? { ...hulkAbrilFolder, id: "virtual-hulk-abril", name: "Hulk (Abril)" }
+      : null;
+
+    // ---------- Editora virtual: Almanaque Disney ----------
+    const almanaqueDisneyFolder = findChild(disney, (n) =>
+      /almanaque\s+disney/i.test(n.name)
+    );
+    const virtualAlmanaqueDisney = almanaqueDisneyFolder
+      ? {
+          ...almanaqueDisneyFolder,
+          id: "virtual-almanaque-disney",
+          name: "Almanaque Disney",
+        }
+      : null;
+
+    // ---------- Editora virtual: Mágico Vento (junto com Ken Parker) ----------
+    const magicoVentoFolder = findChild(bonelli, (n) =>
+      /m[áa]gico\s+vento/i.test(n.name)
+    );
+    const kenParkerFolder = findChild(bonelli, (n) =>
+      /ken\s+parker/i.test(n.name)
+    );
+    const virtualMagicoVento = buildVirtual(
+      "virtual-magico-vento",
+      "Mágico Vento",
+      [
+        ...(magicoVentoFolder ? [magicoVentoFolder] : []),
+        ...(kenParkerFolder ? [kenParkerFolder] : []),
+      ]
+    );
+
+    // ---------- Editora virtual: Astérix ----------
+    const asterixFolder = findChild(dargaud, (n) => /ast[ée]rix/i.test(n.name));
+    const virtualAsterix = asterixFolder
+      ? { ...asterixFolder, id: "virtual-asterix", name: "Astérix" }
+      : null;
+
+    // ---------- Editora virtual: Tintin ----------
+    const tintinFolder = findChild(infantil, (n) =>
+      /herg[ée]|tintin|tintim/i.test(n.name)
+    );
+    const virtualTintin = tintinFolder
+      ? { ...tintinFolder, id: "virtual-tintin", name: "Tintin" }
+      : null;
+
+    // ---------- Editora virtual: Bone ----------
+    const boneFolder = findChild(infantil, (n) => /^bone\b/i.test(n.name));
+    const virtualBone = boneFolder
+      ? { ...boneFolder, id: "virtual-bone", name: "Bone" }
+      : null;
+
+    // ---------- Editora virtual: Chaves ----------
+    const chavesFolder = findChild(infantil, (n) => lower(n.name) === "chaves");
+    const virtualChaves = chavesFolder
+      ? { ...chavesFolder, id: "virtual-chaves", name: "Chaves" }
+      : null;
+
+    // ---------- Editora virtual: Os Trapalhões ----------
+    const trapalhoesFolder = findChild(editorasBr, (n) =>
+      /trapalho/i.test(n.name)
+    );
+    const virtualTrapalhoes = trapalhoesFolder
+      ? {
+          ...trapalhoesFolder,
+          id: "virtual-trapalhoes",
+          name: "Os Trapalhões",
+        }
+      : null;
+
+    // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
+    // IDs dos títulos da Shueisha já promovidos para não duplicar.
+    const shueishaIds = new Set(
+      (virtualShueisha?.children ?? []).map((n) => n.id)
+    );
+    const popularSet = new Set(POPULAR_MANGAS_FROM_UPDATES.map(lower));
+    const popularFromUpdates = (atualizacoesMangas?.children ?? []).filter(
+      (n) => popularSet.has(lower(n.name))
+    );
+    const existingMangaIds = new Set(
+      (mangas?.children ?? []).map((n) => n.id)
+    );
+    const popularToAdd = popularFromUpdates.filter(
+      (n) => !existingMangaIds.has(n.id) && !shueishaIds.has(n.id)
+    );
+
+    const enrichedMangas: DriveNode | undefined = mangas
+      ? {
+          ...mangas,
+          children: [
+            ...(mangas.children ?? []).filter(
+              (n) => !shueishaIds.has(n.id)
             ),
-          }
-        : null;
+            ...popularToAdd,
+          ].sort(sortPtBr),
+        }
+      : undefined;
 
-    // Realoca: remove as pastas movidas dos pais originais (sem mutar o original).
-    const filtered = list.map((n) => {
-      if (n.name.toLowerCase() === "infantil" && n.children) {
-        return { ...n, children: n.children.filter((c) => !isMonicaName(c.name)) };
+    // ---------- IDs movidos (para remover dos pais originais) ----------
+    const movedIds = new Set<string>(
+      [
+        ...(virtualJunjiIto ? [junjiItoFolder!.id] : []),
+        ...(virtualHomemAranhaAbril ? [homemAranhaAbrilFolder!.id] : []),
+        ...(virtualHulkAbril ? [hulkAbrilFolder!.id] : []),
+        ...(virtualAlmanaqueDisney ? [almanaqueDisneyFolder!.id] : []),
+        ...(magicoVentoFolder ? [magicoVentoFolder.id] : []),
+        ...(kenParkerFolder ? [kenParkerFolder.id] : []),
+        ...(virtualAsterix ? [asterixFolder!.id] : []),
+        ...(virtualTintin ? [tintinFolder!.id] : []),
+        ...(virtualBone ? [boneFolder!.id] : []),
+        ...(virtualChaves ? [chavesFolder!.id] : []),
+        ...(virtualTrapalhoes ? [trapalhoesFolder!.id] : []),
+      ].filter(Boolean)
+    );
+
+    // Remove pastas movidas e remove subpastas/filhas pertencentes aos virtuais nos pais originais.
+    const stripChildren = (
+      node: DriveNode,
+      shouldRemove: (c: DriveNode) => boolean
+    ): DriveNode =>
+      node.children
+        ? { ...node, children: node.children.filter((c) => !shouldRemove(c)) }
+        : node;
+
+    const filtered = list.map((n): DriveNode => {
+      const lname = lower(n.name);
+      if (lname === "mangás" && enrichedMangas) return enrichedMangas;
+      if (lname === "infantil") {
+        return stripChildren(
+          n,
+          (c) => isMonicaName(c.name) || movedIds.has(c.id)
+        );
       }
-      if (n.name.toLowerCase() === "panini" && n.children) {
-        return { ...n, children: n.children.filter((c) => !isMonicaName(c.name)) };
+      if (lname === "panini") {
+        return stripChildren(n, (c) => isMonicaName(c.name));
+      }
+      if (lname === "disney") return stripChildren(n, (c) => movedIds.has(c.id));
+      if (lname === "sergio bonelli")
+        return stripChildren(n, (c) => movedIds.has(c.id));
+      if (lname === "dargaud") return stripChildren(n, (c) => movedIds.has(c.id));
+      if (lname === "editora abril")
+        return stripChildren(n, (c) => movedIds.has(c.id));
+      if (lname === "editoras brasileiras")
+        return stripChildren(n, (c) => movedIds.has(c.id));
+      if (lname === "bônus") {
+        // Remove o Junji Ito de dentro de Bônus → Mangás e Quadrinhos de terror.
+        return {
+          ...n,
+          children: (n.children ?? []).map((sub) => {
+            if (/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name)) {
+              return stripChildren(sub, (c) => movedIds.has(c.id));
+            }
+            return sub;
+          }),
+        };
       }
       return n;
     });
@@ -219,6 +410,16 @@ const Index = () => {
       ),
       ...(virtualShueisha ? [virtualShueisha] : []),
       ...(virtualMonica ? [virtualMonica] : []),
+      ...(virtualJunjiIto ? [virtualJunjiIto] : []),
+      ...(virtualHomemAranhaAbril ? [virtualHomemAranhaAbril] : []),
+      ...(virtualHulkAbril ? [virtualHulkAbril] : []),
+      ...(virtualAlmanaqueDisney ? [virtualAlmanaqueDisney] : []),
+      ...(virtualMagicoVento ? [virtualMagicoVento] : []),
+      ...(virtualAsterix ? [virtualAsterix] : []),
+      ...(virtualTintin ? [virtualTintin] : []),
+      ...(virtualBone ? [virtualBone] : []),
+      ...(virtualChaves ? [virtualChaves] : []),
+      ...(virtualTrapalhoes ? [virtualTrapalhoes] : []),
     ];
 
     const idx = (name: string) => {
