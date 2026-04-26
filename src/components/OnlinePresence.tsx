@@ -38,7 +38,7 @@ export const OnlinePresence = () => {
 
   return (
     <div
-      className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-muted-foreground px-2 py-1 rounded-full border border-border/60 bg-background/60"
+      className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground px-2 py-1 rounded-full border border-border/60 bg-background/60"
       title={`${count} ${count === 1 ? "pessoa online agora" : "pessoas online agora"}`}
       aria-label={`${count} pessoas online agora`}
     >
