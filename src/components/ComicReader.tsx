@@ -59,7 +59,11 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
             )}
           </header>
 
-          {fileId && viewable && (
+          {fileId && isArchive && (
+            <ComicArchiveReader fileId={fileId} fileName={fileName} />
+          )}
+
+          {fileId && !isArchive && viewable && (
             <div className="relative flex-1 bg-background">
               <iframe
                 key={fileId}
