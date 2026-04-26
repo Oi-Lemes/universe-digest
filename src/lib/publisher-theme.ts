@@ -276,10 +276,10 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.12em",
     fontSize: "0.82rem",
   },
-  // Editora Globo — azul-Globo + grafite (esfera Globo)
+  // Editora Globo — azul-Globo + verde-esfera (Globo logo)
   "editora globo": {
     color: "210 80% 38%",
-    colorAlt: "0 0% 12%",
+    colorAlt: "150 55% 30%",
     foreground: "0 0% 100%",
     fontFamily: '"Russo One", Impact, sans-serif',
     logo: globo,
