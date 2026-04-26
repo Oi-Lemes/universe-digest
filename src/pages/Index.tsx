@@ -903,6 +903,7 @@ const Index = () => {
       ...(virtualShueisha ? [virtualShueisha] : []),
       ...(virtualMonica ? [virtualMonica] : []),
       ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
+      ...(virtualTerror ? [virtualTerror] : []),
       ...(virtualHomemAranhaAbril ? [virtualHomemAranhaAbril] : []),
       ...(virtualHulkAbril ? [virtualHulkAbril] : []),
       ...(virtualAlmanaqueDisney ? [virtualAlmanaqueDisney] : []),
