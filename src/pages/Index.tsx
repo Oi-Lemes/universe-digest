@@ -9,6 +9,7 @@ import { FolderGrid } from "@/components/FolderGrid";
 import { ComicReader } from "@/components/ComicReader";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { PublisherTab } from "@/components/PublisherTab";
+import { OnlinePresence } from "@/components/OnlinePresence";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
 
@@ -1035,6 +1036,7 @@ const Index = () => {
             </a>
           </Button>
           <div className="ml-auto flex items-center gap-2">
+            <OnlinePresence />
             <GlobalSearch
               tree={tree}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
