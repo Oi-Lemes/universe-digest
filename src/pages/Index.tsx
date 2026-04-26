@@ -114,8 +114,8 @@ const Index = () => {
   };
 
   // ---- Pastas inteiras (de outras editoras) que vão para "Clássicos" ----
-  // Match exato pelo nome da pasta (case-insensitive). Editoras que NÃO devem
-  // ter pastas movidas: Turma da Mônica, Chaves, Os Trapalhões.
+  // Match exato pelo nome da pasta (case-insensitive).
+  // ⚠️ Marvel, DC, Vertigo (DC) e Turma da Mônica NUNCA têm conteúdo movido.
   const CLASSICOS_FOLDER_NAMES = new Set<string>([
     // Editora Brasileira / EBAL / RGE
     "ebal",
@@ -124,7 +124,7 @@ const Index = () => {
     "fantasma rge",
     "zorro (ebal)",
     "almanaque piteco e horácio",
-    // Bônus terror antigo
+    // Bônus terror antigo (RGE)
     "3 geracao - kripta (rge)",
     "almanaque de terror",
     "almanaque de terror 2",
@@ -132,57 +132,25 @@ const Index = () => {
     "classicos do pavor",
     // MAD anos 70/80
     "(1974-1980)", "(1984-2000)",
-    // Tex
+    // Tex (Bonelli) – clássicos
     "tex grandes clássicos", "tex, os grandes classicos", "almanaque tex",
     "tex 1971", "tex 1999", "tex 2000",
-    // Marvel — clássicos lendários só
-    "almanaque marvel",
-    "almanaque conan - (1982-1992)",
-    "cavaleiro da lua (1976)",
-    "cavaleiro da lua (1980)",
-    "fist of khonshu moon knight (1985)",
-    "marc spector moon knight (1989)",
-    "(1972) defensores",
-    "1977", // Eternos 1977
-    "massacre dos filhos da meia-noite (1993)",
-    // DC lendários
-    "hellblazer - constantine (1988-2016)",
-    "monstro do pântano (1972-2020)",
-    "os livros da magia (1990-2000)",
-    "patrulha do destino (1989-2019)",
-    "os ínvisiveis (1996-2000)",
-    "100 balas (1999-2002)",
-    "coringa - a última risada (2001-2002)",
-    "cronologia raridades diversas a partir de 1950 (antigas)",
-    "v de vingança (1997)",
-    "watchmen (1986-2018)",
-    // Vertigo
-    "sandman (1989-1997)",
-    // Dark Horse / vintage
-    "aliens 1988",
-    "aliens - frenzy (1995)",
-    "aliens - labirinth (1993)",
-    "aliens - salvation (1993)",
-    "aliens - stronghold (1994)",
-    "(1996) tarzan vs predador",
-    "(1997) predador vs juiz dredd",
-    "(2001) liga da justica vs predador",
-    // Disney
+    // Disney clássico
     "clássicos de walt disney",
-    // Infantil
+    // Infantil clássico (sem mexer em Mônica/Chaves/Trapalhões)
     "clássicos do cinema",
-    "horacio (1969-1974)",
-    "horacio completo 1969 a 1974",
     "mortadelo e salaminho cedibra",
-    // Atualizações antigas
-    "looney tunes (1995)", "invasão (1990)", "plop! (1973)",
-    // Zagor
+    // Atualizações antigas (de fontes não-Marvel/DC)
+    "plop! (1973)",
+    // Zagor (Bonelli)
     "zagor - almanaque de aventura",
     // Soleil
     "merlin - 2001 (soleil",
   ]);
-  // Editoras que NÃO devem ter pastas movidas
+  // Editoras que NÃO devem ter pastas movidas — pedido do usuário:
+  // Marvel, DC, Vertigo e Turma da Mônica ficam intactas.
   const CLASSICOS_BLACKLIST_TOPS = new Set<string>([
+    "marvel", "dc", "vertigo", "dark horse comics",
     "turma da mônica", "chaves", "os trapalhões",
     "mangás", "shueisha", "junji ito",
     "almanaque disney", "mágico vento",
