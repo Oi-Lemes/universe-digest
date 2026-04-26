@@ -56,10 +56,10 @@ export type PublisherTheme = {
 };
 
 const THEMES: Record<string, PublisherTheme> = {
-  // Marvel — vermelho oficial #ED1D24 + preto
+  // Marvel — vermelho oficial #ED1D24 + preto-azulado profundo
   marvel: {
     color: "357 84% 52%",
-    colorAlt: "0 0% 8%",
+    colorAlt: "230 40% 12%",
     foreground: "0 0% 100%",
     fontFamily: '"Bowlby One", "Anton", Impact, sans-serif',
     logo: marvel,
