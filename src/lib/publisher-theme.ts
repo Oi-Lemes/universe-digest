@@ -36,6 +36,7 @@ import bone from "@/assets/publishers/bone.png";
 import asterix from "@/assets/publishers/asterix.png";
 import tintin from "@/assets/publishers/tintin.png";
 import chaves from "@/assets/publishers/chaves.png";
+import classicos from "@/assets/publishers/classicos.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -368,6 +369,16 @@ const THEMES: Record<string, PublisherTheme> = {
     fontFamily: '"Fredoka", "Bangers", Impact, sans-serif',
     logo: chaves,
     letterSpacing: "0.04em",
+    fontSize: "0.82rem",
+  },
+  "clássicos": {
+    // Pergaminho dourado + bordô — vibe livro raro / colecionador
+    color: "38 75% 48%",
+    colorAlt: "350 65% 28%",
+    foreground: "45 95% 96%",
+    fontFamily: '"Cinzel", "IM Fell English SC", "Playfair Display", serif',
+    logo: classicos,
+    letterSpacing: "0.18em",
     fontSize: "0.82rem",
   },
 };
