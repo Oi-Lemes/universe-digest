@@ -175,8 +175,8 @@ const THEMES: Record<string, PublisherTheme> = {
     fontSize: "0.78rem",
   },
   "avatar press": {
-    color: "0 0% 8%",
-    colorAlt: "0 80% 35%",
+    color: "0 80% 58%",
+    colorAlt: "0 0% 8%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: avatarPress,
