@@ -81,6 +81,7 @@ const Index = () => {
     "Independentes",
     "Variados",
     "Clássicos",
+    "Cultura & Biografias",
     "Redbox",
     "Sentinela",
     "Beckett",
