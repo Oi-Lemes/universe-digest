@@ -64,7 +64,7 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
           }
         }
         if (cancelled) return;
-        const blob = new Blob(chunks);
+        const blob = new Blob(chunks as BlobPart[]);
 
         setProgress("Descomprimindo páginas…");
 
