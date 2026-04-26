@@ -146,10 +146,10 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.06em",
     fontSize: "0.75rem",
   },
-  // MAD Magazine — amarelo MAD + preto (Alfred E. Neuman)
+  // MAD Magazine — amarelo MAD + vermelho-stamp
   mad: {
     color: "50 100% 55%",
-    colorAlt: "0 0% 6%",
+    colorAlt: "355 80% 45%",
     foreground: "0 0% 8%",
     fontFamily: '"Bungee", Impact, sans-serif',
     logo: mad,
@@ -176,20 +176,20 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.06em",
     fontSize: "0.78rem",
   },
-  // Dynamite — vermelho-chama + preto-pólvora
+  // Dynamite — vermelho-chama + dourado-explosão (vibe pulp)
   dynamite: {
     color: "12 90% 50%",
-    colorAlt: "0 0% 10%",
+    colorAlt: "42 95% 50%",
     foreground: "0 0% 100%",
     fontFamily: '"Russo One", Impact, sans-serif',
     logo: dynamite,
     letterSpacing: "0.06em",
     fontSize: "0.78rem",
   },
-  // Avatar Press — vermelho-sangue puro + preto
+  // Avatar Press — vermelho-sangue + roxo-vinho (horror gráfico)
   "avatar press": {
     color: "355 85% 45%",
-    colorAlt: "0 0% 4%",
+    colorAlt: "300 55% 18%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: avatarPress,
