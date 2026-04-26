@@ -76,20 +76,20 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.1em",
     fontSize: "0.78rem",
   },
-  // Shueisha / Shonen Jump — vermelho-laranja Jump + branco gelo
+  // Shueisha / Shonen Jump — vermelho-laranja Jump + branco-gelo
   shueisha: {
     color: "8 92% 52%",
-    colorAlt: "0 0% 12%",
+    colorAlt: "0 0% 96%",
     foreground: "0 0% 100%",
     fontFamily: '"Reggae One", "RocknRoll One", "Bungee", Impact, sans-serif',
     logo: shueisha,
     letterSpacing: "0.05em",
     fontSize: "0.82rem",
   },
-  // Vertigo — bordô sangue + preto fosco (vibe horror/maduro)
+  // Vertigo — bordô-sangue + roxo-meia-noite (vibe horror/maduro)
   vertigo: {
     color: "345 75% 38%",
-    colorAlt: "0 0% 4%",
+    colorAlt: "270 50% 18%",
     foreground: "0 0% 100%",
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: vertigo,
