@@ -37,6 +37,7 @@ import asterix from "@/assets/publishers/asterix.png";
 import tintin from "@/assets/publishers/tintin.png";
 import chaves from "@/assets/publishers/chaves.png";
 import classicos from "@/assets/publishers/classicos.png";
+import cultura from "@/assets/publishers/cultura.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -414,6 +415,16 @@ const THEMES: Record<string, PublisherTheme> = {
     fontFamily: '"Cinzel", "IM Fell English SC", "Playfair Display", serif',
     logo: classicos,
     letterSpacing: "0.18em",
+    fontSize: "0.82rem",
+  },
+  // Cultura & Biografias — verde-esmeralda biblioteca + sépia pergaminho
+  "cultura & biografias": {
+    color: "155 55% 28%",
+    colorAlt: "30 55% 38%",
+    foreground: "45 90% 95%",
+    fontFamily: '"Cinzel", "IM Fell English SC", "Playfair Display", serif',
+    logo: cultura,
+    letterSpacing: "0.16em",
     fontSize: "0.82rem",
   },
 };
