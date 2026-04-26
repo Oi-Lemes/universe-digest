@@ -32,22 +32,26 @@ export const PublisherTab = ({ id, name }: Props) => {
       style={style}
       className={cn(
         "relative rounded-md font-bold uppercase gap-2.5 px-4 py-2.5 whitespace-nowrap",
-        "border transition-all duration-200",
-        // Inativo: tom da marca esmaecido + texto desbotado
-        "border-[hsl(var(--pub-color)/0.35)]",
-        "bg-[hsl(var(--pub-color)/0.08)]",
+        "border-2 transition-all duration-200",
+        // Inativo: fundo ESCURO derivado da marca + texto claro da marca + borda visível
+        // Sobrepomos um tom escuro próprio (matiz da marca, lum 12%) sobre um base cinza-grafite
+        // para garantir contraste mesmo no fundo cinza claro do tab-list.
+        "bg-[linear-gradient(140deg,hsl(var(--pub-color)/0.22),hsl(0_0%_8%)_70%)]",
+        "border-[hsl(var(--pub-color)/0.75)]",
         "text-[hsl(var(--pub-color))]",
-        // Hover (inativo): intensifica
-        "hover:bg-[hsl(var(--pub-color)/0.18)]",
-        "hover:border-[hsl(var(--pub-color)/0.7)]",
+        "[text-shadow:0_1px_2px_hsl(0_0%_0%/0.6)]",
+        // Hover (inativo): clareia o fundo, intensifica borda
+        "hover:bg-[linear-gradient(140deg,hsl(var(--pub-color)/0.45),hsl(0_0%_12%)_70%)]",
+        "hover:border-[hsl(var(--pub-color))]",
         "hover:-translate-y-0.5",
-        // Ativo: gradiente da marca + glow + texto contrastante
+        "hover:shadow-[0_4px_12px_-2px_hsl(var(--pub-color)/0.45)]",
+        // Ativo: gradiente VIVO da marca + glow + texto contrastante
         "data-[state=active]:bg-[linear-gradient(135deg,hsl(var(--pub-color)),hsl(var(--pub-color-alt)))]",
         "data-[state=active]:text-[hsl(var(--pub-fg))]",
         "data-[state=active]:border-[hsl(var(--pub-color))]",
-        "data-[state=active]:shadow-[0_8px_24px_-6px_hsl(var(--pub-color)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.2)]",
+        "data-[state=active]:shadow-[0_8px_24px_-6px_hsl(var(--pub-color)/0.85),inset_0_1px_0_hsl(0_0%_100%/0.25)]",
         "data-[state=active]:scale-105",
-        "data-[state=active]:[text-shadow:0_1px_2px_hsl(0_0%_0%/0.35)]",
+        "data-[state=active]:[text-shadow:0_1px_2px_hsl(0_0%_0%/0.45)]",
         // Destaque especial "Clássicos": pergaminho dourado mesmo inativo
         isClassicos && [
           "!bg-[radial-gradient(ellipse_at_top,hsl(45_85%_88%)_0%,hsl(38_70%_72%)_55%,hsl(28_55%_55%)_100%)]",
@@ -55,6 +59,7 @@ export const PublisherTab = ({ id, name }: Props) => {
           "!border-[hsl(38_75%_42%)]",
           "shadow-[0_4px_14px_-4px_hsl(38_75%_45%/0.55),inset_0_1px_0_hsl(48_100%_92%/0.7)]",
           "ring-1 ring-[hsl(48_100%_88%/0.6)]",
+          "[text-shadow:none]",
           "hover:!bg-[radial-gradient(ellipse_at_top,hsl(48_95%_92%)_0%,hsl(40_85%_78%)_55%,hsl(30_70%_58%)_100%)]",
           "data-[state=active]:!bg-[radial-gradient(ellipse_at_center,hsl(45_90%_82%)_0%,hsl(38_80%_60%)_60%,hsl(350_60%_28%)_100%)]",
           "data-[state=active]:!text-[hsl(48_100%_96%)]",
