@@ -38,6 +38,7 @@ import tintin from "@/assets/publishers/tintin.png";
 import chaves from "@/assets/publishers/chaves.png";
 import classicos from "@/assets/publishers/classicos.png";
 import cultura from "@/assets/publishers/cultura.png";
+import terror from "@/assets/publishers/terror.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
