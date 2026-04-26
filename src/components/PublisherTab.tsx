@@ -20,6 +20,7 @@ export const PublisherTab = ({ id, name }: Props) => {
   const isClassicos = lname === "clássicos";
   const isCultura = lname === "cultura & biografias";
   const isTerror = lname === "terror";
+  const isPlus18 = lname === "+18";
   const style: CSSProperties = {
     ["--pub-color" as string]: theme.color,
     ["--pub-color-alt" as string]: theme.colorAlt,
@@ -94,6 +95,20 @@ export const PublisherTab = ({ id, name }: Props) => {
           "data-[state=active]:!text-[hsl(0_90%_96%)]",
           "data-[state=active]:!border-[hsl(0_90%_55%)]",
           "data-[state=active]:shadow-[0_10px_28px_-6px_hsl(0_90%_30%/0.95),inset_0_1px_0_hsl(0_70%_60%/0.35)]",
+        ],
+        // Destaque especial "+18": preto absoluto + alerta vermelho pulsante
+        isPlus18 && [
+          "!bg-[radial-gradient(ellipse_at_center,hsl(0_85%_28%)_0%,hsl(0_0%_6%)_55%,hsl(0_0%_0%)_100%)]",
+          "!text-[hsl(0_0%_100%)]",
+          "!border-[hsl(0_92%_50%)]",
+          "shadow-[0_4px_14px_-4px_hsl(0_92%_45%/0.85),inset_0_1px_0_hsl(0_85%_60%/0.3)]",
+          "ring-1 ring-[hsl(0_92%_50%/0.6)]",
+          "[text-shadow:0_1px_2px_hsl(0_0%_0%/0.95)]",
+          "hover:!bg-[radial-gradient(ellipse_at_center,hsl(0_90%_36%)_0%,hsl(0_0%_8%)_55%,hsl(0_0%_0%)_100%)]",
+          "data-[state=active]:!bg-[radial-gradient(ellipse_at_center,hsl(0_92%_42%)_0%,hsl(0_0%_6%)_60%,hsl(0_0%_0%)_100%)]",
+          "data-[state=active]:!text-[hsl(0_0%_100%)]",
+          "data-[state=active]:!border-[hsl(0_95%_58%)]",
+          "data-[state=active]:shadow-[0_10px_28px_-6px_hsl(0_95%_45%/0.95),inset_0_1px_0_hsl(0_85%_60%/0.4)]",
         ]
       )}
     >
@@ -107,6 +122,8 @@ export const PublisherTab = ({ id, name }: Props) => {
               ? "bg-[hsl(45_70%_92%)] ring-1 ring-[hsl(42_75%_55%/0.7)] shadow-inner"
               : isTerror
               ? "bg-[hsl(0_0%_8%)] ring-1 ring-[hsl(0_85%_45%/0.7)] shadow-inner"
+              : isPlus18
+              ? "bg-[hsl(0_0%_0%)] ring-1 ring-[hsl(0_92%_50%/0.8)] shadow-inner"
               : "bg-white ring-1 ring-black/10 shadow-sm"
           )}
         >

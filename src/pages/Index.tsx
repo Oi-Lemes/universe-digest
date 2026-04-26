@@ -92,7 +92,11 @@ const Index = () => {
     "Arzach",
     "Éditions Atrabile",
     "Bônus",
+    "+18",
   ];
+
+  const PLUS18_DRIVE_ID = "1JQwmwaCod3_lmCsOxGRwz_I4nYW64WDZ";
+  const PLUS18_DRIVE_URL = `https://drive.google.com/drive/folders/${PLUS18_DRIVE_ID}?usp=drive_link`;
 
   // ---- Curadoria "Clássicos": pega edições vintage soltas em "Variados" ----
   const CLASSICOS_KEYWORDS = [
@@ -915,6 +919,14 @@ const Index = () => {
       ...(virtualTrapalhoesFinal ? [virtualTrapalhoesFinal] : []),
       ...(virtualClassicos ? [virtualClassicos] : []),
       ...(virtualCultura ? [virtualCultura] : []),
+      // Aba "+18" — não tem children reais; ao ser clicada, abre o Drive
+      // numa nova aba (intercept em handleSelectPublisher).
+      {
+        id: "virtual-plus18",
+        name: "+18",
+        type: "folder" as const,
+        children: [],
+      },
     ];
 
     const idx = (name: string) => {
@@ -960,6 +972,11 @@ const Index = () => {
   );
 
   const handleSelectPublisher = (id: string) => {
+    if (id === "virtual-plus18") {
+      // Aba +18 não navega internamente — abre direto a pasta no Drive.
+      window.open(PLUS18_DRIVE_URL, "_blank", "noopener,noreferrer");
+      return;
+    }
     setActivePublisherId(id);
     setCrumbs([]);
   };

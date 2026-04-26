@@ -39,6 +39,7 @@ import chaves from "@/assets/publishers/chaves.png";
 import classicos from "@/assets/publishers/classicos.png";
 import cultura from "@/assets/publishers/cultura.png";
 import terror from "@/assets/publishers/terror.png";
+import plus18 from "@/assets/publishers/plus18.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -437,6 +438,16 @@ const THEMES: Record<string, PublisherTheme> = {
     logo: terror,
     letterSpacing: "0.14em",
     fontSize: "0.85rem",
+  },
+  // +18 — vermelho-alerta + preto absoluto (conteúdo adulto)
+  "+18": {
+    color: "0 92% 48%",
+    colorAlt: "0 0% 0%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Bowlby One", "Anton", Impact, sans-serif',
+    logo: plus18,
+    letterSpacing: "0.14em",
+    fontSize: "0.82rem",
   },
 };
 
