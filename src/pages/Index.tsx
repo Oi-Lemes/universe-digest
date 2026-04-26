@@ -496,6 +496,21 @@ const Index = () => {
     // Antes de exibir, tira de dentro das pastas migradas qualquer arquivo do
     // Mauricio que vai pra aba "Turma da Mônica" (ex.: Cascão Porker dentro de
     // "Clássicos do Cinema"). Também tira arquivos avulsos do Mauricio.
+    const deepStripEarly = (node: DriveNode, ids: Set<string>): DriveNode => {
+      if (!node.children) return node;
+      const next = node.children
+        .filter((c) => !ids.has(c.id))
+        .map((c) => (c.type === "folder" ? deepStripEarly(c, ids) : c))
+        .filter((c) => {
+          if (c.type !== "folder") return true;
+          const hasAnyFile = (n: DriveNode): boolean =>
+            (n.children ?? []).some((cc) =>
+              cc.type === "file" ? true : hasAnyFile(cc)
+            );
+          return hasAnyFile(c);
+        });
+      return { ...node, children: next };
+    };
     const cleanedClassicoFolders = renamedClassicoFolders
       .map((f) =>
         monicaPickedIds.size > 0 ? deepStripEarly(f, monicaPickedIds) : f
