@@ -292,54 +292,6 @@ const Index = () => {
       return re.test(name);
     };
 
-    // Coleta recursivamente pastas/arquivos do Mauricio espalhados em outras editoras
-    // (exceto a própria Turma da Mônica), pra mover pra aba dela.
-    type MonicaPick = { node: DriveNode; topPublisher: string };
-    const monicaPicks: MonicaPick[] = [];
-    const monicaPickedIds = new Set<string>();
-    const collectMonica = (
-      node: DriveNode,
-      topPublisher: string,
-      depth: number
-    ): void => {
-      if (depth >= 1) {
-        // Não mexer em editoras que já são "do Mauricio" ou são intocáveis
-        const tp = topPublisher.toLowerCase();
-        if (tp === "turma da mônica" || tp === "infantil" && false) return;
-        if (isMonicaName(node.name)) {
-          monicaPicks.push({ node, topPublisher });
-          monicaPickedIds.add(node.id);
-          return; // pega o item inteiro, não desce
-        }
-      }
-      for (const c of node.children ?? []) {
-        const newTop = depth >= 1 ? topPublisher : c.name;
-        collectMonica(c, newTop, depth + 1);
-      }
-    };
-    for (const pub of list) {
-      const tp = pub.name.toLowerCase();
-      // pula editoras que já agrupam Mônica ou onde NÃO queremos mexer
-      if (tp === "turma da mônica") continue;
-      collectMonica(pub, pub.name, 1);
-    }
-
-    // Renomeia pra deixar a origem clara, ex: "Almanaque Piteco e Horácio (Panini)"
-    const renamedMonicaPicks: DriveNode[] = monicaPicks
-      // Não duplicar com o que Infantil/Panini já dá pelo filtro tradicional abaixo
-      .filter(({ node, topPublisher }) => {
-        const tp = topPublisher.toLowerCase();
-        return !(tp === "infantil" || tp === "panini");
-      })
-      .map(({ node, topPublisher }) => {
-        const alreadyHasOrigin = node.name
-          .toLowerCase()
-          .includes(topPublisher.toLowerCase());
-        return alreadyHasOrigin
-          ? node
-          : { ...node, name: `${node.name} (${topPublisher})` };
-      });
-
     // Pasta "Clássicos do Cinema" (Infantil) → paródias MSP de filmes.
     // Vai pra aba Turma da Mônica com nome corrigido.
     const classicosCinemaFolder = findChild(infantil, (n) =>
@@ -352,6 +304,57 @@ const Index = () => {
         }
       : null;
 
+    // Coleta recursivamente pastas/arquivos do Mauricio espalhados em outras editoras
+    // (exceto a própria Turma da Mônica), pra mover pra aba dela.
+    type MonicaPick = { node: DriveNode; topPublisher: string };
+    const monicaPicks: MonicaPick[] = [];
+    const monicaPickedIds = new Set<string>();
+    // Pastas/itens que JÁ vão entrar na Mônica por outro caminho — pular pra
+    // não pegar arquivos internos duplicados.
+    const monicaSkipIds = new Set<string>(
+      classicosCinemaFolder ? [classicosCinemaFolder.id] : []
+    );
+    const collectMonica = (
+      node: DriveNode,
+      topPublisher: string,
+      depth: number
+    ): void => {
+      if (monicaSkipIds.has(node.id)) return;
+      if (depth >= 1) {
+        const tp = topPublisher.toLowerCase();
+        if (tp === "turma da mônica") return;
+        if (isMonicaName(node.name)) {
+          monicaPicks.push({ node, topPublisher });
+          monicaPickedIds.add(node.id);
+          return;
+        }
+      }
+      for (const c of node.children ?? []) {
+        const newTop = depth >= 1 ? topPublisher : c.name;
+        collectMonica(c, newTop, depth + 1);
+      }
+    };
+    for (const pub of list) {
+      const tp = pub.name.toLowerCase();
+      if (tp === "turma da mônica") continue;
+      collectMonica(pub, pub.name, 1);
+    }
+
+    // Renomeia pra deixar a origem clara, ex: "Almanaque Piteco e Horácio (Panini)"
+    const renamedMonicaPicks: DriveNode[] = monicaPicks
+      .filter(({ topPublisher }) => {
+        const tp = topPublisher.toLowerCase();
+        return !(tp === "infantil" || tp === "panini");
+      })
+      .map(({ node, topPublisher }) => {
+        const alreadyHasOrigin = node.name
+          .toLowerCase()
+          .includes(topPublisher.toLowerCase());
+        return alreadyHasOrigin
+          ? node
+          : { ...node, name: `${node.name} (${topPublisher})` };
+      });
+
     const monicaChildren: DriveNode[] = [
       ...(infantil?.children?.filter((n) => isMonicaName(n.name)) ?? []),
       ...(panini?.children?.filter((n) => isMonicaName(n.name)) ?? []),
@@ -363,6 +366,12 @@ const Index = () => {
       "Turma da Mônica",
       monicaChildren
     );
+
+    // Pra remover da Infantil original
+    if (classicosCinemaFolder) {
+      monicaPickedIds.add(classicosCinemaFolder.id);
+    }
+
 
 
 
