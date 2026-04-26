@@ -558,13 +558,29 @@ const Index = () => {
         }
       : null;
 
+    // ---------- Editora virtual: Cultura & Biografias ----------
+    // Pega arquivos de literatura, biografias, história, ciência e curiosidades
+    // que estão soltos em "Variados". Tem PRIORIDADE sobre "Clássicos".
+    const variados = list.find((n) => lower(n.name) === "variados");
+    const culturaLooseFiles = (variados?.children ?? []).filter(
+      (c) => c.type === "file" && isCultura(c.name) && !isMonicaName(c.name)
+    );
+    const culturaLooseIds = new Set(culturaLooseFiles.map((c) => c.id));
+    const virtualCultura = buildVirtual(
+      "virtual-cultura-biografias",
+      "Cultura & Biografias",
+      culturaLooseFiles
+    );
+
     // ---------- Editora virtual: Clássicos ----------
     // Combina:
-    //   1) PDFs vintage soltos em "Variados"
+    //   1) PDFs vintage soltos em "Variados" (excluindo os que viraram Cultura)
     //   2) Pastas inteiras vintage espalhadas por outras editoras (CLASSICOS_FOLDER_NAMES)
-    const variados = list.find((n) => lower(n.name) === "variados");
     const classicosLooseFiles = (variados?.children ?? []).filter(
-      (c) => c.type === "file" && isClassico(c.name)
+      (c) =>
+        c.type === "file" &&
+        isClassico(c.name) &&
+        !culturaLooseIds.has(c.id)
     );
     const classicosLooseIds = new Set(classicosLooseFiles.map((c) => c.id));
 
