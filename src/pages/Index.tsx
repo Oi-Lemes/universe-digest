@@ -944,9 +944,12 @@ const Index = () => {
   }, [tree]);
 
   // Seleciona a primeira editora respeitando a ordem priorizada.
+  // Nunca seleciona "+18" como padrão — é uma aba de redirecionamento externo.
   useEffect(() => {
     if (!activePublisherId && publishers.length) {
-      setActivePublisherId(publishers[0].id);
+      const firstReal =
+        publishers.find((p) => p.id !== "virtual-plus18") ?? publishers[0];
+      setActivePublisherId(firstReal.id);
     }
   }, [publishers, activePublisherId]);
 
