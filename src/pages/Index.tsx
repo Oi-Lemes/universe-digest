@@ -138,7 +138,7 @@ const Index = () => {
     // Disney clássico
     "clássicos de walt disney",
     // Infantil clássico (sem mexer em Mônica/Chaves/Trapalhões)
-    "clássicos do cinema",
+    // OBS: "clássicos do cinema" não entra aqui — vai pra aba Turma da Mônica
     "mortadelo e salaminho cedibra",
     // Atualizações antigas (de fontes não-Marvel/DC)
     "plop! (1973)",
