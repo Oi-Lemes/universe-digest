@@ -493,10 +493,22 @@ const Index = () => {
       }
     );
 
+    // Antes de exibir, tira de dentro das pastas migradas qualquer arquivo do
+    // Mauricio que vai pra aba "Turma da Mônica" (ex.: Cascão Porker dentro de
+    // "Clássicos do Cinema"). Também tira arquivos avulsos do Mauricio.
+    const cleanedClassicoFolders = renamedClassicoFolders
+      .map((f) =>
+        monicaPickedIds.size > 0 ? deepStripEarly(f, monicaPickedIds) : f
+      )
+      .filter((f) => (f.children?.length ?? 0) > 0 || f.type === "file");
+    const cleanedLoose = classicosLooseFiles.filter(
+      (f) => !monicaPickedIds.has(f.id) && !isMonicaName(f.name)
+    );
+
     const virtualClassicos = buildVirtual(
       "virtual-classicos",
       "Clássicos",
-      [...classicosLooseFiles, ...renamedClassicoFolders]
+      [...cleanedLoose, ...cleanedClassicoFolders]
     );
 
     // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
