@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "content-type, authorization",
 };
 
-const API_KEY = Deno.env.get("GOOGLE_DRIVE_API_KEY") ?? "";
+const API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
 
 type DriveItem = { id: string; name: string; mimeType: string };
 
