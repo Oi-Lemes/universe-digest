@@ -1,6 +1,14 @@
-import { useState } from "react";
-import { DriveNode, coverUrl, countDescendants, fileExt, isViewableInDrive } from "@/lib/drive";
-import { BookOpen, FolderOpen, FileWarning } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  DriveNode,
+  coverUrl,
+  countDescendants,
+  fileExt,
+  firstArchiveIn,
+  isViewableInDrive,
+} from "@/lib/drive";
+import { extractCover, getCachedCover } from "@/lib/cover-extract";
+import { BookOpen, FolderOpen, FileWarning, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -12,20 +20,68 @@ type Props = {
 
 const Cover = ({ node }: { node: DriveNode }) => {
   const [errored, setErrored] = useState(false);
-  const url = coverUrl(node, 400);
+  const directUrl = coverUrl(node, 400);
   const isFolder = node.type === "folder";
   const viewable = !isFolder && isViewableInDrive(node.name);
 
-  if (url && !errored) {
+  // ----- Lazy CBR cover extraction fallback -----
+  // When the node has no Drive thumbnail (typical for CBR/CBZ archives) we
+  // try to unpack the first image from the archive itself once the card
+  // becomes visible. Result is cached in IndexedDB for next loads.
+  const archiveTarget = !directUrl ? firstArchiveIn(node) : null;
+  const initialExtracted = archiveTarget ? getCachedCover(archiveTarget.id) ?? undefined : undefined;
+  const [extractedUrl, setExtractedUrl] = useState<string | null | undefined>(initialExtracted);
+  const [extracting, setExtracting] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (directUrl || !archiveTarget) return;
+    if (extractedUrl !== undefined) return; // already known (success or null)
+
+    const el = wrapRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      // Fallback: trigger immediately
+      setExtracting(true);
+      extractCover(archiveTarget.id, archiveTarget.name).then((url) => {
+        setExtractedUrl(url);
+        setExtracting(false);
+      });
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            io.disconnect();
+            setExtracting(true);
+            extractCover(archiveTarget.id, archiveTarget.name).then((url) => {
+              setExtractedUrl(url);
+              setExtracting(false);
+            });
+            break;
+          }
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [directUrl, archiveTarget, extractedUrl]);
+
+  const finalUrl = directUrl ?? extractedUrl ?? null;
+
+  if (finalUrl && !errored) {
     return (
       <div
+        ref={wrapRef}
         className={cn(
           "relative aspect-[2/3] rounded-md mb-2 overflow-hidden bg-secondary",
           isFolder ? "ring-1 ring-accent/30" : "ring-1 ring-primary/20"
         )}
       >
         <img
-          src={url}
+          src={finalUrl}
           alt={node.name}
           loading="lazy"
           referrerPolicy="no-referrer"
@@ -46,11 +102,12 @@ const Cover = ({ node }: { node: DriveNode }) => {
     );
   }
 
-  // Fallback (no thumb available)
+  // Fallback (no thumb available) — also shows the loader while extracting.
   return (
     <div
+      ref={wrapRef}
       className={cn(
-        "aspect-[2/3] rounded-md mb-2 flex items-center justify-center",
+        "aspect-[2/3] rounded-md mb-2 flex items-center justify-center relative",
         isFolder
           ? "bg-gradient-to-br from-secondary to-muted"
           : "bg-gradient-to-br from-primary/30 to-accent/20"
@@ -62,6 +119,11 @@ const Cover = ({ node }: { node: DriveNode }) => {
         <BookOpen className="w-10 h-10 text-primary" strokeWidth={1.5} />
       ) : (
         <FileWarning className="w-10 h-10 text-destructive" strokeWidth={1.5} />
+      )}
+      {extracting && (
+        <span className="absolute bottom-1 right-1 bg-background/70 backdrop-blur rounded p-1">
+          <Loader2 className="w-3 h-3 text-primary animate-spin" />
+        </span>
       )}
     </div>
   );
