@@ -15,13 +15,14 @@ async function listFolder(folderId: string): Promise<DriveItem[]> {
   const out: DriveItem[] = [];
   let pageToken: string | undefined;
   do {
-    const url = new URL("https://www.googleapis.com/drive/v3/files");
+    const url = new URL("https://connector-gateway.lovable.dev/google_drive/drive/v3/files");
     url.searchParams.set("q", `'${folderId}' in parents and trashed=false`);
     url.searchParams.set("fields", "nextPageToken, files(id,name,mimeType)");
     url.searchParams.set("pageSize", "1000");
-    url.searchParams.set("key", API_KEY);
     if (pageToken) url.searchParams.set("pageToken", pageToken);
-    const r = await fetch(url.toString());
+    const r = await fetch(url.toString(), {
+      headers: { "Lovable-API-Key": API_KEY },
+    });
     if (!r.ok) throw new Error(`Drive API ${r.status}: ${await r.text()}`);
     const j = await r.json();
     out.push(...(j.files ?? []));
