@@ -97,6 +97,12 @@ const Index = () => {
 
   const PLUS18_DRIVE_ID = "1JQwmwaCod3_lmCsOxGRwz_I4nYW64WDZ";
   const PLUS18_DRIVE_URL = `https://drive.google.com/drive/folders/${PLUS18_DRIVE_ID}?usp=drive_link`;
+  const EXTERNAL_PUBLISHER_ID = "virtual-plus18";
+
+  const getDefaultPublisher = (list: DriveNode[]) =>
+    list.find((p) => p.name.trim().toLowerCase() === "marvel") ??
+    list.find((p) => p.id !== EXTERNAL_PUBLISHER_ID) ??
+    null;
 
   // ---- Curadoria "Clássicos": pega edições vintage soltas em "Variados" ----
   const CLASSICOS_KEYWORDS = [
@@ -943,13 +949,20 @@ const Index = () => {
     });
   }, [tree]);
 
-  // Seleciona a primeira editora respeitando a ordem priorizada.
-  // Nunca seleciona "+18" como padrão — é uma aba de redirecionamento externo.
+  // Seleciona Marvel como padrão e nunca deixa "+18" virar aba ativa,
+  // porque ela é só um atalho externo para o Drive.
   useEffect(() => {
-    if (!activePublisherId && publishers.length) {
-      const firstReal =
-        publishers.find((p) => p.id !== "virtual-plus18") ?? publishers[0];
-      setActivePublisherId(firstReal.id);
+    if (!publishers.length) return;
+
+    const active = activePublisherId
+      ? publishers.find((p) => p.id === activePublisherId)
+      : null;
+    if (!active || active.id === EXTERNAL_PUBLISHER_ID) {
+      const defaultPublisher = getDefaultPublisher(publishers);
+      if (defaultPublisher) {
+        setActivePublisherId(defaultPublisher.id);
+        setCrumbs([]);
+      }
     }
   }, [publishers, activePublisherId]);
 
@@ -975,8 +988,13 @@ const Index = () => {
   );
 
   const handleSelectPublisher = (id: string) => {
-    if (id === "virtual-plus18") {
+    if (id === EXTERNAL_PUBLISHER_ID) {
       // Aba +18 não navega internamente — abre direto a pasta no Drive.
+      const defaultPublisher = getDefaultPublisher(publishers);
+      if (defaultPublisher) {
+        setActivePublisherId(defaultPublisher.id);
+        setCrumbs([]);
+      }
       window.open(PLUS18_DRIVE_URL, "_blank", "noopener,noreferrer");
       return;
     }
