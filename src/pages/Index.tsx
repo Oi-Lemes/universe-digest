@@ -976,11 +976,17 @@ const Index = () => {
       return cur;
     });
 
+    // Se a pasta "Mangás" não existir no nível raiz mas tivermos coletado
+    // mangás de outras fontes, injetamos uma virtual.
+    const mangasInList = filtered.some((n) => lower(n.name) === "mangás");
+    const virtualMangasFallback =
+      !mangasInList && enrichedMangas ? enrichedMangas : null;
+
     const merged = [
       ...filtered.filter(
         (n) => !/atualiza[cç][ãa]o|atualiza[cç][õo]es\s+quinzenais/i.test(n.name)
       ),
-      ...(virtualShueisha ? [virtualShueisha] : []),
+      ...(virtualMangasFallback ? [virtualMangasFallback] : []),
       ...(virtualStarWars ? [virtualStarWars] : []),
       ...(virtualMonica ? [virtualMonica] : []),
       ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
@@ -996,8 +1002,6 @@ const Index = () => {
       ...(virtualTrapalhoesFinal ? [virtualTrapalhoesFinal] : []),
       ...(virtualClassicos ? [virtualClassicos] : []),
       ...(virtualCultura ? [virtualCultura] : []),
-      // Aba "+18" — não tem children reais; ao ser clicada, abre o Drive
-      // numa nova aba (intercept em handleSelectPublisher).
       {
         id: "virtual-plus18",
         name: "+18",
