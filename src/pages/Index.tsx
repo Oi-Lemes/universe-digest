@@ -36,6 +36,7 @@ const Index = () => {
   // Nomes devem bater (case-insensitive) com os do drive_tree.json.
   const PUBLISHER_PRIORITY = [
     "Marvel",
+    "Star Wars",
     "DC",
     "Shueisha",
     "Mangás",
@@ -482,7 +483,31 @@ const Index = () => {
 
 
 
-    // ---------- Editora virtual: Junji Ito ----------
+    // ---------- Editora virtual: Star Wars ----------
+    // Pega a pasta inteira "STAR WARS" da Marvel (universo Disney/Lucasfilm)
+    // e move pra aba própria, com destaque visual amarelo+preto.
+    // Também puxa avulsos de "Variados" e Bônus que mencionem Star Wars.
+    const marvel = list.find((n) => lower(n.name) === "marvel");
+    const starWarsFolder = findChild(marvel, (n) =>
+      /^star\s*wars$/i.test(n.name)
+    );
+    const isStarWarsName = (name: string) => /\bstar\s*wars\b/i.test(name);
+    const variadosForSW = list.find((n) => lower(n.name) === "variados");
+    const starWarsLooseFiles = (variadosForSW?.children ?? []).filter(
+      (c) => c.type === "file" && isStarWarsName(c.name)
+    );
+    const starWarsLooseIds = new Set(starWarsLooseFiles.map((c) => c.id));
+    const starWarsChildren: DriveNode[] = [
+      ...(starWarsFolder?.children ?? []),
+      ...starWarsLooseFiles,
+    ];
+    const virtualStarWars = buildVirtual(
+      "virtual-star-wars",
+      "Star Wars",
+      starWarsChildren
+    );
+
+
     const junjiItoFolder = findChild(bonusTerror, (n) =>
       /junji\s*ito/i.test(n.name)
     );
@@ -872,7 +897,11 @@ const Index = () => {
         return appendBucket(cur, reallocBuckets.mad) ?? cur;
       }
       if (lname === "marvel") {
-        return appendBucket(cur, reallocBuckets.marvel) ?? cur;
+        // Remove a pasta STAR WARS — agora tem aba própria.
+        const stripped = starWarsFolder
+          ? stripChildren(cur, (c) => c.id === starWarsFolder.id)
+          : cur;
+        return appendBucket(stripped, reallocBuckets.marvel) ?? stripped;
       }
       if (lname === "dc") {
         return appendBucket(cur, reallocBuckets.dc) ?? cur;
@@ -884,13 +913,14 @@ const Index = () => {
         return appendBucket(cur, reallocBuckets.biblia) ?? cur;
       }
       if (lname === "variados") {
-        // Tira PDFs que viraram Cultura, Clássicos, ou foram realocados.
+        // Tira PDFs que viraram Cultura, Clássicos, foram realocados, ou viraram Star Wars.
         return stripChildren(
           cur,
           (c) =>
             classicosLooseIds.has(c.id) ||
             culturaLooseIds.has(c.id) ||
-            reallocIds.has(c.id)
+            reallocIds.has(c.id) ||
+            starWarsLooseIds.has(c.id)
         );
       }
       if (lname === "bônus") {
@@ -911,6 +941,7 @@ const Index = () => {
         (n) => !/atualiza[cç][ãa]o|atualiza[cç][õo]es\s+quinzenais/i.test(n.name)
       ),
       ...(virtualShueisha ? [virtualShueisha] : []),
+      ...(virtualStarWars ? [virtualStarWars] : []),
       ...(virtualMonica ? [virtualMonica] : []),
       ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
       ...(virtualTerror ? [virtualTerror] : []),

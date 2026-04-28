@@ -21,6 +21,7 @@ export const PublisherTab = ({ id, name }: Props) => {
   const isCultura = lname === "cultura & biografias";
   const isTerror = lname === "terror";
   const isPlus18 = lname === "+18";
+  const isStarWars = lname === "star wars";
   const style: CSSProperties = {
     ["--pub-color" as string]: theme.color,
     ["--pub-color-alt" as string]: theme.colorAlt,
@@ -109,6 +110,20 @@ export const PublisherTab = ({ id, name }: Props) => {
           "data-[state=active]:!text-[hsl(0_0%_100%)]",
           "data-[state=active]:!border-[hsl(0_95%_58%)]",
           "data-[state=active]:shadow-[0_10px_28px_-6px_hsl(0_95%_45%/0.95),inset_0_1px_0_hsl(0_85%_60%/0.4)]",
+        ],
+        // Destaque especial "Star Wars": espaço sideral preto + amarelo galáctico
+        isStarWars && [
+          "!bg-[radial-gradient(ellipse_at_top,hsl(48_100%_55%)_0%,hsl(45_95%_42%)_30%,hsl(0_0%_6%)_75%,hsl(0_0%_0%)_100%)]",
+          "!text-[hsl(48_100%_60%)]",
+          "!border-[hsl(48_100%_50%)]",
+          "shadow-[0_4px_14px_-4px_hsl(48_100%_50%/0.7),inset_0_1px_0_hsl(48_100%_70%/0.35)]",
+          "ring-1 ring-[hsl(48_100%_50%/0.55)]",
+          "[text-shadow:0_1px_2px_hsl(0_0%_0%/0.9),0_0_8px_hsl(48_100%_50%/0.4)]",
+          "hover:!bg-[radial-gradient(ellipse_at_top,hsl(48_100%_60%)_0%,hsl(45_100%_48%)_30%,hsl(0_0%_8%)_75%,hsl(0_0%_0%)_100%)]",
+          "data-[state=active]:!bg-[radial-gradient(ellipse_at_center,hsl(48_100%_55%)_0%,hsl(45_100%_45%)_35%,hsl(0_0%_4%)_80%,hsl(0_0%_0%)_100%)]",
+          "data-[state=active]:!text-[hsl(48_100%_65%)]",
+          "data-[state=active]:!border-[hsl(48_100%_60%)]",
+          "data-[state=active]:shadow-[0_10px_28px_-6px_hsl(48_100%_50%/0.9),inset_0_1px_0_hsl(48_100%_70%/0.45)]",
         ]
       )}
     >
@@ -124,6 +139,8 @@ export const PublisherTab = ({ id, name }: Props) => {
               ? "bg-[hsl(0_0%_8%)] ring-1 ring-[hsl(0_85%_45%/0.7)] shadow-inner"
               : isPlus18
               ? "bg-[hsl(0_0%_0%)] ring-1 ring-[hsl(0_92%_50%/0.8)] shadow-inner"
+              : isStarWars
+              ? "bg-[hsl(0_0%_0%)] ring-1 ring-[hsl(48_100%_50%/0.8)] shadow-inner"
               : "bg-white ring-1 ring-black/10 shadow-sm"
           )}
         >
