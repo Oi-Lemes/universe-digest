@@ -22,6 +22,7 @@ export const PublisherTab = ({ id, name }: Props) => {
   const isTerror = lname === "terror";
   const isPlus18 = lname === "+18";
   const isStarWars = lname === "star wars";
+  const isMangas = lname === "mangás";
   const style: CSSProperties = {
     ["--pub-color" as string]: theme.color,
     ["--pub-color-alt" as string]: theme.colorAlt,
