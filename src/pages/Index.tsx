@@ -483,7 +483,30 @@ const Index = () => {
 
 
 
-    // ---------- Editora virtual: Junji Ito ----------
+    // ---------- Editora virtual: Star Wars ----------
+    // Pega a pasta inteira "STAR WARS" da Marvel (universo Disney/Lucasfilm)
+    // e move pra aba própria, com destaque visual amarelo+preto.
+    // Também puxa avulsos de "Variados" e Bônus que mencionem Star Wars.
+    const marvel = list.find((n) => lower(n.name) === "marvel");
+    const starWarsFolder = findChild(marvel, (n) =>
+      /^star\s*wars$/i.test(n.name)
+    );
+    const isStarWarsName = (name: string) => /\bstar\s*wars\b/i.test(name);
+    const starWarsLooseFiles = (variados?.children ?? []).filter(
+      (c) => c.type === "file" && isStarWarsName(c.name)
+    );
+    const starWarsLooseIds = new Set(starWarsLooseFiles.map((c) => c.id));
+    const starWarsChildren: DriveNode[] = [
+      ...(starWarsFolder?.children ?? []),
+      ...starWarsLooseFiles,
+    ];
+    const virtualStarWars = buildVirtual(
+      "virtual-star-wars",
+      "Star Wars",
+      starWarsChildren
+    );
+
+
     const junjiItoFolder = findChild(bonusTerror, (n) =>
       /junji\s*ito/i.test(n.name)
     );
