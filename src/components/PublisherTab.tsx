@@ -156,6 +156,8 @@ export const PublisherTab = ({ id, name }: Props) => {
               ? "bg-[hsl(0_0%_0%)] ring-1 ring-[hsl(0_92%_50%/0.8)] shadow-inner"
               : isStarWars
               ? "bg-[hsl(0_0%_0%)] ring-1 ring-[hsl(48_100%_50%/0.8)] shadow-inner"
+              : isMangas
+              ? "bg-[hsl(250_75%_12%)] ring-1 ring-[hsl(335_95%_65%/0.8)] shadow-[inset_0_0_8px_hsl(335_95%_60%/0.4)]"
               : "bg-white ring-1 ring-black/10 shadow-sm"
           )}
         >
