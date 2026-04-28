@@ -36,6 +36,7 @@ const Index = () => {
   // Nomes devem bater (case-insensitive) com os do drive_tree.json.
   const PUBLISHER_PRIORITY = [
     "Marvel",
+    "Star Wars",
     "DC",
     "Shueisha",
     "Mangás",
