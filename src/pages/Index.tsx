@@ -492,7 +492,8 @@ const Index = () => {
       /^star\s*wars$/i.test(n.name)
     );
     const isStarWarsName = (name: string) => /\bstar\s*wars\b/i.test(name);
-    const starWarsLooseFiles = (variados?.children ?? []).filter(
+    const variadosForSW = list.find((n) => lower(n.name) === "variados");
+    const starWarsLooseFiles = (variadosForSW?.children ?? []).filter(
       (c) => c.type === "file" && isStarWarsName(c.name)
     );
     const starWarsLooseIds = new Set(starWarsLooseFiles.map((c) => c.id));
