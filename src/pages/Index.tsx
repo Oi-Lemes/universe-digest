@@ -376,13 +376,11 @@ const Index = () => {
       lower(n.name).startsWith("mang")
     );
 
-    // ---------- Editora virtual: Shueisha ----------
-    const shueishaSet = new Set(SHUEISHA_TITLES.map(lower));
-    const virtualShueisha = buildVirtual(
-      "virtual-shueisha",
-      "Shueisha",
-      (mangas?.children ?? []).filter((n) => shueishaSet.has(lower(n.name)))
-    );
+    // ---------- Super-aba Mangás (consolidação) ----------
+    // Coletamos TODOS os títulos da Shueisha (que antes tinham aba própria) e
+    // os juntamos em "Mangás" — não existe mais aba "Shueisha".
+    // (a montagem final dos children acontece mais abaixo, depois de descobrir
+    // mangás avulsos em outras pastas).
 
     // ---------- Editora virtual: Turma da Mônica ----------
     // Detecta nomes ligados ao Mauricio de Sousa (Turma da Mônica e personagens).
