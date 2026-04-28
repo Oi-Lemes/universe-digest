@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DriveNode,
   coverUrl,
@@ -8,14 +8,17 @@ import {
   isViewableInDrive,
 } from "@/lib/drive";
 import { extractCover, getCachedCover } from "@/lib/cover-extract";
-import { BookOpen, FolderOpen, FileWarning, Loader2 } from "lucide-react";
+import { BookOpen, FolderOpen, FileWarning, Loader2, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { pickTrending } from "@/lib/manga-popularity";
 
 type Props = {
   items: DriveNode[];
   onOpenFolder: (node: DriveNode) => void;
   onOpenFile: (node: DriveNode) => void;
   emptyHint?: string;
+  /** "manga" mantém a ordem (já vem por popularidade) e mostra o badge 🔥 */
+  mode?: "default" | "manga";
 };
 
 const Cover = ({ node }: { node: DriveNode }) => {
