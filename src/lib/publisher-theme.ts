@@ -40,6 +40,7 @@ import classicos from "@/assets/publishers/classicos.png";
 import cultura from "@/assets/publishers/cultura.png";
 import terror from "@/assets/publishers/terror.png";
 import plus18 from "@/assets/publishers/plus18.png";
+import starWars from "@/assets/publishers/star-wars.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -438,6 +439,16 @@ const THEMES: Record<string, PublisherTheme> = {
     logo: terror,
     letterSpacing: "0.14em",
     fontSize: "0.85rem",
+  },
+  // Star Wars — amarelo icônico + preto espaço sideral (saga galáctica)
+  "star wars": {
+    color: "48 100% 50%",
+    colorAlt: "0 0% 4%",
+    foreground: "0 0% 6%",
+    fontFamily: '"Russo One", "Black Ops One", "Anton", Impact, sans-serif',
+    logo: starWars,
+    letterSpacing: "0.18em",
+    fontSize: "0.82rem",
   },
   // +18 — vermelho-alerta + preto absoluto (conteúdo adulto)
   "+18": {
