@@ -757,33 +757,75 @@ const Index = () => {
       }
     }
 
-    // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
-    // IDs dos títulos da Shueisha já promovidos para não duplicar.
-    const shueishaIds = new Set(
-      (virtualShueisha?.children ?? []).map((n) => n.id)
-    );
-    const popularSet = new Set(POPULAR_MANGAS_FROM_UPDATES.map(lower));
-    const popularFromUpdates = (atualizacoesMangas?.children ?? []).filter(
-      (n) => popularSet.has(lower(n.name))
-    );
-    const existingMangaIds = new Set(
-      (mangas?.children ?? []).map((n) => n.id)
-    );
-    const popularToAdd = popularFromUpdates.filter(
-      (n) => !existingMangaIds.has(n.id) && !shueishaIds.has(n.id)
-    );
+    // ---------- Super-aba Mangás: consolidação total ----------
+    // Junta na pasta "Mangás":
+    //  • Tudo que já estava em "Mangás" (inclusive títulos da Shueisha)
+    //  • TODOS os mangás de "Atualizações Quinzenais → Inclusão → Mangás"
+    //  • Arquivos avulsos com cara de mangá em "Variados"
+    //  • Pastas/arquivos com cara de mangá em "Bônus" e "Editoras Brasileiras"
+    //  • Avulsos de Variados que o reallocator marcou como "mangas"
+    const existingMangaIds = new Set((mangas?.children ?? []).map((n) => n.id));
+    const dedupeAdd = (arr: DriveNode[]) =>
+      arr.filter((n) => {
+        if (existingMangaIds.has(n.id)) return false;
+        existingMangaIds.add(n.id);
+        return true;
+      });
 
-    const enrichedMangas: DriveNode | undefined = mangas
-      ? {
-          ...mangas,
-          children: [
-            ...(mangas.children ?? []).filter(
-              (n) => !shueishaIds.has(n.id)
-            ),
-            ...popularToAdd,
-          ].sort(sortPtBr),
-        }
-      : undefined;
+    const fromUpdates = dedupeAdd(atualizacoesMangas?.children ?? []);
+    const orientalFromVariados = dedupeAdd(
+      (variados?.children ?? []).filter(
+        (c) =>
+          c.type === "file" &&
+          !culturaLooseIds.has(c.id) &&
+          !classicosLooseIds.has(c.id) &&
+          !reallocIds.has(c.id) &&
+          !starWarsLooseIds.has(c.id) &&
+          isOrientalLikeName(c.name)
+      )
+    );
+    const orientalFromVariadosIds = new Set(orientalFromVariados.map((n) => n.id));
+    const orientalFromBonus = dedupeAdd(
+      (bonus?.children ?? []).filter(
+        (c) =>
+          !/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(c.name) &&
+          isOrientalLikeName(c.name)
+      )
+    );
+    const orientalFromBonusIds = new Set(orientalFromBonus.map((n) => n.id));
+    const orientalFromEditorasBr = dedupeAdd(
+      (editorasBr?.children ?? []).filter((c) => isOrientalLikeName(c.name))
+    );
+    const orientalFromEditorasBrIds = new Set(orientalFromEditorasBr.map((n) => n.id));
+    const orientalFromReallocator = dedupeAdd(reallocBuckets.mangas);
+    reallocBuckets.mangas = []; // já consumido — não duplicar via appendBucket
+
+    const allMangaChildren: DriveNode[] = [
+      ...(mangas?.children ?? []),
+      ...fromUpdates,
+      ...orientalFromVariados,
+      ...orientalFromBonus,
+      ...orientalFromEditorasBr,
+      ...orientalFromReallocator,
+    ];
+
+    // Ordena por POPULARIDADE (mais famosos primeiro), tie-break alfabético.
+    const sortByFame = (a: DriveNode, b: DriveNode) => {
+      const sa = popularityScore(a.name);
+      const sb = popularityScore(b.name);
+      if (sa !== sb) return sa - sb;
+      return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
+    };
+
+    const enrichedMangas: DriveNode | undefined =
+      allMangaChildren.length > 0
+        ? {
+            id: mangas?.id ?? "virtual-mangas",
+            name: "Mangás",
+            type: "folder" as const,
+            children: [...allMangaChildren].sort(sortByFame),
+          }
+        : mangas;
 
     // ---------- IDs movidos (para remover dos pais originais) ----------
     const movedIds = new Set<string>(
