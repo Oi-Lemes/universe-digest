@@ -932,7 +932,10 @@ const Index = () => {
       if (lname === "editora abril")
         return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editoras brasileiras")
-        return stripChildren(cur, (c) => movedIds.has(c.id));
+        return stripChildren(
+          cur,
+          (c) => movedIds.has(c.id) || orientalFromEditorasBrIds.has(c.id)
+        );
       if (lname === "mad") {
         return appendBucket(cur, reallocBuckets.mad) ?? cur;
       }
