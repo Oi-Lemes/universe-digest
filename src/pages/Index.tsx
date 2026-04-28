@@ -12,6 +12,7 @@ import { PublisherTab } from "@/components/PublisherTab";
 import { OnlinePresence } from "@/components/OnlinePresence";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
+import { isOrientalLikeName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 
 type Crumb = { id: string; name: string };
 
