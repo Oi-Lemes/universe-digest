@@ -941,6 +941,7 @@ const Index = () => {
         (n) => !/atualiza[cç][ãa]o|atualiza[cç][õo]es\s+quinzenais/i.test(n.name)
       ),
       ...(virtualShueisha ? [virtualShueisha] : []),
+      ...(virtualStarWars ? [virtualStarWars] : []),
       ...(virtualMonica ? [virtualMonica] : []),
       ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
       ...(virtualTerror ? [virtualTerror] : []),
