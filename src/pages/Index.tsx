@@ -956,23 +956,28 @@ const Index = () => {
         return appendBucket(cur, reallocBuckets.biblia) ?? cur;
       }
       if (lname === "variados") {
-        // Tira PDFs que viraram Cultura, Clássicos, foram realocados, ou viraram Star Wars.
+        // Tira PDFs que viraram Cultura, Clássicos, foram realocados, viraram Star Wars
+        // ou foram absorvidos pela super-aba Mangás.
         return stripChildren(
           cur,
           (c) =>
             classicosLooseIds.has(c.id) ||
             culturaLooseIds.has(c.id) ||
             reallocIds.has(c.id) ||
-            starWarsLooseIds.has(c.id)
+            starWarsLooseIds.has(c.id) ||
+            orientalFromVariadosIds.has(c.id)
         );
       }
       if (lname === "bônus") {
-        // Remove inteiramente a pasta "Mangás e Quadrinhos de terror" de Bônus —
-        // o conteúdo agora vive nas abas "Junji Ito" e "Terror".
+        // Remove inteiramente a pasta "Mangás e Quadrinhos de terror" de Bônus
+        // (o conteúdo vive em "Junji Ito" e "Terror") e também os mangás
+        // já absorvidos pela super-aba Mangás.
         return {
           ...cur,
           children: (cur.children ?? []).filter(
-            (sub) => !/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name)
+            (sub) =>
+              !/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name) &&
+              !orientalFromBonusIds.has(sub.id)
           ),
         };
       }
