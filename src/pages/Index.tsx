@@ -913,13 +913,14 @@ const Index = () => {
         return appendBucket(cur, reallocBuckets.biblia) ?? cur;
       }
       if (lname === "variados") {
-        // Tira PDFs que viraram Cultura, Clássicos, ou foram realocados.
+        // Tira PDFs que viraram Cultura, Clássicos, foram realocados, ou viraram Star Wars.
         return stripChildren(
           cur,
           (c) =>
             classicosLooseIds.has(c.id) ||
             culturaLooseIds.has(c.id) ||
-            reallocIds.has(c.id)
+            reallocIds.has(c.id) ||
+            starWarsLooseIds.has(c.id)
         );
       }
       if (lname === "bônus") {
