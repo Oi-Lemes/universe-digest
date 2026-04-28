@@ -1263,6 +1263,11 @@ const Index = () => {
               onOpenFolder={handleOpenFolder}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
               emptyHint="Pasta vazia."
+              mode={
+                p.name.trim().toLowerCase() === "mangás" && crumbs.length === 0
+                  ? "manga"
+                  : "default"
+              }
             />
           </TabsContent>
         ))}
