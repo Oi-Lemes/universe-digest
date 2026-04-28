@@ -12,6 +12,7 @@ import { PublisherTab } from "@/components/PublisherTab";
 import { OnlinePresence } from "@/components/OnlinePresence";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
+import { isOrientalLikeName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 
 type Crumb = { id: string; name: string };
 
@@ -38,7 +39,6 @@ const Index = () => {
     "Marvel",
     "Star Wars",
     "DC",
-    "Shueisha",
     "Mangás",
     "Turma da Mônica",
     "Junji Ito",
@@ -376,13 +376,11 @@ const Index = () => {
       lower(n.name).startsWith("mang")
     );
 
-    // ---------- Editora virtual: Shueisha ----------
-    const shueishaSet = new Set(SHUEISHA_TITLES.map(lower));
-    const virtualShueisha = buildVirtual(
-      "virtual-shueisha",
-      "Shueisha",
-      (mangas?.children ?? []).filter((n) => shueishaSet.has(lower(n.name)))
-    );
+    // ---------- Super-aba Mangás (consolidação) ----------
+    // Coletamos TODOS os títulos da Shueisha (que antes tinham aba própria) e
+    // os juntamos em "Mangás" — não existe mais aba "Shueisha".
+    // (a montagem final dos children acontece mais abaixo, depois de descobrir
+    // mangás avulsos em outras pastas).
 
     // ---------- Editora virtual: Turma da Mônica ----------
     // Detecta nomes ligados ao Mauricio de Sousa (Turma da Mônica e personagens).
@@ -759,33 +757,75 @@ const Index = () => {
       }
     }
 
-    // ---------- Mangás populares: mesclar dentro de "Mangás" ----------
-    // IDs dos títulos da Shueisha já promovidos para não duplicar.
-    const shueishaIds = new Set(
-      (virtualShueisha?.children ?? []).map((n) => n.id)
-    );
-    const popularSet = new Set(POPULAR_MANGAS_FROM_UPDATES.map(lower));
-    const popularFromUpdates = (atualizacoesMangas?.children ?? []).filter(
-      (n) => popularSet.has(lower(n.name))
-    );
-    const existingMangaIds = new Set(
-      (mangas?.children ?? []).map((n) => n.id)
-    );
-    const popularToAdd = popularFromUpdates.filter(
-      (n) => !existingMangaIds.has(n.id) && !shueishaIds.has(n.id)
-    );
+    // ---------- Super-aba Mangás: consolidação total ----------
+    // Junta na pasta "Mangás":
+    //  • Tudo que já estava em "Mangás" (inclusive títulos da Shueisha)
+    //  • TODOS os mangás de "Atualizações Quinzenais → Inclusão → Mangás"
+    //  • Arquivos avulsos com cara de mangá em "Variados"
+    //  • Pastas/arquivos com cara de mangá em "Bônus" e "Editoras Brasileiras"
+    //  • Avulsos de Variados que o reallocator marcou como "mangas"
+    const existingMangaIds = new Set((mangas?.children ?? []).map((n) => n.id));
+    const dedupeAdd = (arr: DriveNode[]) =>
+      arr.filter((n) => {
+        if (existingMangaIds.has(n.id)) return false;
+        existingMangaIds.add(n.id);
+        return true;
+      });
 
-    const enrichedMangas: DriveNode | undefined = mangas
-      ? {
-          ...mangas,
-          children: [
-            ...(mangas.children ?? []).filter(
-              (n) => !shueishaIds.has(n.id)
-            ),
-            ...popularToAdd,
-          ].sort(sortPtBr),
-        }
-      : undefined;
+    const fromUpdates = dedupeAdd(atualizacoesMangas?.children ?? []);
+    const orientalFromVariados = dedupeAdd(
+      (variados?.children ?? []).filter(
+        (c) =>
+          c.type === "file" &&
+          !culturaLooseIds.has(c.id) &&
+          !classicosLooseIds.has(c.id) &&
+          !reallocIds.has(c.id) &&
+          !starWarsLooseIds.has(c.id) &&
+          isOrientalLikeName(c.name)
+      )
+    );
+    const orientalFromVariadosIds = new Set(orientalFromVariados.map((n) => n.id));
+    const orientalFromBonus = dedupeAdd(
+      (bonus?.children ?? []).filter(
+        (c) =>
+          !/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(c.name) &&
+          isOrientalLikeName(c.name)
+      )
+    );
+    const orientalFromBonusIds = new Set(orientalFromBonus.map((n) => n.id));
+    const orientalFromEditorasBr = dedupeAdd(
+      (editorasBr?.children ?? []).filter((c) => isOrientalLikeName(c.name))
+    );
+    const orientalFromEditorasBrIds = new Set(orientalFromEditorasBr.map((n) => n.id));
+    const orientalFromReallocator = dedupeAdd(reallocBuckets.mangas);
+    reallocBuckets.mangas = []; // já consumido — não duplicar via appendBucket
+
+    const allMangaChildren: DriveNode[] = [
+      ...(mangas?.children ?? []),
+      ...fromUpdates,
+      ...orientalFromVariados,
+      ...orientalFromBonus,
+      ...orientalFromEditorasBr,
+      ...orientalFromReallocator,
+    ];
+
+    // Ordena por POPULARIDADE (mais famosos primeiro), tie-break alfabético.
+    const sortByFame = (a: DriveNode, b: DriveNode) => {
+      const sa = popularityScore(a.name);
+      const sb = popularityScore(b.name);
+      if (sa !== sb) return sa - sb;
+      return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
+    };
+
+    const enrichedMangas: DriveNode | undefined =
+      allMangaChildren.length > 0
+        ? {
+            id: mangas?.id ?? "virtual-mangas",
+            name: "Mangás",
+            type: "folder" as const,
+            children: [...allMangaChildren].sort(sortByFame),
+          }
+        : mangas;
 
     // ---------- IDs movidos (para remover dos pais originais) ----------
     const movedIds = new Set<string>(
@@ -892,7 +932,10 @@ const Index = () => {
       if (lname === "editora abril")
         return stripChildren(cur, (c) => movedIds.has(c.id));
       if (lname === "editoras brasileiras")
-        return stripChildren(cur, (c) => movedIds.has(c.id));
+        return stripChildren(
+          cur,
+          (c) => movedIds.has(c.id) || orientalFromEditorasBrIds.has(c.id)
+        );
       if (lname === "mad") {
         return appendBucket(cur, reallocBuckets.mad) ?? cur;
       }
@@ -913,34 +956,45 @@ const Index = () => {
         return appendBucket(cur, reallocBuckets.biblia) ?? cur;
       }
       if (lname === "variados") {
-        // Tira PDFs que viraram Cultura, Clássicos, foram realocados, ou viraram Star Wars.
+        // Tira PDFs que viraram Cultura, Clássicos, foram realocados, viraram Star Wars
+        // ou foram absorvidos pela super-aba Mangás.
         return stripChildren(
           cur,
           (c) =>
             classicosLooseIds.has(c.id) ||
             culturaLooseIds.has(c.id) ||
             reallocIds.has(c.id) ||
-            starWarsLooseIds.has(c.id)
+            starWarsLooseIds.has(c.id) ||
+            orientalFromVariadosIds.has(c.id)
         );
       }
       if (lname === "bônus") {
-        // Remove inteiramente a pasta "Mangás e Quadrinhos de terror" de Bônus —
-        // o conteúdo agora vive nas abas "Junji Ito" e "Terror".
+        // Remove inteiramente a pasta "Mangás e Quadrinhos de terror" de Bônus
+        // (o conteúdo vive em "Junji Ito" e "Terror") e também os mangás
+        // já absorvidos pela super-aba Mangás.
         return {
           ...cur,
           children: (cur.children ?? []).filter(
-            (sub) => !/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name)
+            (sub) =>
+              !/mang[áa]s\s+e\s+quadrinhos\s+de\s+terror/i.test(sub.name) &&
+              !orientalFromBonusIds.has(sub.id)
           ),
         };
       }
       return cur;
     });
 
+    // Se a pasta "Mangás" não existir no nível raiz mas tivermos coletado
+    // mangás de outras fontes, injetamos uma virtual.
+    const mangasInList = filtered.some((n) => lower(n.name) === "mangás");
+    const virtualMangasFallback =
+      !mangasInList && enrichedMangas ? enrichedMangas : null;
+
     const merged = [
       ...filtered.filter(
         (n) => !/atualiza[cç][ãa]o|atualiza[cç][õo]es\s+quinzenais/i.test(n.name)
       ),
-      ...(virtualShueisha ? [virtualShueisha] : []),
+      ...(virtualMangasFallback ? [virtualMangasFallback] : []),
       ...(virtualStarWars ? [virtualStarWars] : []),
       ...(virtualMonica ? [virtualMonica] : []),
       ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
@@ -956,8 +1010,6 @@ const Index = () => {
       ...(virtualTrapalhoesFinal ? [virtualTrapalhoesFinal] : []),
       ...(virtualClassicos ? [virtualClassicos] : []),
       ...(virtualCultura ? [virtualCultura] : []),
-      // Aba "+18" — não tem children reais; ao ser clicada, abre o Drive
-      // numa nova aba (intercept em handleSelectPublisher).
       {
         id: "virtual-plus18",
         name: "+18",
@@ -1211,6 +1263,11 @@ const Index = () => {
               onOpenFolder={handleOpenFolder}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
               emptyHint="Pasta vazia."
+              mode={
+                p.name.trim().toLowerCase() === "mangás" && crumbs.length === 0
+                  ? "manga"
+                  : "default"
+              }
             />
           </TabsContent>
         ))}

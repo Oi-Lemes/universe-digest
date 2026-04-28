@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DriveNode,
   coverUrl,
@@ -8,14 +8,17 @@ import {
   isViewableInDrive,
 } from "@/lib/drive";
 import { extractCover, getCachedCover } from "@/lib/cover-extract";
-import { BookOpen, FolderOpen, FileWarning, Loader2 } from "lucide-react";
+import { BookOpen, FolderOpen, FileWarning, Loader2, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { pickTrending } from "@/lib/manga-popularity";
 
 type Props = {
   items: DriveNode[];
   onOpenFolder: (node: DriveNode) => void;
   onOpenFile: (node: DriveNode) => void;
   emptyHint?: string;
+  /** "manga" mantém a ordem (já vem por popularidade) e mostra o badge 🔥 */
+  mode?: "default" | "manga";
 };
 
 const Cover = ({ node }: { node: DriveNode }) => {
@@ -129,7 +132,27 @@ const Cover = ({ node }: { node: DriveNode }) => {
   );
 };
 
-export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint }: Props) => {
+export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = "default" }: Props) => {
+  // Top trending para o modo "manga" — recalcula em tempo real,
+  // destacando 1 dos top 6 a cada 3.5s (efeito "em alta agora").
+  const trendingNames = useMemo(
+    () => (mode === "manga" ? pickTrending(items.map((i) => i.name), 6) : []),
+    [items, mode]
+  );
+  const [hotIdx, setHotIdx] = useState(0);
+  useEffect(() => {
+    if (mode !== "manga" || trendingNames.length === 0) return;
+    const id = setInterval(() => {
+      setHotIdx((i) => (i + 1) % trendingNames.length);
+    }, 3500);
+    return () => clearInterval(id);
+  }, [mode, trendingNames.length]);
+  const hotNow = trendingNames[hotIdx] ?? null;
+  const trendingSet = useMemo(
+    () => new Set(trendingNames.map((n) => n.toLowerCase())),
+    [trendingNames]
+  );
+
   if (!items.length) {
     return (
       <div className="text-center text-muted-foreground py-16">
@@ -138,16 +161,22 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint }: Props
     );
   }
 
-  const sorted = [...items].sort((a, b) => {
-    if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
-    return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
-  });
+  // No modo "manga" mantemos a ordem (já vem por popularidade).
+  const sorted =
+    mode === "manga"
+      ? items
+      : [...items].sort((a, b) => {
+          if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
+          return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
+        });
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
       {sorted.map((node) => {
         const isFolder = node.type === "folder";
         const stats = isFolder ? countDescendants(node) : null;
+        const isTrending = trendingSet.has(node.name.toLowerCase());
+        const isHotNow = hotNow !== null && node.name.toLowerCase() === hotNow.toLowerCase();
         return (
           <button
             key={node.id}
@@ -155,10 +184,26 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint }: Props
             className={cn(
               "group relative text-left rounded-lg border border-border bg-card p-2 transition-all",
               "hover:border-primary hover:-translate-y-0.5 hover:shadow-[var(--shadow-comic)]",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              isHotNow && "border-[hsl(335_92%_60%)] shadow-[0_0_0_2px_hsl(335_92%_60%/0.45),0_8px_24px_-6px_hsl(335_92%_55%/0.6)] -translate-y-0.5"
             )}
           >
             <Cover node={node} />
+            {isTrending && (
+              <span
+                className={cn(
+                  "absolute top-1 left-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full",
+                  "text-[9px] font-bold uppercase tracking-wide",
+                  "bg-gradient-to-r from-[hsl(20_95%_55%)] via-[hsl(8_95%_52%)] to-[hsl(335_92%_55%)]",
+                  "text-white shadow-[0_2px_8px_hsl(8_95%_52%/0.6)]",
+                  isHotNow && "animate-pulse scale-110"
+                )}
+                title={isHotNow ? "🔥 Em alta agora" : "Em alta"}
+              >
+                <Flame className={cn("w-2.5 h-2.5", isHotNow && "animate-bounce")} strokeWidth={2.5} />
+                {isHotNow ? "EM ALTA" : "HOT"}
+              </span>
+            )}
             <div className="text-xs font-medium leading-snug line-clamp-2 group-hover:text-primary px-0.5">
               {node.name}
             </div>

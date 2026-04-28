@@ -22,6 +22,7 @@ export const PublisherTab = ({ id, name }: Props) => {
   const isTerror = lname === "terror";
   const isPlus18 = lname === "+18";
   const isStarWars = lname === "star wars";
+  const isMangas = lname === "mangás";
   const style: CSSProperties = {
     ["--pub-color" as string]: theme.color,
     ["--pub-color-alt" as string]: theme.colorAlt,
@@ -124,6 +125,20 @@ export const PublisherTab = ({ id, name }: Props) => {
           "data-[state=active]:!text-[hsl(48_100%_65%)]",
           "data-[state=active]:!border-[hsl(48_100%_60%)]",
           "data-[state=active]:shadow-[0_10px_28px_-6px_hsl(48_100%_50%/0.9),inset_0_1px_0_hsl(48_100%_70%/0.45)]",
+        ],
+        // Destaque especial "Mangás": rosa-neon shoujo + índigo + brilho anime
+        isMangas && [
+          "!bg-[radial-gradient(ellipse_at_top,hsl(335_92%_62%)_0%,hsl(310_75%_42%)_45%,hsl(250_75%_18%)_100%)]",
+          "!text-[hsl(0_0%_100%)]",
+          "!border-[hsl(335_95%_65%)]",
+          "shadow-[0_4px_18px_-4px_hsl(335_92%_55%/0.75),inset_0_1px_0_hsl(335_95%_85%/0.4)]",
+          "ring-1 ring-[hsl(335_92%_60%/0.6)]",
+          "[text-shadow:0_1px_2px_hsl(250_75%_10%/0.85),0_0_10px_hsl(335_95%_70%/0.55)]",
+          "hover:!bg-[radial-gradient(ellipse_at_top,hsl(335_95%_68%)_0%,hsl(310_85%_48%)_45%,hsl(250_80%_22%)_100%)]",
+          "data-[state=active]:!bg-[radial-gradient(ellipse_at_center,hsl(335_98%_65%)_0%,hsl(310_90%_45%)_50%,hsl(250_80%_18%)_100%)]",
+          "data-[state=active]:!text-[hsl(0_0%_100%)]",
+          "data-[state=active]:!border-[hsl(335_100%_72%)]",
+          "data-[state=active]:shadow-[0_12px_32px_-6px_hsl(335_95%_55%/0.95),inset_0_1px_0_hsl(335_95%_85%/0.5),0_0_24px_hsl(335_95%_60%/0.5)]",
         ]
       )}
     >
@@ -141,6 +156,8 @@ export const PublisherTab = ({ id, name }: Props) => {
               ? "bg-[hsl(0_0%_0%)] ring-1 ring-[hsl(0_92%_50%/0.8)] shadow-inner"
               : isStarWars
               ? "bg-[hsl(0_0%_0%)] ring-1 ring-[hsl(48_100%_50%/0.8)] shadow-inner"
+              : isMangas
+              ? "bg-[hsl(250_75%_12%)] ring-1 ring-[hsl(335_95%_65%/0.8)] shadow-[inset_0_0_8px_hsl(335_95%_60%/0.4)]"
               : "bg-white ring-1 ring-black/10 shadow-sm"
           )}
         >
