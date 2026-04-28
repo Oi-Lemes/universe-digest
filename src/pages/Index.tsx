@@ -897,7 +897,11 @@ const Index = () => {
         return appendBucket(cur, reallocBuckets.mad) ?? cur;
       }
       if (lname === "marvel") {
-        return appendBucket(cur, reallocBuckets.marvel) ?? cur;
+        // Remove a pasta STAR WARS — agora tem aba própria.
+        const stripped = starWarsFolder
+          ? stripChildren(cur, (c) => c.id === starWarsFolder.id)
+          : cur;
+        return appendBucket(stripped, reallocBuckets.marvel) ?? stripped;
       }
       if (lname === "dc") {
         return appendBucket(cur, reallocBuckets.dc) ?? cur;
