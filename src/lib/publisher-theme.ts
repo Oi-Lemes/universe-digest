@@ -290,15 +290,15 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.08em",
     fontSize: "0.78rem",
   },
-  // Mangás — rosa-shojo + índigo-anime
+  // Mangás — rosa-neon shoujo + índigo-noite anime (super destaque)
   "mangás": {
-    color: "335 78% 58%",
-    colorAlt: "250 60% 30%",
+    color: "335 92% 60%",
+    colorAlt: "250 75% 22%",
     foreground: "0 0% 100%",
     fontFamily: '"Reggae One", "RocknRoll One", "Bungee", Impact, sans-serif',
     logo: mangas,
-    letterSpacing: "0.05em",
-    fontSize: "0.82rem",
+    letterSpacing: "0.06em",
+    fontSize: "0.85rem",
   },
   // Turma da Mônica — vermelho-Mônica + verde-Cebolinha
   "turma da mônica": {
