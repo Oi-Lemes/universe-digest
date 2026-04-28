@@ -38,7 +38,6 @@ const Index = () => {
     "Marvel",
     "Star Wars",
     "DC",
-    "Shueisha",
     "Mangás",
     "Turma da Mônica",
     "Junji Ito",
