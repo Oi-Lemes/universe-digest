@@ -104,6 +104,7 @@ const POPULARITY: Array<[string, number]> = [
 const ORIENTAL_KEYWORDS = [
   "manga", "mangá", "manhwa", "manhua", "doujinshi", "doujin",
   "shonen", "shōnen", "shoujo", "shōjo", "seinen", "josei",
+  "webtoon", "webcomic",
 ];
 
 /** Heurística: nome parece de mangá/manhwa/manhua/oriental? */
@@ -113,7 +114,46 @@ export function isOrientalLikeName(name: string): boolean {
   // Palavras-chave japonesas comuns em títulos
   if (/\b(no|wa|ga|kun|chan|sama|sensei|senpai)\b/.test(n)) return true;
   // Bate com algum título conhecido do ranking
-  return POPULARITY.some(([k]) => n.includes(k));
+  if (POPULARITY.some(([k]) => n.includes(k))) return true;
+  // Manhwas/manhuas conhecidos
+  return MANHWA_KEYS.some((k) => n.includes(k));
+}
+
+// ---- Manhwa / Manhua (coreano/chinês) ----
+// Lista de keywords (lowercase) — match por includes contra node.name.
+// Cobre os mais populares + obras presentes no acervo.
+const MANHWA_KEYS = [
+  "solo leveling", "tower of god", "noblesse", "god of high school",
+  "the god of high", "bastard", "sweet home", "the gamer",
+  "hardcore leveling", "omniscient reader", "beginning after the end",
+  "return of mount hua", "mercenary enrollment", "nano machine",
+  "kill the hero", "reaper of the drifting", "i alone level up",
+  "seoul station", "ragna crimson", "second life ranker", "overgeared",
+  "revenge of baskerville", "ghost teller", "bone collection",
+  "itaewon class", "cheese in the trap", "study group", "viral hit",
+  "girls of the wilds", "look out the studio", "wind breaker",
+  "teenage mercenary", "hellbound", "duty after school", "annarasumanara",
+  "as the gods will", "navillera", "my id is gangnam", "your letter",
+  "lookism", "true beauty", "operation true love", "the boxer",
+  "remarried empress", "who made me a princess", "daughter of the emperor",
+  "villains are destined to die", "tomb raider king", "damn reincarnation",
+  "tanmoonki", "manhwa", "manhua", "webtoon", "webcomic",
+  "leveling up", "regressor", "reincarnation", "academy",
+];
+
+/** Detecta se é manhwa/manhua (coreano/chinês) — separa do mangá japonês. */
+export function isManhwaName(name: string): boolean {
+  const n = name.toLowerCase();
+  // Exclui se for claramente japonês (mangá tradicional)
+  // mas alguns títulos têm "no" — só descarta se outras pistas não baterem.
+  if (MANHWA_KEYS.some((k) => n.includes(k))) {
+    // Se também bater como mangá top-tier japonês, fica em mangá
+    // (ex.: "boku no hero academia" tem "academia" mas é Shueisha)
+    const japaneseTop = ["one piece","naruto","bleach","dragon ball","jujutsu","demon slayer","kimetsu","chainsaw","attack on titan","shingeki","death note","tokyo ghoul","hunter x hunter","my hero","boku no hero","one punch","fullmetal","berserk","vagabond","jojo","saint seiya","cdz","yu yu","yu-gi-oh","fairy tail","black clover","dr stone","dr. stone","mob psycho","spy family","spy x family","dandadan","dan da dan","blue lock","kaiju no","fire force","food wars","shokugeki","slam dunk","haikyu","hajime no ippo","ao ashi","diamond no ace","nanatsu","seven deadly","edens zero","elusive samurai","boruto","gantz","20th century","monster","pluto","billy bat","vinland","historie","beck","nana","fruits basket","sailor moon","sakura","clamp","evangelion","akira","ghost in the shell","cowboy bebop","trigun","hellsing","magi","rave master","katekyo","chihayafuru","golden kamuy","junji ito","uzumaki","tokyo revengers","beastars","promised neverland","yakusoku","samurai x","rurouni","inuyasha","claymore","soul eater","captain tsubasa"];
+    if (japaneseTop.some((k) => n.includes(k))) return false;
+    return true;
+  }
+  return false;
 }
 
 /** Score de popularidade (menor = mais famoso). Sem match → final da fila. */

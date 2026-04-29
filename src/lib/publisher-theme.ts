@@ -41,6 +41,7 @@ import cultura from "@/assets/publishers/cultura.png";
 import terror from "@/assets/publishers/terror.png";
 import plus18 from "@/assets/publishers/plus18.png";
 import starWars from "@/assets/publishers/star-wars.png";
+import manhwa from "@/assets/publishers/manhwa.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -449,6 +450,16 @@ const THEMES: Record<string, PublisherTheme> = {
     logo: starWars,
     letterSpacing: "0.18em",
     fontSize: "0.82rem",
+  },
+  // Manhwa — coral/dourado coreano + índigo profundo (webtoon vibe)
+  "manhwa": {
+    color: "12 92% 58%",
+    colorAlt: "230 70% 18%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Black Han Sans", "Nanum Gothic", "Russo One", "Bungee", Impact, sans-serif',
+    logo: manhwa,
+    letterSpacing: "0.08em",
+    fontSize: "0.85rem",
   },
   // +18 — vermelho-alerta + preto absoluto (conteúdo adulto)
   "+18": {

@@ -17,11 +17,11 @@ type Props = {
   onOpenFolder: (node: DriveNode) => void;
   onOpenFile: (node: DriveNode) => void;
   emptyHint?: string;
-  /** "manga" mantém a ordem (já vem por popularidade) e mostra o badge 🔥 */
-  mode?: "default" | "manga";
+  /** "manga"/"manhwa" mantêm a ordem (já vem por popularidade) e mostram o badge 🔥 */
+  mode?: "default" | "manga" | "manhwa";
 };
 
-const Cover = ({ node }: { node: DriveNode }) => {
+const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "default" | "manga" | "manhwa" }) => {
   const [errored, setErrored] = useState(false);
   const directUrl = coverUrl(node, 400);
   const isFolder = node.type === "folder";
@@ -105,18 +105,47 @@ const Cover = ({ node }: { node: DriveNode }) => {
     );
   }
 
-  // Fallback (no thumb available) — also shows the loader while extracting.
+  // Fallback (no thumb available) — gera capa estilizada com inicial do título
+  // pra garantir que NUNCA fique sem capa visual (importante p/ Mangás/Manhwa).
+  const generated = useMemo(
+    () => generatedCoverDataUrl(node.name, accent),
+    [node.name, accent]
+  );
+
+  if (!isFolder && generated && !extracting) {
+    return (
+      <div
+        ref={wrapRef}
+        className="relative aspect-[2/3] rounded-md mb-2 overflow-hidden ring-1 ring-primary/20"
+      >
+        <img
+          src={generated}
+          alt={node.name}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {!viewable && (
+          <span className="absolute top-1 right-1 text-[9px] uppercase font-bold bg-destructive/90 text-destructive-foreground px-1.5 py-0.5 rounded">
+            {fileExt(node.name) || "?"}
+          </span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       ref={wrapRef}
       className={cn(
-        "aspect-[2/3] rounded-md mb-2 flex items-center justify-center relative",
+        "aspect-[2/3] rounded-md mb-2 flex items-center justify-center relative overflow-hidden",
         isFolder
           ? "bg-gradient-to-br from-secondary to-muted"
           : "bg-gradient-to-br from-primary/30 to-accent/20"
       )}
     >
-      {isFolder ? (
+      {isFolder && generated ? (
+        <img src={generated} alt={node.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-95" />
+      ) : isFolder ? (
         <FolderOpen className="w-10 h-10 text-accent/80" strokeWidth={1.5} />
       ) : viewable ? (
         <BookOpen className="w-10 h-10 text-primary" strokeWidth={1.5} />
@@ -132,21 +161,72 @@ const Cover = ({ node }: { node: DriveNode }) => {
   );
 };
 
+// Paletas pra capas geradas — "manga" rosa/índigo, "manhwa" coral/dourado.
+const PALETTES: Record<"default" | "manga" | "manhwa", { bgFrom: string; bgTo: string; accent: string; text: string }> = {
+  default: { bgFrom: "#1e293b", bgTo: "#0f172a", accent: "#facc15", text: "#f8fafc" },
+  manga:   { bgFrom: "#ec4899", bgTo: "#312e81", accent: "#fde047", text: "#ffffff" },
+  manhwa:  { bgFrom: "#f97316", bgTo: "#1e1b4b", accent: "#fbbf24", text: "#ffffff" },
+};
+
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+/** Gera uma capa SVG (data URL) com gradiente + iniciais do título. */
+function generatedCoverDataUrl(name: string, accent: "default" | "manga" | "manhwa" = "default"): string {
+  const pal = PALETTES[accent];
+  // Pega 1-2 letras significativas (descarta artigos)
+  const cleaned = name.replace(/\.(cbr|cbz|pdf|rar|zip|epub)$/i, "").trim();
+  const words = cleaned.split(/[\s_\-–—:|/.()]+/).filter(Boolean).filter(w => !/^(o|a|os|as|de|da|do|the|of|no|le|la|el|um|uma)$/i.test(w));
+  const initials = (words[0]?.[0] ?? "?") + (words[1]?.[0] ?? words[0]?.[1] ?? "");
+  const display = initials.toUpperCase().slice(0, 2);
+  const hue = hashStr(name) % 360;
+  // Mistura cor do hash com a paleta do modo
+  const accentHsl = `hsl(${hue}, 80%, 55%)`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${pal.bgFrom}"/>
+        <stop offset="100%" stop-color="${pal.bgTo}"/>
+      </linearGradient>
+      <radialGradient id="glow" cx="50%" cy="35%" r="60%">
+        <stop offset="0%" stop-color="${accentHsl}" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="${accentHsl}" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="200" height="300" fill="url(#g)"/>
+    <rect width="200" height="300" fill="url(#glow)"/>
+    <text x="100" y="170" text-anchor="middle" font-family="Impact, 'Bowlby One', sans-serif" font-size="120" font-weight="900" fill="${pal.text}" opacity="0.95" letter-spacing="-4">${display}</text>
+    <rect x="0" y="270" width="200" height="30" fill="rgba(0,0,0,0.45)"/>
+    <text x="100" y="289" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="${pal.text}" opacity="0.92">${escapeXml(cleaned.slice(0, 28))}</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function escapeXml(s: string): string {
+  return s.replace(/[<>&'"]/g, (c) => ({"<":"&lt;",">":"&gt;","&":"&amp;","'":"&apos;","\"":"&quot;"}[c] as string));
+}
+
 export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = "default" }: Props) => {
   // Top trending para o modo "manga" — recalcula em tempo real,
   // destacando 1 dos top 6 a cada 3.5s (efeito "em alta agora").
+  const isMangaLike = mode === "manga" || mode === "manhwa";
+  const coverAccent: "default" | "manga" | "manhwa" =
+    mode === "manhwa" ? "manhwa" : mode === "manga" ? "manga" : "default";
   const trendingNames = useMemo(
-    () => (mode === "manga" ? pickTrending(items.map((i) => i.name), 6) : []),
-    [items, mode]
+    () => (isMangaLike ? pickTrending(items.map((i) => i.name), 6) : []),
+    [items, isMangaLike]
   );
   const [hotIdx, setHotIdx] = useState(0);
   useEffect(() => {
-    if (mode !== "manga" || trendingNames.length === 0) return;
+    if (!isMangaLike || trendingNames.length === 0) return;
     const id = setInterval(() => {
       setHotIdx((i) => (i + 1) % trendingNames.length);
     }, 3500);
     return () => clearInterval(id);
-  }, [mode, trendingNames.length]);
+  }, [isMangaLike, trendingNames.length]);
   const hotNow = trendingNames[hotIdx] ?? null;
   const trendingSet = useMemo(
     () => new Set(trendingNames.map((n) => n.toLowerCase())),
@@ -161,9 +241,9 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
     );
   }
 
-  // No modo "manga" mantemos a ordem (já vem por popularidade).
+  // No modo "manga"/"manhwa" mantemos a ordem (já vem por popularidade).
   const sorted =
-    mode === "manga"
+    isMangaLike
       ? items
       : [...items].sort((a, b) => {
           if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
@@ -188,7 +268,7 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
               isHotNow && "border-[hsl(335_92%_60%)] shadow-[0_0_0_2px_hsl(335_92%_60%/0.45),0_8px_24px_-6px_hsl(335_92%_55%/0.6)] -translate-y-0.5"
             )}
           >
-            <Cover node={node} />
+            <Cover node={node} accent={coverAccent} />
             {isTrending && (
               <span
                 className={cn(

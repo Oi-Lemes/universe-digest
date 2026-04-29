@@ -23,6 +23,7 @@ export const PublisherTab = ({ id, name }: Props) => {
   const isPlus18 = lname === "+18";
   const isStarWars = lname === "star wars";
   const isMangas = lname === "mangás";
+  const isManhwa = lname === "manhwa";
   const style: CSSProperties = {
     ["--pub-color" as string]: theme.color,
     ["--pub-color-alt" as string]: theme.colorAlt,
@@ -139,6 +140,20 @@ export const PublisherTab = ({ id, name }: Props) => {
           "data-[state=active]:!text-[hsl(0_0%_100%)]",
           "data-[state=active]:!border-[hsl(335_100%_72%)]",
           "data-[state=active]:shadow-[0_12px_32px_-6px_hsl(335_95%_55%/0.95),inset_0_1px_0_hsl(335_95%_85%/0.5),0_0_24px_hsl(335_95%_60%/0.5)]",
+        ],
+        // Destaque especial "Manhwa": coral coreano + índigo + brilho dourado
+        isManhwa && [
+          "!bg-[radial-gradient(ellipse_at_top,hsl(12_95%_62%)_0%,hsl(20_85%_48%)_40%,hsl(230_70%_18%)_100%)]",
+          "!text-[hsl(0_0%_100%)]",
+          "!border-[hsl(42_95%_58%)]",
+          "shadow-[0_4px_18px_-4px_hsl(12_92%_50%/0.7),inset_0_1px_0_hsl(42_95%_75%/0.4)]",
+          "ring-1 ring-[hsl(42_95%_58%/0.55)]",
+          "[text-shadow:0_1px_2px_hsl(230_70%_8%/0.85),0_0_10px_hsl(42_95%_60%/0.55)]",
+          "hover:!bg-[radial-gradient(ellipse_at_top,hsl(12_98%_66%)_0%,hsl(20_92%_52%)_40%,hsl(230_75%_22%)_100%)]",
+          "data-[state=active]:!bg-[radial-gradient(ellipse_at_center,hsl(12_98%_62%)_0%,hsl(20_95%_48%)_45%,hsl(230_75%_18%)_100%)]",
+          "data-[state=active]:!text-[hsl(0_0%_100%)]",
+          "data-[state=active]:!border-[hsl(42_100%_65%)]",
+          "data-[state=active]:shadow-[0_12px_32px_-6px_hsl(12_92%_50%/0.95),inset_0_1px_0_hsl(42_95%_75%/0.5),0_0_24px_hsl(42_95%_55%/0.5)]",
         ]
       )}
     >
@@ -158,6 +173,8 @@ export const PublisherTab = ({ id, name }: Props) => {
               ? "bg-[hsl(0_0%_0%)] ring-1 ring-[hsl(48_100%_50%/0.8)] shadow-inner"
               : isMangas
               ? "bg-[hsl(250_75%_12%)] ring-1 ring-[hsl(335_95%_65%/0.8)] shadow-[inset_0_0_8px_hsl(335_95%_60%/0.4)]"
+              : isManhwa
+              ? "bg-[hsl(230_70%_10%)] ring-1 ring-[hsl(42_95%_60%/0.8)] shadow-[inset_0_0_8px_hsl(12_92%_55%/0.4)]"
               : "bg-white ring-1 ring-black/10 shadow-sm"
           )}
         >

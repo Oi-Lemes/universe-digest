@@ -12,7 +12,7 @@ import { PublisherTab } from "@/components/PublisherTab";
 import { OnlinePresence } from "@/components/OnlinePresence";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
-import { isOrientalLikeName, popularityScore, pickTrending } from "@/lib/manga-popularity";
+import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 
 type Crumb = { id: string; name: string };
 
@@ -40,6 +40,7 @@ const Index = () => {
     "Star Wars",
     "DC",
     "Mangás",
+    "Manhwa",
     "Turma da Mônica",
     "Junji Ito",
     "Terror",
@@ -800,7 +801,7 @@ const Index = () => {
     const orientalFromReallocator = dedupeAdd(reallocBuckets.mangas);
     reallocBuckets.mangas = []; // já consumido — não duplicar via appendBucket
 
-    const allMangaChildren: DriveNode[] = [
+    const allMangaChildrenRaw: DriveNode[] = [
       ...(mangas?.children ?? []),
       ...fromUpdates,
       ...orientalFromVariados,
@@ -808,6 +809,14 @@ const Index = () => {
       ...orientalFromEditorasBr,
       ...orientalFromReallocator,
     ];
+
+    // Separa Manhwa/Manhua (coreano/chinês) dos Mangás japoneses.
+    const manhwaChildren: DriveNode[] = [];
+    const allMangaChildren: DriveNode[] = [];
+    for (const c of allMangaChildrenRaw) {
+      if (isManhwaName(c.name)) manhwaChildren.push(c);
+      else allMangaChildren.push(c);
+    }
 
     // Ordena por POPULARIDADE (mais famosos primeiro), tie-break alfabético.
     const sortByFame = (a: DriveNode, b: DriveNode) => {
@@ -826,6 +835,16 @@ const Index = () => {
             children: [...allMangaChildren].sort(sortByFame),
           }
         : mangas;
+
+    const virtualManhwa: DriveNode | null =
+      manhwaChildren.length > 0
+        ? {
+            id: "virtual-manhwa",
+            name: "Manhwa",
+            type: "folder" as const,
+            children: [...manhwaChildren].sort(sortByFame),
+          }
+        : null;
 
     // ---------- IDs movidos (para remover dos pais originais) ----------
     const movedIds = new Set<string>(
@@ -995,6 +1014,7 @@ const Index = () => {
         (n) => !/atualiza[cç][ãa]o|atualiza[cç][õo]es\s+quinzenais/i.test(n.name)
       ),
       ...(virtualMangasFallback ? [virtualMangasFallback] : []),
+      ...(virtualManhwa ? [virtualManhwa] : []),
       ...(virtualStarWars ? [virtualStarWars] : []),
       ...(virtualMonica ? [virtualMonica] : []),
       ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
@@ -1263,11 +1283,13 @@ const Index = () => {
               onOpenFolder={handleOpenFolder}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
               emptyHint="Pasta vazia."
-              mode={
-                p.name.trim().toLowerCase() === "mangás" && crumbs.length === 0
-                  ? "manga"
-                  : "default"
-              }
+              mode={(() => {
+                if (crumbs.length !== 0) return "default";
+                const n = p.name.trim().toLowerCase();
+                if (n === "mangás") return "manga";
+                if (n === "manhwa") return "manhwa";
+                return "default";
+              })()}
             />
           </TabsContent>
         ))}
