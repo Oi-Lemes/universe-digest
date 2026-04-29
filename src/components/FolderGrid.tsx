@@ -21,7 +21,7 @@ type Props = {
   mode?: "default" | "manga";
 };
 
-const Cover = ({ node }: { node: DriveNode }) => {
+const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "default" | "manga" | "manhwa" }) => {
   const [errored, setErrored] = useState(false);
   const directUrl = coverUrl(node, 400);
   const isFolder = node.type === "folder";
