@@ -41,6 +41,7 @@ import cultura from "@/assets/publishers/cultura.png";
 import terror from "@/assets/publishers/terror.png";
 import plus18 from "@/assets/publishers/plus18.png";
 import starWars from "@/assets/publishers/star-wars.png";
+import manhwa from "@/assets/publishers/manhwa.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
