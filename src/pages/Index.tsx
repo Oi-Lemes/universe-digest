@@ -1014,6 +1014,7 @@ const Index = () => {
         (n) => !/atualiza[cç][ãa]o|atualiza[cç][õo]es\s+quinzenais/i.test(n.name)
       ),
       ...(virtualMangasFallback ? [virtualMangasFallback] : []),
+      ...(virtualManhwa ? [virtualManhwa] : []),
       ...(virtualStarWars ? [virtualStarWars] : []),
       ...(virtualMonica ? [virtualMonica] : []),
       ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
@@ -1283,7 +1284,9 @@ const Index = () => {
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
               emptyHint="Pasta vazia."
               mode={
-                p.name.trim().toLowerCase() === "mangás" && crumbs.length === 0
+                (p.name.trim().toLowerCase() === "mangás" ||
+                  p.name.trim().toLowerCase() === "manhwa") &&
+                crumbs.length === 0
                   ? "manga"
                   : "default"
               }
