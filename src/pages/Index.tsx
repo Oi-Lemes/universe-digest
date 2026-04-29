@@ -801,7 +801,7 @@ const Index = () => {
     const orientalFromReallocator = dedupeAdd(reallocBuckets.mangas);
     reallocBuckets.mangas = []; // já consumido — não duplicar via appendBucket
 
-    const allMangaChildren: DriveNode[] = [
+    const allMangaChildrenRaw: DriveNode[] = [
       ...(mangas?.children ?? []),
       ...fromUpdates,
       ...orientalFromVariados,
@@ -809,6 +809,14 @@ const Index = () => {
       ...orientalFromEditorasBr,
       ...orientalFromReallocator,
     ];
+
+    // Separa Manhwa/Manhua (coreano/chinês) dos Mangás japoneses.
+    const manhwaChildren: DriveNode[] = [];
+    const allMangaChildren: DriveNode[] = [];
+    for (const c of allMangaChildrenRaw) {
+      if (isManhwaName(c.name)) manhwaChildren.push(c);
+      else allMangaChildren.push(c);
+    }
 
     // Ordena por POPULARIDADE (mais famosos primeiro), tie-break alfabético.
     const sortByFame = (a: DriveNode, b: DriveNode) => {
@@ -827,6 +835,16 @@ const Index = () => {
             children: [...allMangaChildren].sort(sortByFame),
           }
         : mangas;
+
+    const virtualManhwa: DriveNode | null =
+      manhwaChildren.length > 0
+        ? {
+            id: "virtual-manhwa",
+            name: "Manhwa",
+            type: "folder" as const,
+            children: [...manhwaChildren].sort(sortByFame),
+          }
+        : null;
 
     // ---------- IDs movidos (para remover dos pais originais) ----------
     const movedIds = new Set<string>(
