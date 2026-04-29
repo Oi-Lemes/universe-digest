@@ -17,8 +17,8 @@ type Props = {
   onOpenFolder: (node: DriveNode) => void;
   onOpenFile: (node: DriveNode) => void;
   emptyHint?: string;
-  /** "manga" mantém a ordem (já vem por popularidade) e mostra o badge 🔥 */
-  mode?: "default" | "manga";
+  /** "manga"/"manhwa" mantêm a ordem (já vem por popularidade) e mostram o badge 🔥 */
+  mode?: "default" | "manga" | "manhwa";
 };
 
 const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "default" | "manga" | "manhwa" }) => {
@@ -212,18 +212,21 @@ function escapeXml(s: string): string {
 export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = "default" }: Props) => {
   // Top trending para o modo "manga" — recalcula em tempo real,
   // destacando 1 dos top 6 a cada 3.5s (efeito "em alta agora").
+  const isMangaLike = mode === "manga" || mode === "manhwa";
+  const coverAccent: "default" | "manga" | "manhwa" =
+    mode === "manhwa" ? "manhwa" : mode === "manga" ? "manga" : "default";
   const trendingNames = useMemo(
-    () => (mode === "manga" ? pickTrending(items.map((i) => i.name), 6) : []),
-    [items, mode]
+    () => (isMangaLike ? pickTrending(items.map((i) => i.name), 6) : []),
+    [items, isMangaLike]
   );
   const [hotIdx, setHotIdx] = useState(0);
   useEffect(() => {
-    if (mode !== "manga" || trendingNames.length === 0) return;
+    if (!isMangaLike || trendingNames.length === 0) return;
     const id = setInterval(() => {
       setHotIdx((i) => (i + 1) % trendingNames.length);
     }, 3500);
     return () => clearInterval(id);
-  }, [mode, trendingNames.length]);
+  }, [isMangaLike, trendingNames.length]);
   const hotNow = trendingNames[hotIdx] ?? null;
   const trendingSet = useMemo(
     () => new Set(trendingNames.map((n) => n.toLowerCase())),
@@ -238,9 +241,9 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
     );
   }
 
-  // No modo "manga" mantemos a ordem (já vem por popularidade).
+  // No modo "manga"/"manhwa" mantemos a ordem (já vem por popularidade).
   const sorted =
-    mode === "manga"
+    isMangaLike
       ? items
       : [...items].sort((a, b) => {
           if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
@@ -265,7 +268,7 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
               isHotNow && "border-[hsl(335_92%_60%)] shadow-[0_0_0_2px_hsl(335_92%_60%/0.45),0_8px_24px_-6px_hsl(335_92%_55%/0.6)] -translate-y-0.5"
             )}
           >
-            <Cover node={node} />
+            <Cover node={node} accent={coverAccent} />
             {isTrending && (
               <span
                 className={cn(
