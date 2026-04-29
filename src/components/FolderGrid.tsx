@@ -36,14 +36,15 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
   // When the node has no Drive thumbnail (typical for CBR/CBZ archives) we
   // try to unpack the first image from the archive itself once the card
   // becomes visible. Result is cached in IndexedDB for next loads.
-  const archiveTarget = !directUrl ? firstArchiveIn(node) : null;
+  const needsArchive = !directUrl || errored;
+  const archiveTarget = needsArchive ? firstArchiveIn(node) : null;
   const initialExtracted = archiveTarget ? getCachedCover(archiveTarget.id) ?? undefined : undefined;
   const [extractedUrl, setExtractedUrl] = useState<string | null | undefined>(initialExtracted);
   const [extracting, setExtracting] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (directUrl || !archiveTarget) return;
+    if (!needsArchive || !archiveTarget) return;
     if (extractedUrl !== undefined) return; // already known (success or null)
 
     const el = wrapRef.current;
@@ -75,11 +76,12 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [directUrl, archiveTarget, extractedUrl]);
+  }, [needsArchive, archiveTarget, extractedUrl]);
 
-  const finalUrl = directUrl ?? extractedUrl ?? null;
+  // Se a thumbnail do Drive errou, prioriza a capa extraída do archive.
+  const finalUrl = errored ? extractedUrl ?? null : directUrl ?? extractedUrl ?? null;
 
-  if (finalUrl && !errored) {
+  if (finalUrl) {
     return (
       <div
         ref={wrapRef}
