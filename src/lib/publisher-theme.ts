@@ -451,6 +451,16 @@ const THEMES: Record<string, PublisherTheme> = {
     letterSpacing: "0.18em",
     fontSize: "0.82rem",
   },
+  // Manhwa — coral/dourado coreano + índigo profundo (webtoon vibe)
+  "manhwa": {
+    color: "12 92% 58%",
+    colorAlt: "230 70% 18%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Black Han Sans", "Nanum Gothic", "Russo One", "Bungee", Impact, sans-serif',
+    logo: manhwa,
+    letterSpacing: "0.08em",
+    fontSize: "0.85rem",
+  },
   // +18 — vermelho-alerta + preto absoluto (conteúdo adulto)
   "+18": {
     color: "0 92% 48%",
