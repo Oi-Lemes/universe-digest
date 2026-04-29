@@ -26,6 +26,11 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
   const directUrl = coverUrl(node, 400);
   const isFolder = node.type === "folder";
   const viewable = !isFolder && isViewableInDrive(node.name);
+  // Hook precisa vir ANTES de qualquer return condicional (Rules of Hooks).
+  const generated = useMemo(
+    () => generatedCoverDataUrl(node.name, accent),
+    [node.name, accent]
+  );
 
   // ----- Lazy CBR cover extraction fallback -----
   // When the node has no Drive thumbnail (typical for CBR/CBZ archives) we
@@ -105,12 +110,7 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
     );
   }
 
-  // Fallback (no thumb available) — gera capa estilizada com inicial do título
-  // pra garantir que NUNCA fique sem capa visual (importante p/ Mangás/Manhwa).
-  const generated = useMemo(
-    () => generatedCoverDataUrl(node.name, accent),
-    [node.name, accent]
-  );
+  // Fallback (no thumb available) — usa a capa gerada (declarada acima).
 
   if (!isFolder && generated && !extracting) {
     return (
