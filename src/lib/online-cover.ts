@@ -2,7 +2,7 @@
 // Cache em IndexedDB para nunca repetir a chamada.
 // Negativos também são cacheados para evitar tempestade de requests.
 
-const DB_NAME = "online-cover-cache-v3";
+const DB_NAME = "online-cover-cache-v4";
 const STORE = "covers";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -114,7 +114,9 @@ type AniMedia = {
   coverImage: { extraLarge?: string | null; large?: string | null; medium?: string | null };
 };
 
-async function fetchAniList(title: string): Promise<string | null> {
+type OnlineCoverResult = { url: string; mediaId: number };
+
+async function fetchAniList(title: string): Promise<OnlineCoverResult | null> {
   try {
     const res = await fetch("https://graphql.anilist.co", {
       method: "POST",
@@ -143,7 +145,8 @@ async function fetchAniList(title: string): Promise<string | null> {
     }
     if (!best || best.score < 0.5) return null;
     const c = best.media.coverImage;
-    return c?.extraLarge || c?.large || c?.medium || null;
+    const url = c?.extraLarge || c?.large || c?.medium || null;
+    return url ? { url, mediaId: best.media.id } : null;
   } catch {
     return null;
   }
@@ -152,7 +155,7 @@ async function fetchAniList(title: string): Promise<string | null> {
 const MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30 dias
 
 /** Busca capa online (AniList) com cache. */
-export async function getOnlineCover(rawName: string): Promise<string | null> {
+export async function getOnlineCover(rawName: string, usedMediaIds?: Set<number>): Promise<string | null> {
   if (looksLikeChapter(rawName)) return null;
   const title = normalizeTitle(rawName);
   // Exige título com pelo menos 3 caracteres pra evitar matches genéricos
@@ -170,7 +173,9 @@ export async function getOnlineCover(rawName: string): Promise<string | null> {
 
   if (inflight.has(key)) return inflight.get(key)!;
   const p = (async () => {
-    const url = await fetchAniList(title);
+    const result = await fetchAniList(title);
+    const url = result && !usedMediaIds?.has(result.mediaId) ? result.url : null;
+    if (result && url) usedMediaIds?.add(result.mediaId);
     mem.set(key, url);
     cacheSet(key, { url, ts: Date.now() });
     inflight.delete(key);
