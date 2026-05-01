@@ -26,12 +26,6 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
   const directUrl = coverUrl(node, 400);
   const isFolder = node.type === "folder";
   const viewable = !isFolder && isViewableInDrive(node.name);
-  // Hook precisa vir ANTES de qualquer return condicional (Rules of Hooks).
-  const generated = useMemo(
-    () => generatedCoverDataUrl(node.name, accent),
-    [node.name, accent]
-  );
-
   // ----- Lazy CBR cover extraction fallback -----
   // When the node has no Drive thumbnail (typical for CBR/CBZ archives) we
   // try to unpack the first image from the archive itself once the card
@@ -113,28 +107,7 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
     );
   }
 
-  // Fallback (no thumb available) — usa a capa gerada (declarada acima).
-
-  if (!isFolder && generated && !extracting) {
-    return (
-      <div
-        ref={wrapRef}
-        className="relative aspect-[2/3] rounded-md mb-2 overflow-hidden ring-1 ring-primary/20"
-      >
-        <img
-          src={generated}
-          alt={node.name}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        {!viewable && (
-          <span className="absolute top-1 right-1 text-[9px] uppercase font-bold bg-destructive/90 text-destructive-foreground px-1.5 py-0.5 rounded">
-            {fileExt(node.name) || "?"}
-          </span>
-        )}
-      </div>
-    );
-  }
+  // Sem capa real disponível: mostra somente estado neutro/loader, nunca capa falsa repetida.
 
   return (
     <div
@@ -146,9 +119,7 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
           : "bg-gradient-to-br from-primary/30 to-accent/20"
       )}
     >
-      {isFolder && generated ? (
-        <img src={generated} alt={node.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-95" />
-      ) : isFolder ? (
+      {isFolder ? (
         <FolderOpen className="w-10 h-10 text-accent/80" strokeWidth={1.5} />
       ) : viewable ? (
         <BookOpen className="w-10 h-10 text-primary" strokeWidth={1.5} />
