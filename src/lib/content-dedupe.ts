@@ -30,7 +30,8 @@ export function dedupeVisibleNodes(nodes: DriveNode[]): DriveNode[] {
       siblingKeys.add(key);
 
       if (!node.children) return [node];
-      return [{ ...node, children: walkList(node.children) }];
+      const children = walkList(node.children);
+      return children.length > 0 ? [{ ...node, children }] : [];
     });
   };
 
