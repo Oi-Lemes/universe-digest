@@ -1,8 +1,10 @@
-// Busca capas reais (AniList) por nome para mangás/manhwas/manhuas.
-// Cache em IndexedDB para nunca repetir a chamada.
-// Negativos também são cacheados para evitar tempestade de requests.
+// Busca capas reais por nome para mangás/manhwas/manhuas.
+// Pipeline: AniList → Jikan (MyAnimeList) → Google Books → IA (gerada).
+// Cache em IndexedDB para nunca repetir a chamada. Nunca deixa sem capa.
 
-const DB_NAME = "online-cover-cache-v4";
+import { supabase } from "@/integrations/supabase/client";
+
+const DB_NAME = "online-cover-cache-v5";
 const STORE = "covers";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -154,28 +156,101 @@ async function fetchAniList(title: string): Promise<OnlineCoverResult | null> {
 
 const MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30 dias
 
-/** Busca capa online (AniList) com cache. */
-export async function getOnlineCover(rawName: string, usedMediaIds?: Set<number>): Promise<string | null> {
+// ---- Fallback: Jikan (MyAnimeList) ----
+async function fetchJikan(title: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://api.jikan.moe/v4/manga?q=${encodeURIComponent(title)}&limit=8&order_by=popularity`
+    );
+    if (!res.ok) return null;
+    const j = await res.json();
+    const list: any[] = j?.data ?? [];
+    let best: { url: string; score: number } | null = null;
+    for (const m of list) {
+      const variants = [m.title, m.title_english, m.title_japanese, ...((m.titles ?? []).map((t: any) => t.title))]
+        .filter((v: any): v is string => !!v);
+      let score = 0;
+      for (const v of variants) score = Math.max(score, similarity(title, v));
+      const url = m.images?.webp?.large_image_url || m.images?.jpg?.large_image_url || m.images?.jpg?.image_url;
+      if (url && (!best || score > best.score)) best = { url, score };
+    }
+    if (!best || best.score < 0.5) return null;
+    return best.url;
+  } catch { return null; }
+}
+
+// ---- Fallback: Google Books ----
+async function fetchGoogleBooks(title: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(title)}+manga&maxResults=8&printType=books`
+    );
+    if (!res.ok) return null;
+    const j = await res.json();
+    const list: any[] = j?.items ?? [];
+    let best: { url: string; score: number } | null = null;
+    for (const it of list) {
+      const v = it.volumeInfo;
+      if (!v) continue;
+      const variants = [v.title, v.subtitle, ...((v.authors ?? []))].filter((x: any): x is string => !!x);
+      let score = 0;
+      for (const x of variants) score = Math.max(score, similarity(title, x));
+      const raw = v.imageLinks?.extraLarge || v.imageLinks?.large || v.imageLinks?.medium || v.imageLinks?.thumbnail;
+      const url = raw ? String(raw).replace(/^http:/, "https:").replace(/&edge=curl/, "") : null;
+      if (url && (!best || score > best.score)) best = { url, score };
+    }
+    if (!best || best.score < 0.4) return null;
+    return best.url;
+  } catch { return null; }
+}
+
+// ---- Último recurso: gerar via IA (edge function) ----
+async function generateAICover(title: string, kind: "manga" | "manhwa"): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke("cover-generate", {
+      body: { title, kind },
+    });
+    if (error) return null;
+    return (data as any)?.url ?? null;
+  } catch { return null; }
+}
+
+/**
+ * Pipeline em cascata: AniList → Jikan → Google Books → IA gerada.
+ * Garante que sempre retorna uma URL válida para títulos não-capítulos.
+ */
+export async function getOnlineCover(
+  rawName: string,
+  usedMediaIds?: Set<number>,
+  kind: "manga" | "manhwa" = "manga"
+): Promise<string | null> {
   if (looksLikeChapter(rawName)) return null;
   const title = normalizeTitle(rawName);
-  // Exige título com pelo menos 3 caracteres pra evitar matches genéricos
-  // que geram capas duplicadas (ex.: "C", "Vol", "X").
   if (!title || title.length < 3) return null;
-  const key = title.toLowerCase();
+  const key = `${kind}:${title.toLowerCase()}`;
 
   if (mem.has(key)) return mem.get(key) ?? null;
 
   const cached = await cacheGet(key);
-  if (cached && Date.now() - cached.ts < MAX_AGE) {
+  if (cached && Date.now() - cached.ts < MAX_AGE && cached.url) {
     mem.set(key, cached.url);
     return cached.url;
   }
 
   if (inflight.has(key)) return inflight.get(key)!;
   const p = (async () => {
-    const result = await fetchAniList(title);
-    const url = result && !usedMediaIds?.has(result.mediaId) ? result.url : null;
-    if (result && url) usedMediaIds?.add(result.mediaId);
+    let url: string | null = null;
+
+    const ani = await fetchAniList(title);
+    if (ani && !usedMediaIds?.has(ani.mediaId)) {
+      url = ani.url;
+      usedMediaIds?.add(ani.mediaId);
+    }
+
+    if (!url) url = await fetchJikan(title);
+    if (!url) url = await fetchGoogleBooks(title);
+    if (!url) url = await generateAICover(title, kind);
+
     mem.set(key, url);
     cacheSet(key, { url, ts: Date.now() });
     inflight.delete(key);
@@ -186,8 +261,8 @@ export async function getOnlineCover(rawName: string, usedMediaIds?: Set<number>
 }
 
 /** Lookup somente em memória (sincrônico). Útil pra render imediato. */
-export function getCachedOnlineCover(rawName: string): string | null | undefined {
-  const key = normalizeTitle(rawName).toLowerCase();
+export function getCachedOnlineCover(rawName: string, kind: "manga" | "manhwa" = "manga"): string | null | undefined {
+  const key = `${kind}:${normalizeTitle(rawName).toLowerCase()}`;
   if (mem.has(key)) return mem.get(key);
   return undefined;
 }

@@ -81,7 +81,8 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
   // estrito e dedup por mediaId. Nunca pra capítulos individuais.
   const onlineEligible =
     (mode === "manga" || mode === "manhwa") && isFolder && !looksLikeChapter(node.name);
-  const initialOnline = onlineEligible ? getCachedOnlineCover(node.name) : undefined;
+  const kind: "manga" | "manhwa" = mode === "manhwa" ? "manhwa" : "manga";
+  const initialOnline = onlineEligible ? getCachedOnlineCover(node.name, kind) : undefined;
   const [onlineUrl, setOnlineUrl] = useState<string | null | undefined>(initialOnline);
 
   useEffect(() => {
@@ -91,11 +92,11 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
     if (directUrl && !errored) return;
     if (extractedUrl) return;
     let cancelled = false;
-    getOnlineCover(node.name, usedOnlineIds).then((url) => {
+    getOnlineCover(node.name, usedOnlineIds, kind).then((url) => {
       if (!cancelled) setOnlineUrl(url);
     });
     return () => { cancelled = true; };
-  }, [onlineEligible, onlineUrl, directUrl, errored, extractedUrl, node.name]);
+  }, [onlineEligible, onlineUrl, directUrl, errored, extractedUrl, node.name, kind]);
 
   // Prioridade: thumb do Drive → 1ª página extraída do arquivo → capa online (AniList)
   const finalUrl =
