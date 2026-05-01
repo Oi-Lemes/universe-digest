@@ -1269,6 +1269,15 @@ const Index = () => {
               ))}
             </nav>
 
+            {(() => {
+              const n = p.name.trim().toLowerCase();
+              const isMangaTab = n === "mangás" || n === "mangas";
+              if (isMangaTab && crumbs.length === 0) {
+                return <InfiniteCoverMarquee items={items} limit={20} />;
+              }
+              return null;
+            })()}
+
             <FolderGrid
               items={items}
               onOpenFolder={handleOpenFolder}
@@ -1277,8 +1286,7 @@ const Index = () => {
               mode={(() => {
                 if (crumbs.length !== 0) return "default";
                 const n = p.name.trim().toLowerCase();
-                if (n === "mangás") return "manga";
-                if (n === "manhwa") return "manga";
+                if (n === "mangás" || n === "mangas") return "manga";
                 return "default";
               })()}
             />
