@@ -77,12 +77,42 @@ export function looksLikeChapter(raw: string): boolean {
 
 const ANILIST_QUERY = `
 query ($search: String) {
-  Media(search: $search, type: MANGA) {
-    id
-    title { romaji english native }
-    coverImage { extraLarge large medium }
+  Page(perPage: 8) {
+    media(search: $search, type: MANGA, sort: SEARCH_MATCH) {
+      id
+      title { romaji english native }
+      synonyms
+      coverImage { extraLarge large medium }
+    }
   }
 }`;
+
+/** Normaliza string para comparação (sem acento, só alfanum). */
+function canon(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/** Similaridade simples baseada em tokens compartilhados (Jaccard). */
+function similarity(a: string, b: string): number {
+  const ta = new Set(canon(a).split(/\s+/).filter(Boolean));
+  const tb = new Set(canon(b).split(/\s+/).filter(Boolean));
+  if (ta.size === 0 || tb.size === 0) return 0;
+  let inter = 0;
+  ta.forEach((t) => { if (tb.has(t)) inter++; });
+  return inter / Math.max(ta.size, tb.size);
+}
+
+type AniMedia = {
+  id: number;
+  title: { romaji?: string | null; english?: string | null; native?: string | null };
+  synonyms?: string[] | null;
+  coverImage: { extraLarge?: string | null; large?: string | null; medium?: string | null };
+};
 
 async function fetchAniList(title: string): Promise<string | null> {
   try {
@@ -93,8 +123,27 @@ async function fetchAniList(title: string): Promise<string | null> {
     });
     if (!res.ok) return null;
     const j = await res.json();
-    const cover = j?.data?.Media?.coverImage;
-    return cover?.extraLarge || cover?.large || cover?.medium || null;
+    const list: AniMedia[] = j?.data?.Page?.media ?? [];
+    if (!list.length) return null;
+    // Escolhe o melhor candidato comparando título buscado com todas as
+    // variantes (romaji/english/native/synonyms). Exige similaridade mínima
+    // pra rejeitar matches genéricos do AniList que retornam o mesmo Media
+    // pra títulos diferentes (causa raiz das capas repetidas).
+    let best: { media: AniMedia; score: number } | null = null;
+    for (const m of list) {
+      const variants = [
+        m.title?.romaji,
+        m.title?.english,
+        m.title?.native,
+        ...(m.synonyms ?? []),
+      ].filter((v): v is string => !!v);
+      let score = 0;
+      for (const v of variants) score = Math.max(score, similarity(title, v));
+      if (!best || score > best.score) best = { media: m, score };
+    }
+    if (!best || best.score < 0.5) return null;
+    const c = best.media.coverImage;
+    return c?.extraLarge || c?.large || c?.medium || null;
   } catch {
     return null;
   }
