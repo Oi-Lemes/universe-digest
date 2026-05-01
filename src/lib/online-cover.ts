@@ -1,8 +1,11 @@
-// Busca capas reais (AniList) por nome para mangás/manhwas/manhuas.
-// Cache em IndexedDB para nunca repetir a chamada.
-// Negativos também são cacheados para evitar tempestade de requests.
+// Busca capas reais por nome para mangás/manhwas/manhuas.
+// Pipeline: AniList → Jikan (MyAnimeList) → Google Books → IA (gerada).
+// Cache em IndexedDB para nunca repetir a chamada. Nunca deixa sem capa.
 
-const DB_NAME = "online-cover-cache-v4";
+import { supabase } from "@/integrations/supabase/client";
+
+const DB_NAME = "online-cover-cache-v5";
+const STORE = "covers";
 const STORE = "covers";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
