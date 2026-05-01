@@ -8,7 +8,6 @@ import {
   isViewableInDrive,
 } from "@/lib/drive";
 import { extractCover, getCachedCover } from "@/lib/cover-extract";
-import { getOnlineCover, getCachedOnlineCover } from "@/lib/online-cover";
 import { BookOpen, FolderOpen, FileWarning, Loader2, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pickTrending } from "@/lib/manga-popularity";
@@ -43,29 +42,6 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
   const [extractedUrl, setExtractedUrl] = useState<string | null | undefined>(initialExtracted);
   const [extracting, setExtracting] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-
-  // ----- Online cover (AniList) -----
-  // Só buscamos capa online para PASTAS (títulos), nunca para arquivos
-  // (capítulos individuais). Isso evita capas duplicadas/erradas em
-  // "Cap 6.cbr", "C7.cbr" etc., e mantém a capa real do título no front.
-  const onlineEnabled = (accent === "manhwa" || accent === "manga") && isFolder;
-  const initialOnline = onlineEnabled ? getCachedOnlineCover(node.name) : undefined;
-  const [onlineUrl, setOnlineUrl] = useState<string | null | undefined>(initialOnline);
-
-  useEffect(() => {
-    if (!onlineEnabled) return;
-    if (onlineUrl !== undefined) return;
-    const el = wrapRef.current;
-    const trigger = () => {
-      getOnlineCover(node.name).then((url) => setOnlineUrl(url));
-    };
-    if (!el || typeof IntersectionObserver === "undefined") { trigger(); return; }
-    const io = new IntersectionObserver((entries) => {
-      for (const e of entries) if (e.isIntersecting) { io.disconnect(); trigger(); break; }
-    }, { rootMargin: "200px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [onlineEnabled, onlineUrl, node.name]);
 
   useEffect(() => {
     if (!needsArchive || !archiveTarget) return;
@@ -102,12 +78,9 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
     return () => io.disconnect();
   }, [needsArchive, archiveTarget, extractedUrl]);
 
-  // Se a thumbnail do Drive errou, prioriza a capa online (manhwa/manga)
-  // ou extraída do archive. Para manhwa/manga, capa online sempre prevalece
-  // se foi encontrada — pois é o objetivo (capas oficiais).
-  const finalUrl = onlineEnabled && onlineUrl
-    ? onlineUrl
-    : (errored ? extractedUrl ?? null : directUrl ?? extractedUrl ?? null);
+  // Usa apenas capa real do próprio conteúdo: thumbnail do Drive ou a 1ª imagem
+  // extraída do arquivo. Não reutiliza capa online genérica entre títulos.
+  const finalUrl = errored ? extractedUrl ?? null : directUrl ?? extractedUrl ?? null;
 
   if (finalUrl) {
     return (
