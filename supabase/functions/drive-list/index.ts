@@ -7,7 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "content-type, authorization",
 };
 
-const API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
+const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
+const CONNECTION_KEY = Deno.env.get("GOOGLE_DRIVE_API_KEY") ?? "";
 
 type DriveItem = { id: string; name: string; mimeType: string };
 
@@ -21,7 +22,11 @@ async function listFolder(folderId: string): Promise<DriveItem[]> {
     url.searchParams.set("pageSize", "1000");
     if (pageToken) url.searchParams.set("pageToken", pageToken);
     const r = await fetch(url.toString(), {
-      headers: { "Lovable-API-Key": API_KEY },
+      headers: {
+        "X-Connection-Api-Key": CONNECTION_KEY,
+        "Lovable-API-Key": LOVABLE_KEY,
+        "Authorization": `Bearer ${LOVABLE_KEY}`,
+      },
     });
     if (!r.ok) throw new Error(`Drive API ${r.status}: ${await r.text()}`);
     const j = await r.json();
@@ -56,7 +61,7 @@ Deno.serve(async (req) => {
     const id = url.searchParams.get("id");
     const name = url.searchParams.get("name") ?? "Folder";
     if (!id) return new Response(JSON.stringify({ error: "missing id" }), { status: 400, headers: { ...corsHeaders, "content-type": "application/json" } });
-    if (!API_KEY) return new Response(JSON.stringify({ error: "missing GOOGLE_DRIVE_API_KEY" }), { status: 500, headers: { ...corsHeaders, "content-type": "application/json" } });
+    if (!CONNECTION_KEY) return new Response(JSON.stringify({ error: "missing GOOGLE_DRIVE_API_KEY" }), { status: 500, headers: { ...corsHeaders, "content-type": "application/json" } });
     const tree = await walk(id, name);
     return new Response(JSON.stringify(tree), { headers: { ...corsHeaders, "content-type": "application/json" } });
   } catch (e) {
