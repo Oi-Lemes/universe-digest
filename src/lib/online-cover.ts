@@ -51,13 +51,28 @@ const inflight = new Map<string, Promise<string | null>>();
 export function normalizeTitle(raw: string): string {
   let s = raw;
   s = s.replace(/\.(cbr|cbz|rar|zip|pdf|epub)$/i, "");
-  s = s.replace(/\b(vol(?:ume)?|cap(?:[ií]tulo|[ií]t)?|chapter|ch|tomo|tomo|tome|episodio|ep)\b\.?\s*\d+(?:\.\d+)?/gi, "");
-  s = s.replace(/\b\d{1,4}\b/g, " ");
-  s = s.replace(/[_\-–—]+/g, " ");
+  // Remove parênteses/colchetes (scan groups, anos, etc.)
   s = s.replace(/\([^)]*\)/g, " ");
   s = s.replace(/\[[^\]]*\]/g, " ");
+  // Remove markers de capítulo/volume com números
+  s = s.replace(/\b(vol(?:ume)?|cap(?:[ií]tulo|[ií]t)?|chapter|ch|tomo|tome|epis[oó]dio|ep)\b\.?\s*\d+(?:[.,]\d+)?/gi, " ");
+  // Remove padrões compactos tipo "C6", "C 7", "Cap6", "Ch12"
+  s = s.replace(/\b(c|ch|cap)\s*\.?\s*\d+\b/gi, " ");
+  // Remove números soltos curtos (capítulos)
+  s = s.replace(/\b\d{1,4}\b/g, " ");
+  s = s.replace(/[_\-–—:|/.]+/g, " ");
   s = s.replace(/\s+/g, " ").trim();
   return s;
+}
+
+/** Heurística: o nome parece um capítulo/volume isolado (não um título)? */
+export function looksLikeChapter(raw: string): boolean {
+  const s = raw.trim();
+  // "Cap 6", "C7", "Capítulo 12", "Vol 03", "Ch 5", "Episódio 2"
+  if (/^\s*(c|ch|cap|cap[ií]tulo|chapter|vol(?:ume)?|tomo|tome|epis[oó]dio|ep)\s*\.?\s*\d+/i.test(s)) return true;
+  // Apenas números (eventualmente com extensão)
+  if (/^\s*\d{1,4}(\s|\.|$)/.test(s)) return true;
+  return false;
 }
 
 const ANILIST_QUERY = `
