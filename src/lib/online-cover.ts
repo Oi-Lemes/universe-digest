@@ -104,8 +104,11 @@ const MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30 dias
 
 /** Busca capa online (AniList) com cache. */
 export async function getOnlineCover(rawName: string): Promise<string | null> {
+  if (looksLikeChapter(rawName)) return null;
   const title = normalizeTitle(rawName);
-  if (!title || title.length < 2) return null;
+  // Exige título com pelo menos 3 caracteres pra evitar matches genéricos
+  // que geram capas duplicadas (ex.: "C", "Vol", "X").
+  if (!title || title.length < 3) return null;
   const key = title.toLowerCase();
 
   if (mem.has(key)) return mem.get(key) ?? null;
