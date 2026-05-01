@@ -45,9 +45,10 @@ const Cover = ({ node, accent = "default" }: { node: DriveNode; accent?: "defaul
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // ----- Online cover (AniList) -----
-  // Para manhwa/manga, sempre tenta achar a capa real online; pra outros,
-  // só tenta se não houver outra capa disponível.
-  const onlineEnabled = accent === "manhwa" || accent === "manga";
+  // Só buscamos capa online para PASTAS (títulos), nunca para arquivos
+  // (capítulos individuais). Isso evita capas duplicadas/erradas em
+  // "Cap 6.cbr", "C7.cbr" etc., e mantém a capa real do título no front.
+  const onlineEnabled = (accent === "manhwa" || accent === "manga") && isFolder;
   const initialOnline = onlineEnabled ? getCachedOnlineCover(node.name) : undefined;
   const [onlineUrl, setOnlineUrl] = useState<string | null | undefined>(initialOnline);
 
