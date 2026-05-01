@@ -13,6 +13,7 @@ import { OnlinePresence } from "@/components/OnlinePresence";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
+import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 
 type Crumb = { id: string; name: string };
 
@@ -1044,12 +1045,15 @@ const Index = () => {
       );
       return i === -1 ? Number.MAX_SAFE_INTEGER : i;
     };
-    return [...merged].sort((a, b) => {
+    const sorted = [...merged].sort((a, b) => {
       const ai = idx(a.name);
       const bi = idx(b.name);
       if (ai !== bi) return ai - bi;
       return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
     });
+    return dedupeVisibleNodes(sorted).filter(
+      (n) => n.type === "file" || (n.children?.length ?? 0) > 0
+    );
   }, [tree]);
 
   // Seleciona Marvel como padrão e nunca deixa "+18" virar aba ativa,
