@@ -11,6 +11,7 @@ import { extractCover, getCachedCover } from "@/lib/cover-extract";
 import { BookOpen, FolderOpen, FileWarning, Loader2, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pickTrending } from "@/lib/manga-popularity";
+import { getOnlineCover, getCachedOnlineCover, looksLikeChapter } from "@/lib/online-cover";
 
 type Props = {
   items: DriveNode[];
@@ -21,7 +22,11 @@ type Props = {
   mode?: "default" | "manga" | "manhwa";
 };
 
-const Cover = ({ node }: { node: DriveNode }) => {
+// Conjunto global compartilhado de mediaIds AniList já usados nesta sessão,
+// pra impedir que duas pastas diferentes acabem com a mesma capa online.
+const usedOnlineIds = new Set<number>();
+
+const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "manhwa" }) => {
   const [errored, setErrored] = useState(false);
   const directUrl = coverUrl(node, 400);
   const isFolder = node.type === "folder";
@@ -72,9 +77,31 @@ const Cover = ({ node }: { node: DriveNode }) => {
     return () => io.disconnect();
   }, [needsArchive, archiveTarget, extractedUrl]);
 
-  // Usa apenas capa real do próprio conteúdo: thumbnail do Drive ou a 1ª imagem
-  // extraída do arquivo. Não reutiliza capa online genérica entre títulos.
-  const finalUrl = errored ? extractedUrl ?? null : directUrl ?? extractedUrl ?? null;
+  // Fallback online (AniList) — só pra pastas de mangá/manhwa, com matching
+  // estrito e dedup por mediaId. Nunca pra capítulos individuais.
+  const onlineEligible =
+    (mode === "manga" || mode === "manhwa") && isFolder && !looksLikeChapter(node.name);
+  const initialOnline = onlineEligible ? getCachedOnlineCover(node.name) : undefined;
+  const [onlineUrl, setOnlineUrl] = useState<string | null | undefined>(initialOnline);
+
+  useEffect(() => {
+    if (!onlineEligible) return;
+    if (onlineUrl !== undefined) return;
+    // Só busca online se não temos thumb do Drive nem extração do arquivo
+    if (directUrl && !errored) return;
+    if (extractedUrl) return;
+    let cancelled = false;
+    getOnlineCover(node.name, usedOnlineIds).then((url) => {
+      if (!cancelled) setOnlineUrl(url);
+    });
+    return () => { cancelled = true; };
+  }, [onlineEligible, onlineUrl, directUrl, errored, extractedUrl, node.name]);
+
+  // Prioridade: thumb do Drive → 1ª página extraída do arquivo → capa online (AniList)
+  const finalUrl =
+    (errored ? null : directUrl) ??
+    extractedUrl ??
+    (onlineUrl ?? null);
 
   if (finalUrl) {
     return (
@@ -192,7 +219,7 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
               isHotNow && "border-[hsl(335_92%_60%)] shadow-[0_0_0_2px_hsl(335_92%_60%/0.45),0_8px_24px_-6px_hsl(335_92%_55%/0.6)] -translate-y-0.5"
             )}
           >
-            <Cover node={node} />
+            <Cover node={node} mode={mode} />
             {isTrending && (
               <span
                 className={cn(
