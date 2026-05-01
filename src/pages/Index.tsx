@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight, Home, LogOut } from "lucide-react";
 import { DriveNode, DriveTree, loadDriveTree } from "@/lib/drive";
 import { FolderGrid } from "@/components/FolderGrid";
+import { InfiniteCoverMarquee } from "@/components/InfiniteCoverMarquee";
 import { ComicReader } from "@/components/ComicReader";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { PublisherTab } from "@/components/PublisherTab";
