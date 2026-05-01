@@ -41,7 +41,6 @@ const Index = () => {
     "Star Wars",
     "DC",
     "Mangás",
-    "Manhwa",
     "Turma da Mônica",
     "Junji Ito",
     "Terror",
@@ -811,13 +810,8 @@ const Index = () => {
       ...orientalFromReallocator,
     ];
 
-    // Separa Manhwa/Manhua (coreano/chinês) dos Mangás japoneses.
-    const manhwaChildren: DriveNode[] = [];
-    const allMangaChildren: DriveNode[] = [];
-    for (const c of allMangaChildrenRaw) {
-      if (isManhwaName(c.name)) manhwaChildren.push(c);
-      else allMangaChildren.push(c);
-    }
+    // Mangás + Manhwa juntos: a aba "Mangás" agora inclui manhwas/manhuas.
+    const allMangaChildren = allMangaChildrenRaw;
 
     // Ordena por POPULARIDADE (mais famosos primeiro), tie-break alfabético.
     const sortByFame = (a: DriveNode, b: DriveNode) => {
@@ -837,15 +831,7 @@ const Index = () => {
           }
         : mangas;
 
-    const virtualManhwa: DriveNode | null =
-      manhwaChildren.length > 0
-        ? {
-            id: "virtual-manhwa",
-            name: "Manhwa",
-            type: "folder" as const,
-            children: [...manhwaChildren].sort(sortByFame),
-          }
-        : null;
+    const virtualManhwa: DriveNode | null = null;
 
     // ---------- IDs movidos (para remover dos pais originais) ----------
     const movedIds = new Set<string>(
@@ -1291,7 +1277,7 @@ const Index = () => {
                 if (crumbs.length !== 0) return "default";
                 const n = p.name.trim().toLowerCase();
                 if (n === "mangás") return "manga";
-                if (n === "manhwa") return "manhwa";
+                if (n === "manhwa") return "manga";
                 return "default";
               })()}
             />
