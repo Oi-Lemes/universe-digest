@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "content-type, authorization",
 };
 
-const API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
+const API_KEY = Deno.env.get("GOOGLE_DRIVE_API_KEY") ?? Deno.env.get("LOVABLE_API_KEY") ?? "";
 
 type DriveItem = { id: string; name: string; mimeType: string };
 
@@ -21,7 +21,10 @@ async function listFolder(folderId: string): Promise<DriveItem[]> {
     url.searchParams.set("pageSize", "1000");
     if (pageToken) url.searchParams.set("pageToken", pageToken);
     const r = await fetch(url.toString(), {
-      headers: { "Lovable-API-Key": API_KEY },
+      headers: {
+        "X-Connection-Api-Key": API_KEY,
+        "Lovable-API-Key": API_KEY,
+      },
     });
     if (!r.ok) throw new Error(`Drive API ${r.status}: ${await r.text()}`);
     const j = await r.json();
