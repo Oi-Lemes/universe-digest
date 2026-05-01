@@ -13,7 +13,7 @@ export type DriveTree = {
 };
 
 let cache: Promise<DriveTree> | null = null;
-const DRIVE_TREE_VERSION = "2026-04-29-1";
+const DRIVE_TREE_VERSION = "2026-05-01-newdrive";
 
 /**
  * Aplica capas manuais (cover_overrides.json) em pastas/arquivos cujo id
