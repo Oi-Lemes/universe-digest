@@ -2,7 +2,7 @@
 // Cache em IndexedDB para nunca repetir a chamada.
 // Negativos também são cacheados para evitar tempestade de requests.
 
-const DB_NAME = "online-cover-cache-v1";
+const DB_NAME = "online-cover-cache-v2";
 const STORE = "covers";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
