@@ -175,7 +175,7 @@ export function coverUrl(node: DriveNode, size = 400): string | null {
   // Prefer an explicit coverUrl set on the descendant (used when Drive
   // thumbnails 404 for old PDFs); fall back to the Drive thumbnail.
   if (first.coverUrl) return first.coverUrl;
-  return thumbnailUrl(first.id, size);
+  return isViewableInDrive(first.name) ? thumbnailUrl(first.id, size) : null;
 }
 
 export function countDescendants(node: DriveNode): { folders: number; files: number } {
