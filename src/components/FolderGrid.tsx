@@ -194,11 +194,25 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
   }
 
   // No modo "manga"/"manhwa" mantemos a ordem (já vem por popularidade).
+  // Para os demais (editoras de HQ etc.), ordenamos cronologicamente quando
+  // houver ano no nome — ex.: "Aranhaverso (2014)" antes de "Aranhaverso (2019)".
+  // Pastas/arquivos sem ano caem para o fim e são ordenados alfabeticamente.
+  const yearOf = (name: string): number | null => {
+    // Pega o PRIMEIRO ano de 4 dígitos (1900-2099) presente no nome.
+    // Funciona com "(2014)", "1989-2019", "2009-2021" etc.
+    const m = name.match(/(?:^|\D)(19\d{2}|20\d{2})(?!\d)/);
+    return m ? parseInt(m[1], 10) : null;
+  };
   const sorted =
     isMangaLike
       ? items
       : [...items].sort((a, b) => {
           if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
+          const ya = yearOf(a.name);
+          const yb = yearOf(b.name);
+          if (ya !== null && yb !== null && ya !== yb) return ya - yb;
+          if (ya !== null && yb === null) return -1;
+          if (ya === null && yb !== null) return 1;
           return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
         });
 
