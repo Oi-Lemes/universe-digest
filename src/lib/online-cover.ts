@@ -205,12 +205,22 @@ async function fetchGoogleBooks(title: string): Promise<string | null> {
 }
 
 // ---- Último recurso: gerar via IA (edge function) ----
+// Cache em memória de "desistir" — se a IA falhou (sem créditos / rate limit),
+// não tenta de novo nesta sessão pra não floodar requisições com erro.
+let aiDisabled = false;
+
 async function generateAICover(title: string, kind: "manga" | "manhwa"): Promise<string | null> {
+  if (aiDisabled) return null;
   try {
     const { data, error } = await supabase.functions.invoke("cover-generate", {
       body: { title, kind },
     });
-    if (error) return null;
+    if (error) {
+      // 402 = sem créditos, 429 = rate limit. Desativa nesta sessão.
+      const msg = String((error as any)?.message ?? "");
+      if (msg.includes("402") || msg.includes("429")) aiDisabled = true;
+      return null;
+    }
     return (data as any)?.url ?? null;
   } catch { return null; }
 }
