@@ -1039,7 +1039,10 @@ const Index = () => {
       return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
     });
     return dedupeVisibleNodes(sorted).filter(
-      (n) => n.type === "file" || (n.children?.length ?? 0) > 0
+      (n) =>
+        n.id === EXTERNAL_PUBLISHER_ID ||
+        n.type === "file" ||
+        (n.children?.length ?? 0) > 0
     );
   }, [tree]);
 
