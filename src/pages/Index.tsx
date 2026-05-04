@@ -1038,12 +1038,13 @@ const Index = () => {
       if (ai !== bi) return ai - bi;
       return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
     });
-    return dedupeVisibleNodes(sorted).filter(
-      (n) =>
-        n.id === EXTERNAL_PUBLISHER_ID ||
-        n.type === "file" ||
-        (n.children?.length ?? 0) > 0
+    // Separa o +18 antes do dedupe — ele tem children vazio e seria descartado.
+    const plus18 = sorted.find((n) => n.id === EXTERNAL_PUBLISHER_ID) ?? null;
+    const rest = sorted.filter((n) => n.id !== EXTERNAL_PUBLISHER_ID);
+    const deduped = dedupeVisibleNodes(rest).filter(
+      (n) => n.type === "file" || (n.children?.length ?? 0) > 0
     );
+    return plus18 ? [...deduped, plus18] : deduped;
   }, [tree]);
 
   // Seleciona Marvel como padrão e nunca deixa "+18" virar aba ativa,
