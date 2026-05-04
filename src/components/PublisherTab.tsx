@@ -182,7 +182,8 @@ export const PublisherTab = ({ id, name }: Props) => {
             src={theme.logo}
             alt=""
             aria-hidden
-            loading="lazy"
+            loading="eager"
+            decoding="async"
             width={28}
             height={28}
             className="w-full h-full object-contain p-0.5"

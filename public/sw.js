@@ -2,7 +2,7 @@
 // Objetivo: ao fechar e reabrir a aba/app, capas, ícones e arquivos estáticos
 // já estão em disco e renderizam instantaneamente, sem refazer fetch.
 
-const VERSION = "v3";
+const VERSION = "v4";
 const IMG_CACHE = `img-cache-${VERSION}`;
 const ASSET_CACHE = `asset-cache-${VERSION}`;
 const RUNTIME_CACHE = `runtime-${VERSION}`;
@@ -62,20 +62,12 @@ function isStaticAsset(request, url) {
   return false;
 }
 
-// Cache-first com revalidação em background.
+// Cache-first puro: se já carregou uma vez, volta direto do disco.
+// Não revalida em background para não disparar novas requisições ao rolar.
 async function cacheFirst(request, cacheName, maxEntries) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) {
-    // Revalida em background (best-effort) — não bloqueia a resposta.
-    fetch(request)
-      .then((res) => {
-        if (res && res.ok) {
-          cache.put(request, res.clone());
-          if (maxEntries) trimCache(cacheName, maxEntries);
-        }
-      })
-      .catch(() => {});
     return cached;
   }
   try {
