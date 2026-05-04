@@ -143,6 +143,35 @@ export function getCachedCover(fileId: string): string | null | undefined {
   return memoryCache.get(fileId);
 }
 
+// Pré-carrega todas as capas extraídas (CBR/CBZ) do IndexedDB para memória,
+// para que, ao reabrir a aba, as miniaturas já apareçam instantaneamente.
+let prewarmed: Promise<void> | null = null;
+export function prewarmExtractedCovers(): Promise<void> {
+  if (prewarmed) return prewarmed;
+  prewarmed = (async () => {
+    try {
+      const db = await openDb();
+      await new Promise<void>((resolve) => {
+        const tx = db.transaction(STORE, "readonly");
+        const store = tx.objectStore(STORE);
+        const req = store.openCursor();
+        req.onsuccess = () => {
+          const cursor = req.result;
+          if (cursor) {
+            const entry = cursor.value as CacheEntry;
+            if (entry) memoryCache.set(String(cursor.key), entry.dataUrl);
+            cursor.continue();
+          } else {
+            resolve();
+          }
+        };
+        req.onerror = () => resolve();
+      });
+    } catch { /* ignore */ }
+  })();
+  return prewarmed;
+}
+
 /**
  * Extrai (ou recupera do cache) a capa de um arquivo CBR/CBZ.
  * Retorna `null` se nenhum frame de imagem foi encontrado.
