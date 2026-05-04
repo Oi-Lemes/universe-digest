@@ -49,6 +49,37 @@ async function cacheSet(key: string, e: Entry) {
 const mem = new Map<string, string | null>();
 const inflight = new Map<string, Promise<string | null>>();
 
+// Pré-aquece a memória com TUDO que já está no IndexedDB, para que ao reabrir
+// a aba/app as capas já cacheadas apareçam instantaneamente (sem refazer fetch).
+let prewarmed: Promise<void> | null = null;
+export function prewarmOnlineCoverCache(): Promise<void> {
+  if (prewarmed) return prewarmed;
+  prewarmed = (async () => {
+    try {
+      const db = await openDb();
+      await new Promise<void>((resolve) => {
+        const tx = db.transaction(STORE, "readonly");
+        const store = tx.objectStore(STORE);
+        const req = store.openCursor();
+        req.onsuccess = () => {
+          const cursor = req.result;
+          if (cursor) {
+            const entry = cursor.value as Entry;
+            if (entry && entry.url && Date.now() - entry.ts < MAX_AGE) {
+              mem.set(String(cursor.key), entry.url);
+            }
+            cursor.continue();
+          } else {
+            resolve();
+          }
+        };
+        req.onerror = () => resolve();
+      });
+    } catch { /* ignore */ }
+  })();
+  return prewarmed;
+}
+
 /** Normaliza o nome de pasta/arquivo em um título pesquisável. */
 export function normalizeTitle(raw: string): string {
   let s = raw;
