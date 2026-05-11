@@ -1111,7 +1111,7 @@ const Index = () => {
         setCrumbs([]);
       }
       if (isTrial) {
-        toast.error("Pack +18 bloqueado — somente quem comprou pode acessar.");
+        toast.error("Pack +18 bloqueado. Somente quem comprou pode acessar.");
         return;
       }
       window.open(PLUS18_DRIVE_URL, "_blank", "noopener,noreferrer");
@@ -1120,7 +1120,7 @@ const Index = () => {
     if (isTrial) {
       const target = publishers.find((p) => p.id === id);
       if (target && target.name.trim().toLowerCase() === "star wars") {
-        toast.error("Pack Star Wars bloqueado — somente quem comprou pode acessar.");
+        toast.error("Pack Star Wars bloqueado. Somente quem comprou pode acessar.");
         return;
       }
     }
@@ -1177,7 +1177,7 @@ const Index = () => {
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
         {isTrial && (
           <div className="bg-destructive text-destructive-foreground text-center text-xs sm:text-sm font-bold py-1.5 px-3">
-            ⏱️ Modo demonstração — expira em <span className="tabular-nums">{trialMmSs}</span> · Downloads bloqueados
+            ⏱️ Modo demonstração. Expira em <span className="tabular-nums">{trialMmSs}</span> · Downloads bloqueados
           </div>
         )}
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
@@ -1197,7 +1197,7 @@ const Index = () => {
               className="ml-3 hidden md:inline-flex items-center gap-2 px-3 h-9 rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-xs font-semibold cursor-not-allowed"
               title="Somente quem comprou pode acessar"
             >
-              🔒 Drive bloqueado — somente quem comprou
+              🔒 Drive bloqueado. Somente quem comprou
             </div>
           ) : (
             <Button
@@ -1248,7 +1248,7 @@ const Index = () => {
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
           {isTrial ? (
             <div className="w-full text-center text-xs font-semibold rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 py-2">
-              🔒 Drive bloqueado — somente quem comprou pode acessar
+              🔒 Drive bloqueado. Somente quem comprou pode acessar
             </div>
           ) : (
             <Button
