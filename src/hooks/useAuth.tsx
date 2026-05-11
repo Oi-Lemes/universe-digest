@@ -15,9 +15,9 @@ type AuthCtx = {
 };
 
 const STORAGE_KEY = "iq_email";
-const TRIAL_KEY = "iq_trial_expires_v2";
-const TRIAL_DEADLINE_KEY = "iq_trial_deadline_v2"; // absolute deadline, survives signOut
-const TRIAL_REVOKED_KEY = "iq_trial_revoked_v2";
+const TRIAL_KEY = "iq_trial_expires_v3";
+const TRIAL_DEADLINE_KEY = "iq_trial_deadline_v3"; // absolute deadline, survives signOut
+const TRIAL_REVOKED_KEY = "iq_trial_revoked_v3";
 const TRIAL_EMAIL = "teste123@gmail.com";
 const TRIAL_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
