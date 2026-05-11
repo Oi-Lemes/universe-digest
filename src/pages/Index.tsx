@@ -1162,6 +1162,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {isTrial && (
+        <div className="sticky top-0 z-40 bg-destructive text-destructive-foreground text-center text-xs sm:text-sm font-bold py-1.5 px-3">
+          ⏱️ Modo demonstração — expira em <span className="tabular-nums">{trialMmSs}</span> · Downloads bloqueados
+        </div>
+      )}
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
           <img src={logo} alt="" className="w-9 h-9" />
