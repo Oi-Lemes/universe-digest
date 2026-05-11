@@ -10,23 +10,19 @@ type AuthCtx = {
   hasAccess: boolean;
   isTrial: boolean;
   trialExpiresAt: number | null;
-  trialUsed: boolean;
   signIn: (email: string) => Promise<{ ok: boolean; status: AccessStatus; error?: string }>;
-  signInTrial: () => { ok: boolean; reason?: "already_used" };
   signOut: () => void;
 };
 
 const STORAGE_KEY = "iq_email";
 const TRIAL_KEY = "iq_trial_expires";
-const TRIAL_USED_KEY = "iq_trial_used";
+const TRIAL_REVOKED_KEY = "iq_trial_revoked";
+const TRIAL_EMAIL = "teste123@gmail.com";
 const TRIAL_DURATION_MS = 3 * 60 * 1000; // 3 minutes
 
-const Ctx = createContext<AuthCtx | null>(null);
+const isTrialEmail = (e: string) => e.trim().toLowerCase() === TRIAL_EMAIL;
 
-const randomTrialEmail = () => {
-  const n = Math.random().toString(36).slice(2, 10);
-  return `trial_${n}@demo.imperio`;
-};
+const Ctx = createContext<AuthCtx | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [email, setEmail] = useState<string | null>(null);
@@ -44,11 +40,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return (data?.status ?? null) as AccessStatus;
   }, []);
 
-  const signOut = useCallback(() => {
+  const clearTrialTimer = () => {
     if (trialTimer.current) {
       window.clearTimeout(trialTimer.current);
       trialTimer.current = null;
     }
+  };
+
+  const signOut = useCallback(() => {
+    clearTrialTimer();
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(TRIAL_KEY);
     setEmail(null);
@@ -56,19 +56,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setTrialExpiresAt(null);
   }, []);
 
+  const expireTrial = useCallback(() => {
+    // Mark trial email as permanently revoked on this device.
+    localStorage.setItem(TRIAL_REVOKED_KEY, "1");
+    signOut();
+  }, [signOut]);
+
   const scheduleTrialExpiry = useCallback(
     (expiresAt: number) => {
-      if (trialTimer.current) window.clearTimeout(trialTimer.current);
+      clearTrialTimer();
       const ms = expiresAt - Date.now();
       if (ms <= 0) {
-        signOut();
+        expireTrial();
         return;
       }
       trialTimer.current = window.setTimeout(() => {
-        signOut();
+        expireTrial();
       }, ms);
     },
-    [signOut],
+    [expireTrial],
   );
 
   // Load saved session on mount
@@ -77,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (trialRaw) {
       const exp = Number(trialRaw);
       if (Number.isFinite(exp) && exp > Date.now()) {
-        const savedEmail = localStorage.getItem(STORAGE_KEY) ?? randomTrialEmail();
+        const savedEmail = localStorage.getItem(STORAGE_KEY) ?? TRIAL_EMAIL;
         setEmail(savedEmail);
         setAccessStatus("active");
         setTrialExpiresAt(exp);
@@ -85,7 +91,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
         return;
       }
-      // expired
+      // expired between sessions → revoke
+      localStorage.setItem(TRIAL_REVOKED_KEY, "1");
       localStorage.removeItem(TRIAL_KEY);
       localStorage.removeItem(STORAGE_KEY);
     }
@@ -104,6 +111,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = useCallback(
     async (e: string) => {
+      // Special trial email — bypasses the DB and starts a 3-minute session.
+      if (isTrialEmail(e)) {
+        if (localStorage.getItem(TRIAL_REVOKED_KEY)) {
+          return { ok: false, status: "manual_revoked" as AccessStatus };
+        }
+        const exp = Date.now() + TRIAL_DURATION_MS;
+        localStorage.setItem(STORAGE_KEY, TRIAL_EMAIL);
+        localStorage.setItem(TRIAL_KEY, String(exp));
+        setEmail(TRIAL_EMAIL);
+        setAccessStatus("active");
+        setTrialExpiresAt(exp);
+        scheduleTrialExpiry(exp);
+        return { ok: true, status: "active" as AccessStatus };
+      }
+
       const status = await checkAccess(e);
       if (status === "active") {
         localStorage.setItem(STORAGE_KEY, e);
@@ -115,27 +137,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       return { ok: false, status };
     },
-    [checkAccess],
+    [checkAccess, scheduleTrialExpiry],
   );
 
-  const signInTrial = useCallback(() => {
-    if (localStorage.getItem(TRIAL_USED_KEY)) {
-      return { ok: false as const, reason: "already_used" as const };
-    }
-    const e = randomTrialEmail();
-    const exp = Date.now() + TRIAL_DURATION_MS;
-    localStorage.setItem(STORAGE_KEY, e);
-    localStorage.setItem(TRIAL_KEY, String(exp));
-    localStorage.setItem(TRIAL_USED_KEY, "1");
-    setEmail(e);
-    setAccessStatus("active");
-    setTrialExpiresAt(exp);
-    scheduleTrialExpiry(exp);
-    return { ok: true as const };
-  }, [scheduleTrialExpiry]);
-
   const isTrial = trialExpiresAt !== null;
-  const trialUsed = typeof window !== "undefined" && !!localStorage.getItem(TRIAL_USED_KEY);
 
   const value: AuthCtx = {
     email,
@@ -144,9 +149,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     hasAccess: accessStatus === "active",
     isTrial,
     trialExpiresAt,
-    trialUsed,
     signIn,
-    signInTrial,
     signOut,
   };
 
