@@ -6,8 +6,9 @@ import {
   isViewableInDrive,
   fileExt,
 } from "@/lib/drive";
-import { Download, FileWarning } from "lucide-react";
+import { Download, FileWarning, Lock } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
+import { useAuth } from "@/hooks/useAuth";
 
 // CBR/CBZ/RAR/ZIP — extracted client-side via libarchive.js (WASM).
 const ARCHIVE_EXTS = new Set(["cbr", "cbz", "rar", "zip"]);
@@ -19,21 +20,18 @@ type Props = {
 };
 
 export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
+  const { isTrial } = useAuth();
   const ext = fileName ? fileExt(fileName) : "";
   const isArchive = !!fileId && ARCHIVE_EXTS.has(ext);
   const viewable = fileId ? isViewableInDrive(fileName) : false;
 
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!fileId) return;
-    // Force a real download trigger across browsers (Android Chrome, iOS Safari, desktop).
-    // The usercontent endpoint already returns Content-Disposition: attachment,
-    // so the browser starts a native download instead of navigating.
     e.preventDefault();
     const a = document.createElement("a");
     a.href = fileDownloadUrl(fileId);
     a.download = fileName;
     a.rel = "noopener";
-    // iOS Safari requires the link to be in the DOM and to be a user-gesture click.
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -46,7 +44,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
         <div className="flex flex-col h-full">
           <header className="flex items-center gap-2 px-4 py-2 border-b border-border bg-secondary/40">
             <h2 className="font-semibold truncate text-sm flex-1 pr-8">{fileName}</h2>
-            {fileId && (
+            {fileId && !isTrial && (
               <Button asChild size="sm" variant="secondary" className="h-7 gap-1">
                 <a
                   href={fileDownloadUrl(fileId)}
@@ -56,6 +54,11 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
                   <Download className="w-3.5 h-3.5" /> Baixar
                 </a>
               </Button>
+            )}
+            {fileId && isTrial && (
+              <span className="h-7 inline-flex items-center gap-1 px-2 rounded-md text-[11px] font-semibold border border-destructive/40 bg-destructive/10 text-destructive">
+                <Lock className="w-3 h-3" /> Download bloqueado
+              </span>
             )}
           </header>
 
@@ -88,21 +91,31 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
                   <code className="text-foreground">.cbr</code>,{" "}
                   <code className="text-foreground">.cbz</code> ou{" "}
                   <code className="text-foreground">.rar</code> não podem ser exibidos no navegador.
-                  <br />
-                  Baixe a HQ e abra com um leitor como{" "}
-                  <strong>YACReader</strong>, <strong>CDisplayEx</strong> ou{" "}
-                  <strong>Simple Comic</strong>.
+                  {!isTrial && (
+                    <>
+                      <br />
+                      Baixe a HQ e abra com um leitor como{" "}
+                      <strong>YACReader</strong>, <strong>CDisplayEx</strong> ou{" "}
+                      <strong>Simple Comic</strong>.
+                    </>
+                  )}
                 </p>
               </div>
-              <Button asChild size="lg">
-                <a
-                  href={fileDownloadUrl(fileId)}
-                  onClick={handleDownload}
-                  download={fileName}
-                >
-                  <Download className="w-4 h-4 mr-1.5" /> Baixar HQ
-                </a>
-              </Button>
+              {isTrial ? (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-sm font-semibold">
+                  <Lock className="w-4 h-4" /> Somente quem comprou pode baixar
+                </div>
+              ) : (
+                <Button asChild size="lg">
+                  <a
+                    href={fileDownloadUrl(fileId)}
+                    onClick={handleDownload}
+                    download={fileName}
+                  >
+                    <Download className="w-4 h-4 mr-1.5" /> Baixar HQ
+                  </a>
+                </Button>
+              )}
             </div>
           )}
         </div>
