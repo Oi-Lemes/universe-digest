@@ -19,7 +19,23 @@ import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 type Crumb = { id: string; name: string };
 
 const Index = () => {
-  const { email, signOut } = useAuth();
+  const { email, signOut, isTrial, trialExpiresAt } = useAuth();
+  const [trialRemaining, setTrialRemaining] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isTrial || !trialExpiresAt) return;
+    const tick = () => setTrialRemaining(Math.max(0, trialExpiresAt - Date.now()));
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [isTrial, trialExpiresAt]);
+
+  const trialMmSs = (() => {
+    const s = Math.ceil(trialRemaining / 1000);
+    const mm = String(Math.floor(s / 60)).padStart(2, "0");
+    const ss = String(s % 60).padStart(2, "0");
+    return `${mm}:${ss}`;
+  })();
   const [tree, setTree] = useState<DriveTree | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
@@ -1147,6 +1163,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
+        {isTrial && (
+          <div className="bg-destructive text-destructive-foreground text-center text-xs sm:text-sm font-bold py-1.5 px-3">
+            ⏱️ Modo demonstração — expira em <span className="tabular-nums">{trialMmSs}</span> · Downloads bloqueados
+          </div>
+        )}
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
           <img src={logo} alt="" className="w-9 h-9" />
           <div className="leading-tight">
@@ -1157,29 +1178,38 @@ const Index = () => {
               {publishers.length} editoras · acesso vitalício
             </p>
           </div>
-          <Button
-            asChild
-            size="sm"
-            variant="outline"
-            className="ml-3 gap-2 hidden md:inline-flex border-accent/40 hover:bg-accent/10"
-            title="Abrir o acervo no Google Drive"
-          >
-            <a
-              href="https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link"
-              target="_blank"
-              rel="noopener noreferrer"
+          {isTrial ? (
+            <div
+              className="ml-3 hidden md:inline-flex items-center gap-2 px-3 h-9 rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-xs font-semibold cursor-not-allowed"
+              title="Somente quem comprou pode acessar"
             >
-              <svg viewBox="0 0 87.3 78" className="w-4 h-4" aria-hidden="true">
-                <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-                <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
-                <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
-                <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
-                <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
-                <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-              </svg>
-              <span>Acessar pelo Google Drive</span>
-            </a>
-          </Button>
+              🔒 Drive bloqueado — somente quem comprou
+            </div>
+          ) : (
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="ml-3 gap-2 hidden md:inline-flex border-accent/40 hover:bg-accent/10"
+              title="Abrir o acervo no Google Drive"
+            >
+              <a
+                href="https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <svg viewBox="0 0 87.3 78" className="w-4 h-4" aria-hidden="true">
+                  <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                  <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+                  <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+                  <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                  <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+                  <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                </svg>
+                <span>Acessar pelo Google Drive</span>
+              </a>
+            </Button>
+          )}
           <div className="ml-auto flex items-center gap-2">
             <OnlinePresence />
             <GlobalSearch
@@ -1202,28 +1232,34 @@ const Index = () => {
         </div>
         {/* mobile: drive button + search */}
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
-          <Button
-            asChild
-            size="sm"
-            variant="outline"
-            className="w-full gap-2 border-accent/40 hover:bg-accent/10"
-          >
-            <a
-              href="https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link"
-              target="_blank"
-              rel="noopener noreferrer"
+          {isTrial ? (
+            <div className="w-full text-center text-xs font-semibold rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 py-2">
+              🔒 Drive bloqueado — somente quem comprou pode acessar
+            </div>
+          ) : (
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="w-full gap-2 border-accent/40 hover:bg-accent/10"
             >
-              <svg viewBox="0 0 87.3 78" className="w-4 h-4" aria-hidden="true">
-                <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-                <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
-                <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
-                <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
-                <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
-                <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-              </svg>
-              <span>Acessar pelo Google Drive</span>
-            </a>
-          </Button>
+              <a
+                href="https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <svg viewBox="0 0 87.3 78" className="w-4 h-4" aria-hidden="true">
+                  <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                  <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+                  <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+                  <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                  <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+                  <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                </svg>
+                <span>Acessar pelo Google Drive</span>
+              </a>
+            </Button>
+          )}
           <GlobalSearch
             tree={tree}
             onOpenFile={(n) => setReader({ id: n.id, name: n.name })}

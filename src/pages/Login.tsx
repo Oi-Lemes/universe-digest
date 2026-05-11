@@ -17,7 +17,7 @@ const emailSchema = z
   .max(255);
 
 const Login = () => {
-  const { hasAccess, loading, signIn } = useAuth();
+  const { hasAccess, loading, signIn, signInTrial } = useAuth();
   const [email, setEmail] = useState("");
   const [checking, setChecking] = useState(false);
 
@@ -95,6 +95,24 @@ const Login = () => {
               Use o mesmo email que você usou na compra.
             </p>
           </form>
+
+          <div className="mt-6 pt-5 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-11 font-bold uppercase tracking-wide"
+              onClick={() => {
+                signInTrial();
+                toast.success("Acesso teste liberado por 3 minutos!");
+              }}
+            >
+              Experimentar grátis (3 min)
+            </Button>
+            <p className="text-[11px] text-muted-foreground text-center mt-2">
+              Acesso de demonstração: você pode navegar pelo acervo, mas
+              <strong> downloads ficam bloqueados</strong>.
+            </p>
+          </div>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-4">

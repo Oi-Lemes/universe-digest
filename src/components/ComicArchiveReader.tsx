@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Loader2, Maximize2 } from "lucide-react";
 import { fileDownloadUrl } from "@/lib/drive";
+import { useAuth } from "@/hooks/useAuth";
 
 // Supabase edge function that proxies Google Drive downloads with CORS headers
 // so libarchive.js can read the bytes from the browser.
@@ -18,6 +19,7 @@ type Page = { name: string; url: string };
 const IMAGE_RE = /\.(jpe?g|png|webp|gif|bmp|avif)$/i;
 
 export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
+  const { isTrial } = useAuth();
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState<string>("Baixando arquivo…");
@@ -160,11 +162,13 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
       <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
         <p className="text-destructive font-semibold">Não foi possível abrir o arquivo</p>
         <p className="text-sm text-muted-foreground max-w-md">{error}</p>
-        <Button asChild size="sm" variant="secondary">
-          <a href={fileDownloadUrl(fileId)} download={fileName}>
-            Baixar arquivo
-          </a>
-        </Button>
+        {!isTrial && (
+          <Button asChild size="sm" variant="secondary">
+            <a href={fileDownloadUrl(fileId)} download={fileName}>
+              Baixar arquivo
+            </a>
+          </Button>
+        )}
       </div>
     );
   }
