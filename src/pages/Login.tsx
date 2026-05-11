@@ -17,7 +17,7 @@ const emailSchema = z
   .max(255);
 
 const Login = () => {
-  const { hasAccess, loading, signIn, signInTrial, trialUsed } = useAuth();
+  const { hasAccess, loading, signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [checking, setChecking] = useState(false);
 
@@ -95,30 +95,6 @@ const Login = () => {
               Use o mesmo email que você usou na compra.
             </p>
           </form>
-
-          <div className="mt-6 pt-5 border-t border-border">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={trialUsed}
-              className="w-full h-11 font-bold uppercase tracking-wide"
-              onClick={() => {
-                const r = signInTrial();
-                if (r.ok) {
-                  toast.success("Acesso teste liberado por 3 minutos!");
-                } else {
-                  toast.error("Você já usou o seu teste grátis neste dispositivo.");
-                }
-              }}
-            >
-              {trialUsed ? "Teste grátis já utilizado" : "Experimentar grátis (3 min)"}
-            </Button>
-            <p className="text-[11px] text-muted-foreground text-center mt-2">
-              {trialUsed
-                ? "O acesso de demonstração só pode ser usado uma vez por dispositivo."
-                : "Acesso de demonstração: navega pelo acervo, mas downloads ficam bloqueados. Disponível 1x por dispositivo."}
-            </p>
-          </div>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-4">
