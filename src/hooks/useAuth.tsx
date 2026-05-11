@@ -10,13 +10,15 @@ type AuthCtx = {
   hasAccess: boolean;
   isTrial: boolean;
   trialExpiresAt: number | null;
+  trialUsed: boolean;
   signIn: (email: string) => Promise<{ ok: boolean; status: AccessStatus; error?: string }>;
-  signInTrial: () => void;
+  signInTrial: () => { ok: boolean; reason?: "already_used" };
   signOut: () => void;
 };
 
 const STORAGE_KEY = "iq_email";
 const TRIAL_KEY = "iq_trial_expires";
+const TRIAL_USED_KEY = "iq_trial_used";
 const TRIAL_DURATION_MS = 3 * 60 * 1000; // 3 minutes
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -117,17 +119,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const signInTrial = useCallback(() => {
+    if (localStorage.getItem(TRIAL_USED_KEY)) {
+      return { ok: false as const, reason: "already_used" as const };
+    }
     const e = randomTrialEmail();
     const exp = Date.now() + TRIAL_DURATION_MS;
     localStorage.setItem(STORAGE_KEY, e);
     localStorage.setItem(TRIAL_KEY, String(exp));
+    localStorage.setItem(TRIAL_USED_KEY, "1");
     setEmail(e);
     setAccessStatus("active");
     setTrialExpiresAt(exp);
     scheduleTrialExpiry(exp);
+    return { ok: true as const };
   }, [scheduleTrialExpiry]);
 
   const isTrial = trialExpiresAt !== null;
+  const trialUsed = typeof window !== "undefined" && !!localStorage.getItem(TRIAL_USED_KEY);
 
   const value: AuthCtx = {
     email,
@@ -136,6 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     hasAccess: accessStatus === "active",
     isTrial,
     trialExpiresAt,
+    trialUsed,
     signIn,
     signInTrial,
     signOut,
