@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 import { dedupeVisibleNodes } from "@/lib/content-dedupe";
+import { toast } from "sonner";
 
 type Crumb = { id: string; name: string };
 
@@ -1109,8 +1110,19 @@ const Index = () => {
         setActivePublisherId(defaultPublisher.id);
         setCrumbs([]);
       }
+      if (isTrial) {
+        toast.error("Pack +18 bloqueado — somente quem comprou pode acessar.");
+        return;
+      }
       window.open(PLUS18_DRIVE_URL, "_blank", "noopener,noreferrer");
       return;
+    }
+    if (isTrial) {
+      const target = publishers.find((p) => p.id === id);
+      if (target && target.name.trim().toLowerCase() === "star wars") {
+        toast.error("Pack Star Wars bloqueado — somente quem comprou pode acessar.");
+        return;
+      }
     }
     setActivePublisherId(id);
     setCrumbs([]);
@@ -1175,7 +1187,9 @@ const Index = () => {
               IMPÉRIO DOS <span className="text-accent">QUADRINHOS</span>
             </h1>
             <p className="text-[10px] text-muted-foreground hidden sm:block">
-              {publishers.length} editoras · acesso vitalício
+              {isTrial
+                ? `${publishers.length} editoras · modo demonstração`
+                : `${publishers.length} editoras · versão COMPLETA com packs adicionais (Star Wars + +18) inclusos no checkout`}
             </p>
           </div>
           {isTrial ? (
