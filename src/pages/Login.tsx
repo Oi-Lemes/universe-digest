@@ -17,7 +17,7 @@ const emailSchema = z
   .max(255);
 
 const Login = () => {
-  const { hasAccess, loading, signIn, signInTrial } = useAuth();
+  const { hasAccess, loading, signIn, signInTrial, trialUsed } = useAuth();
   const [email, setEmail] = useState("");
   const [checking, setChecking] = useState(false);
 

@@ -144,6 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     hasAccess: accessStatus === "active",
     isTrial,
     trialExpiresAt,
+    trialUsed,
     signIn,
     signInTrial,
     signOut,
