@@ -19,7 +19,23 @@ import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 type Crumb = { id: string; name: string };
 
 const Index = () => {
-  const { email, signOut } = useAuth();
+  const { email, signOut, isTrial, trialExpiresAt } = useAuth();
+  const [trialRemaining, setTrialRemaining] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isTrial || !trialExpiresAt) return;
+    const tick = () => setTrialRemaining(Math.max(0, trialExpiresAt - Date.now()));
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [isTrial, trialExpiresAt]);
+
+  const trialMmSs = (() => {
+    const s = Math.ceil(trialRemaining / 1000);
+    const mm = String(Math.floor(s / 60)).padStart(2, "0");
+    const ss = String(s % 60).padStart(2, "0");
+    return `${mm}:${ss}`;
+  })();
   const [tree, setTree] = useState<DriveTree | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
