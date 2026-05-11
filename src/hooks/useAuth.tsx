@@ -16,9 +16,10 @@ type AuthCtx = {
 
 const STORAGE_KEY = "iq_email";
 const TRIAL_KEY = "iq_trial_expires";
+const TRIAL_DEADLINE_KEY = "iq_trial_deadline"; // absolute deadline, survives signOut
 const TRIAL_REVOKED_KEY = "iq_trial_revoked";
 const TRIAL_EMAIL = "teste123@gmail.com";
-const TRIAL_DURATION_MS = 3 * 60 * 1000; // 3 minutes
+const TRIAL_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
 const isTrialEmail = (e: string) => e.trim().toLowerCase() === TRIAL_EMAIL;
 
@@ -59,6 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const expireTrial = useCallback(() => {
     // Mark trial email as permanently revoked on this device.
     localStorage.setItem(TRIAL_REVOKED_KEY, "1");
+    localStorage.removeItem(TRIAL_DEADLINE_KEY);
     signOut();
   }, [signOut]);
 
@@ -111,18 +113,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = useCallback(
     async (e: string) => {
-      // Special trial email — bypasses the DB and starts a 3-minute session.
+      // Special trial email — bypasses the DB. Deadline is absolute and
+      // continues counting down even after signOut or closing the app.
       if (isTrialEmail(e)) {
         if (localStorage.getItem(TRIAL_REVOKED_KEY)) {
           return { ok: false, status: "manual_revoked" as AccessStatus };
         }
-        const exp = Date.now() + TRIAL_DURATION_MS;
+        let deadline = Number(localStorage.getItem(TRIAL_DEADLINE_KEY) || 0);
+        if (!Number.isFinite(deadline) || deadline <= 0) {
+          deadline = Date.now() + TRIAL_DURATION_MS;
+          localStorage.setItem(TRIAL_DEADLINE_KEY, String(deadline));
+        }
+        if (deadline <= Date.now()) {
+          localStorage.setItem(TRIAL_REVOKED_KEY, "1");
+          localStorage.removeItem(TRIAL_DEADLINE_KEY);
+          return { ok: false, status: "manual_revoked" as AccessStatus };
+        }
         localStorage.setItem(STORAGE_KEY, TRIAL_EMAIL);
-        localStorage.setItem(TRIAL_KEY, String(exp));
+        localStorage.setItem(TRIAL_KEY, String(deadline));
         setEmail(TRIAL_EMAIL);
         setAccessStatus("active");
-        setTrialExpiresAt(exp);
-        scheduleTrialExpiry(exp);
+        setTrialExpiresAt(deadline);
+        scheduleTrialExpiry(deadline);
         return { ok: true, status: "active" as AccessStatus };
       }
 
