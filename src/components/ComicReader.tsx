@@ -24,6 +24,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   const { isTrial } = useAuth();
   const ext = fileName ? fileExt(fileName) : "";
   const isArchive = !!fileId && ARCHIVE_EXTS.has(ext);
+  const isPdf = !!fileId && ext === "pdf";
   const viewable = fileId ? isViewableInDrive(fileName) : false;
 
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
