@@ -247,12 +247,16 @@ async function generateAICover(title: string, kind: "manga" | "manhwa"): Promise
       body: { title, kind },
     });
     if (error) {
-      // 402 = sem créditos, 429 = rate limit. Desativa nesta sessão.
       const msg = String((error as any)?.message ?? "");
       if (msg.includes("402") || msg.includes("429")) aiDisabled = true;
       return null;
     }
-    return (data as any)?.url ?? null;
+    const d = data as any;
+    if (d?.fallback || !d?.url) {
+      if (d?.aiStatus === 402 || d?.aiStatus === 429) aiDisabled = true;
+      return null;
+    }
+    return d.url ?? null;
   } catch { return null; }
 }
 
