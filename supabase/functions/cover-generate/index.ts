@@ -79,11 +79,11 @@ Deno.serve(async (req) => {
     if (!aiRes.ok) {
       const t = await aiRes.text();
       console.error("AI error", aiRes.status, t);
-      const status = aiRes.status === 429 || aiRes.status === 402 ? aiRes.status : 502;
-      return new Response(JSON.stringify({ error: "ai failed", status }), {
-        status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      // Return 200 with fallback flag so SDK doesn't throw and frontend can fallback gracefully.
+      return new Response(
+        JSON.stringify({ error: "ai_unavailable", aiStatus: aiRes.status, fallback: true, url: null }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const data = await aiRes.json();
