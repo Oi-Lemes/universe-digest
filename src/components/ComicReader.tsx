@@ -8,6 +8,7 @@ import {
 } from "@/lib/drive";
 import { Download, FileWarning, Lock } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
+import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
 
 // CBR/CBZ/RAR/ZIP — extracted client-side via libarchive.js (WASM).
@@ -23,6 +24,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   const { isTrial } = useAuth();
   const ext = fileName ? fileExt(fileName) : "";
   const isArchive = !!fileId && ARCHIVE_EXTS.has(ext);
+  const isPdf = !!fileId && ext === "pdf";
   const viewable = fileId ? isViewableInDrive(fileName) : false;
 
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -66,7 +68,11 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
             <ComicArchiveReader fileId={fileId} fileName={fileName} />
           )}
 
-          {fileId && !isArchive && viewable && (
+          {fileId && isPdf && (
+            <PdfReader fileId={fileId} fileName={fileName} />
+          )}
+
+          {fileId && !isArchive && !isPdf && viewable && (
             <div className="relative flex-1 bg-background">
               <iframe
                 key={fileId}
@@ -79,7 +85,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
             </div>
           )}
 
-          {fileId && !isArchive && !viewable && (
+          {fileId && !isArchive && !isPdf && !viewable && (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
               <FileWarning className="w-16 h-16 text-destructive" strokeWidth={1.5} />
               <div>

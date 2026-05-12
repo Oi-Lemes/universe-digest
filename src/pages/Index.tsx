@@ -1189,7 +1189,7 @@ const Index = () => {
             <p className="text-[10px] text-muted-foreground hidden sm:block">
               {isTrial
                 ? `${publishers.length} editoras · modo demonstração`
-                : `${publishers.length} editoras · versão COMPLETA com packs adicionais (Star Wars + +18) inclusos no checkout`}
+                : `${publishers.length} editoras`}
             </p>
           </div>
           {isTrial ? (
