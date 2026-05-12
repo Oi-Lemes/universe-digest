@@ -8,6 +8,7 @@ import {
 } from "@/lib/drive";
 import { Download, FileWarning, Lock } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
+import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
 
 // CBR/CBZ/RAR/ZIP — extracted client-side via libarchive.js (WASM).
