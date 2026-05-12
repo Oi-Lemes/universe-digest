@@ -85,7 +85,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
             </div>
           )}
 
-          {fileId && !isArchive && !viewable && (
+          {fileId && !isArchive && !isPdf && !viewable && (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
               <FileWarning className="w-16 h-16 text-destructive" strokeWidth={1.5} />
               <div>
