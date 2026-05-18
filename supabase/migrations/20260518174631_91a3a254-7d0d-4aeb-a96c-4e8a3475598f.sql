@@ -1,0 +1,1 @@
+UPDATE public.access_grants SET status = 'refunded', revoked_at = now(), updated_at = now() WHERE lower(email) = 'jeronimo30102003@gmail.com';
