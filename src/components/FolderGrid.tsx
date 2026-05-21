@@ -117,7 +117,7 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
         <img
           src={finalUrl}
           alt={node.name}
-          loading="eager"
+          loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
           onError={() => setErrored(true)}
