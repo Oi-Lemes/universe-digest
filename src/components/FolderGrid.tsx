@@ -86,18 +86,22 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
   const initialOnline = onlineEligible ? getCachedOnlineCover(node.name, kind) : undefined;
   const [onlineUrl, setOnlineUrl] = useState<string | null | undefined>(initialOnline);
 
+  // Só busca online quando NÃO há capa do Drive nem cache do arquivo —
+  // evita floodar AniList/Jikan e libera banda pras thumbs do Drive.
+  const needsOnline =
+    onlineEligible &&
+    (!directUrl || errored) &&
+    !extractedUrl;
+
   useEffect(() => {
-    if (!onlineEligible) return;
+    if (!needsOnline) return;
     if (onlineUrl !== undefined) return;
-    // Dispara IMEDIATAMENTE (não espera viewport nem extração) para garantir
-    // que toda pasta de mangá/manhwa tenha capa. O pipeline da lib já cai em
-    // AniList → Jikan → Google Books → IA gerada, sempre devolvendo algo.
     let cancelled = false;
     getOnlineCover(node.name, usedOnlineIds, kind).then((url) => {
       if (!cancelled) setOnlineUrl(url);
     });
     return () => { cancelled = true; };
-  }, [onlineEligible, onlineUrl, node.name, kind]);
+  }, [needsOnline, onlineUrl, node.name, kind]);
 
   // Prioridade: thumb do Drive → 1ª página extraída do arquivo → capa online (AniList)
   const finalUrl =
