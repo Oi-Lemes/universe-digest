@@ -58,6 +58,7 @@ const Index = () => {
     "Marvel",
     "Star Wars",
     "DC",
+    "DC Vertigo",
     "Mangás",
     "Turma da Mônica",
     "Junji Ito",
@@ -71,7 +72,7 @@ const Index = () => {
     "Bone",
     "Chaves",
     "Os Trapalhões",
-    "Vertigo",
+    // "Vertigo" foi unificada em "DC Vertigo" (já posicionada após "DC" acima)
     "Image Comics",
     "Dark Horse Comics",
     "IDW",
