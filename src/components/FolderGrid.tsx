@@ -78,26 +78,30 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
     return () => io.disconnect();
   }, [needsArchive, archiveTarget, extractedUrl]);
 
-  // Fallback online (AniList) — só pra pastas de mangá/manhwa, com matching
-  // estrito e dedup por mediaId. Nunca pra capítulos individuais.
-  const onlineEligible =
-    (mode === "manga" || mode === "manhwa") && isFolder && !looksLikeChapter(node.name);
+  // Fallback online — pra QUALQUER pasta sem thumbnail/arquivo (HQs, mangás,
+  // manhwas). O pipeline cai em AniList → Jikan → Google Books → IA gerada,
+  // garantindo que nada fique sem capa. Nunca pra capítulos isolados.
+  const onlineEligible = isFolder && !looksLikeChapter(node.name);
   const kind: "manga" | "manhwa" = mode === "manhwa" ? "manhwa" : "manga";
   const initialOnline = onlineEligible ? getCachedOnlineCover(node.name, kind) : undefined;
   const [onlineUrl, setOnlineUrl] = useState<string | null | undefined>(initialOnline);
 
+  // Só busca online quando NÃO há capa do Drive nem cache do arquivo —
+  // evita floodar AniList/Jikan e libera banda pras thumbs do Drive.
+  const needsOnline =
+    onlineEligible &&
+    (!directUrl || errored) &&
+    !extractedUrl;
+
   useEffect(() => {
-    if (!onlineEligible) return;
+    if (!needsOnline) return;
     if (onlineUrl !== undefined) return;
-    // Dispara IMEDIATAMENTE (não espera viewport nem extração) para garantir
-    // que toda pasta de mangá/manhwa tenha capa. O pipeline da lib já cai em
-    // AniList → Jikan → Google Books → IA gerada, sempre devolvendo algo.
     let cancelled = false;
     getOnlineCover(node.name, usedOnlineIds, kind).then((url) => {
       if (!cancelled) setOnlineUrl(url);
     });
     return () => { cancelled = true; };
-  }, [onlineEligible, onlineUrl, node.name, kind]);
+  }, [needsOnline, onlineUrl, node.name, kind]);
 
   // Prioridade: thumb do Drive → 1ª página extraída do arquivo → capa online (AniList)
   const finalUrl =
@@ -117,7 +121,7 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
         <img
           src={finalUrl}
           alt={node.name}
-          loading="eager"
+          loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
           onError={() => setErrored(true)}
