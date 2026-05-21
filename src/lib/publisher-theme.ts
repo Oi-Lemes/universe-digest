@@ -42,6 +42,7 @@ import terror from "@/assets/publishers/terror.png";
 import plus18 from "@/assets/publishers/plus18.png";
 import starWars from "@/assets/publishers/star-wars.png";
 import manhwa from "@/assets/publishers/manhwa.png";
+import dcVertigo from "@/assets/publishers/dc-vertigo.png";
 
 export type PublisherTheme = {
   /** HSL principal da marca, sem o wrapper hsl(). Ex: "0 84% 50%" */
@@ -99,6 +100,16 @@ const THEMES: Record<string, PublisherTheme> = {
     fontFamily: '"Creepster", "Bangers", Impact, sans-serif',
     logo: vertigo,
     letterSpacing: "0.06em",
+    fontSize: "0.95rem",
+  },
+  // DC Vertigo — vermelho-sangue Vertigo + preto absoluto (selo maduro DC)
+  "dc vertigo": {
+    color: "352 78% 42%",
+    colorAlt: "0 0% 6%",
+    foreground: "0 0% 100%",
+    fontFamily: '"Creepster", "Nosifer", "Bangers", Impact, sans-serif',
+    logo: dcVertigo,
+    letterSpacing: "0.12em",
     fontSize: "0.95rem",
   },
   // Image Comics — preto-aço + cinza-prata (logo "I" preto sobre cinza)
