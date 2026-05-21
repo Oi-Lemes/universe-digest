@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 import { dedupeVisibleNodes } from "@/lib/content-dedupe";
+import { registerSeen } from "@/lib/recency";
 import { toast } from "sonner";
 
 type Crumb = { id: string; name: string };
@@ -47,6 +48,14 @@ const Index = () => {
     loadDriveTree()
       .then((t) => {
         setTree(t);
+        // Registra todos os ids do drive pra detectar "novos" entre cargas.
+        const ids: string[] = [];
+        const walk = (n: DriveNode) => {
+          ids.push(n.id);
+          n.children?.forEach(walk);
+        };
+        t.children.forEach(walk);
+        registerSeen(ids);
       })
       .catch((e) => setError(e.message));
   }, []);
