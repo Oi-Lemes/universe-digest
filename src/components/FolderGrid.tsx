@@ -8,10 +8,11 @@ import {
   isViewableInDrive,
 } from "@/lib/drive";
 import { extractCover, getCachedCover } from "@/lib/cover-extract";
-import { BookOpen, FolderOpen, FileWarning, Loader2, Flame } from "lucide-react";
+import { BookOpen, FolderOpen, FileWarning, Loader2, Flame, Sparkles, Clock, Star, ArrowDownAZ } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { pickTrending } from "@/lib/manga-popularity";
+import { pickTrending, popularityScore } from "@/lib/manga-popularity";
 import { getOnlineCover, getCachedOnlineCover, looksLikeChapter } from "@/lib/online-cover";
+import { getFirstSeen, isNew, NEW_WINDOW_DAYS } from "@/lib/recency";
 
 type Props = {
   items: DriveNode[];
