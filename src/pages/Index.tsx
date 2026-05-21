@@ -48,6 +48,14 @@ const Index = () => {
     loadDriveTree()
       .then((t) => {
         setTree(t);
+        // Registra todos os ids do drive pra detectar "novos" entre cargas.
+        const ids: string[] = [];
+        const walk = (n: DriveNode) => {
+          ids.push(n.id);
+          n.children?.forEach(walk);
+        };
+        t.children.forEach(walk);
+        registerSeen(ids);
       })
       .catch((e) => setError(e.message));
   }, []);
