@@ -63,7 +63,7 @@ export const InfiniteCoverMarquee = ({ items, limit = 20 }: Props) => {
               <img
                 src={c.url}
                 alt={c.name}
-                loading="eager"
+                loading="lazy"
                 decoding="async"
                 referrerPolicy="no-referrer"
                 className="absolute inset-0 w-full h-full object-cover"
