@@ -372,21 +372,47 @@ export async function getOnlineCover(
   if (inflight.has(key)) return inflight.get(key)!;
   const p = (async () => {
     let url: string | null = null;
+    const variants = titleVariants(title);
 
-    const ani = await fetchAniList(title);
-    if (ani && !usedMediaIds?.has(ani.mediaId) && claimUrl(ani.url, key, usedUrls)) {
-      url = ani.url;
-      usedMediaIds?.add(ani.mediaId);
+    // AniList em todas as variantes
+    for (const v of variants) {
+      const ani = await fetchAniList(v);
+      if (ani && !usedMediaIds?.has(ani.mediaId) && claimUrl(ani.url, key, usedUrls)) {
+        url = ani.url;
+        usedMediaIds?.add(ani.mediaId);
+        break;
+      }
     }
 
+    // MangaDex
     if (!url) {
-      const j = await fetchJikan(title);
-      if (claimUrl(j, key, usedUrls)) url = j;
+      for (const v of variants) {
+        const m = await fetchMangaDex(v);
+        if (claimUrl(m, key, usedUrls)) { url = m; break; }
+      }
     }
+    // Kitsu
     if (!url) {
-      const g = await fetchGoogleBooks(title);
-      if (claimUrl(g, key, usedUrls)) url = g;
+      for (const v of variants) {
+        const k = await fetchKitsu(v);
+        if (claimUrl(k, key, usedUrls)) { url = k; break; }
+      }
     }
+    // Jikan
+    if (!url) {
+      for (const v of variants) {
+        const j = await fetchJikan(v);
+        if (claimUrl(j, key, usedUrls)) { url = j; break; }
+      }
+    }
+    // Google Books
+    if (!url) {
+      for (const v of variants) {
+        const g = await fetchGoogleBooks(v);
+        if (claimUrl(g, key, usedUrls)) { url = g; break; }
+      }
+    }
+    // Último recurso: IA
     if (!url) {
       const a = await generateAICover(title, kind);
       if (claimUrl(a, key, usedUrls)) url = a;
