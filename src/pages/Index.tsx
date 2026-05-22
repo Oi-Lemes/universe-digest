@@ -544,9 +544,34 @@ const Index = () => {
 
     // ---------- Editora virtual: Terror ----------
     // Pega TODA a pasta "Mangás e Quadrinhos de terror" (exceto Junji Ito que tem aba própria).
-    const terrorChildren = (bonusTerror?.children ?? []).filter(
-      (c) => !/junji\s*ito/i.test(c.name)
-    );
+    // Antes: filtra títulos que são originalmente Marvel ou DC/Vertigo e
+    // realoca para suas abas corretas.
+    const isTerrorMarvelTitle = (name: string) => {
+      const n = name.toLowerCase();
+      return (
+        /tumba\s+do?\s+dr[áa]cula/.test(n) ||
+        /tumba\s+de\s+dr[áa]cula/.test(n) ||
+        /terror\s+de\s+dr[áa]cula/.test(n) ||
+        /monster\s+unleashed/.test(n) ||
+        /^terror\s+inc\b/.test(n)
+      );
+    };
+    const isTerrorDCTitle = (name: string) => {
+      const n = name.toLowerCase();
+      return (
+        /houses?\s+of\s+unholy/.test(n) ||
+        /\(vertigem\)/.test(n) ||
+        /\(vertigo\)/.test(n)
+      );
+    };
+    const terrorMarvelExtras: DriveNode[] = [];
+    const terrorDCExtras: DriveNode[] = [];
+    const terrorChildren = (bonusTerror?.children ?? []).filter((c) => {
+      if (/junji\s*ito/i.test(c.name)) return false;
+      if (isTerrorMarvelTitle(c.name)) { terrorMarvelExtras.push(c); return false; }
+      if (isTerrorDCTitle(c.name)) { terrorDCExtras.push(c); return false; }
+      return true;
+    });
     const virtualTerror = bonusTerror
       ? buildVirtual("virtual-terror", "Terror", terrorChildren)
       : null;
