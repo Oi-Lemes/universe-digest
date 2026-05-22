@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 import { dedupeVisibleNodes } from "@/lib/content-dedupe";
-import { groupLooseSeries } from "@/lib/series-group";
+
 import { registerSeen } from "@/lib/recency";
 import { toast } from "sonner";
 
