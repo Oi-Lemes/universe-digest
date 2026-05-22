@@ -12,7 +12,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-proxy`;
 
 // ---------- Cache em IndexedDB (PDF inteiro como Blob) ----------
-const DB_NAME = "pdf-cache-v1";
+const DB_NAME = "pdf-cache-v2";
 const STORE = "pdfs";
 let dbPromise: Promise<IDBDatabase> | null = null;
 function openDb() {
@@ -51,6 +51,11 @@ async function cacheSet(key: string, blob: Blob) {
   } catch {
     /* sem cache, segue */
   }
+}
+
+function looksLikePdf(buf: ArrayBuffer) {
+  const head = new TextDecoder("ascii").decode(buf.slice(0, 5));
+  return head === "%PDF-";
 }
 
 type Props = { fileId: string; fileName: string };
@@ -112,6 +117,7 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
 
         const buf = await blob.arrayBuffer();
         if (cancelled) return;
+        if (!looksLikePdf(buf)) throw new Error("O arquivo recebido não é um PDF válido.");
         const doc = await pdfjsLib.getDocument({ data: buf }).promise;
         if (cancelled) {
           doc.destroy();
