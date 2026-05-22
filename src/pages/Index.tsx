@@ -977,6 +977,15 @@ const Index = () => {
       };
     };
 
+    // Aplica agrupamento de séries (CBRs soltos) recursivamente numa árvore.
+    const groupLooseInTree = (node: DriveNode): DriveNode => {
+      if (!node.children) return node;
+      const groupedChildren = groupLooseSeries(
+        node.children.map((c) => (c.type === "folder" ? groupLooseInTree(c) : c))
+      );
+      return { ...node, children: groupedChildren };
+    };
+
     // Aplica nos virtuais (que vão direto pro merged)
     const virtualJunjiItoFinal = appendBucket(virtualJunjiIto, reallocBuckets.junji);
     const virtualAsterixFinal = appendBucket(virtualAsterix, reallocBuckets.asterix);
