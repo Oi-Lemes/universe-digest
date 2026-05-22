@@ -33,12 +33,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const trialTimer = useRef<number | null>(null);
 
   const checkAccess = useCallback(async (e: string): Promise<AccessStatus> => {
-    const { data } = await supabase
-      .from("access_grants")
-      .select("status")
-      .ilike("email", e)
-      .maybeSingle();
-    return (data?.status ?? null) as AccessStatus;
+    const { data } = await supabase.rpc("check_access_status", { _email: e });
+    return ((data as string | null) ?? null) as AccessStatus;
   }, []);
 
   const clearTrialTimer = () => {
