@@ -4,7 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-const DB_NAME = "online-cover-cache-v5";
+const DB_NAME = "online-cover-cache-v6";
 const STORE = "covers";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -235,6 +235,71 @@ async function fetchGoogleBooks(title: string): Promise<string | null> {
   } catch { return null; }
 }
 
+// ---- Fallback: MangaDex ----
+async function fetchMangaDex(title: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://api.mangadex.org/manga?title=${encodeURIComponent(title)}&limit=8&includes[]=cover_art&order[relevance]=desc`
+    );
+    if (!res.ok) return null;
+    const j = await res.json();
+    const list: any[] = j?.data ?? [];
+    let best: { url: string; score: number } | null = null;
+    for (const m of list) {
+      const attrs = m.attributes ?? {};
+      const titles: string[] = [];
+      if (attrs.title) Object.values(attrs.title).forEach((t: any) => t && titles.push(String(t)));
+      (attrs.altTitles ?? []).forEach((alt: any) => Object.values(alt ?? {}).forEach((t: any) => t && titles.push(String(t))));
+      let score = 0;
+      for (const t of titles) score = Math.max(score, similarity(title, t));
+      const cover = (m.relationships ?? []).find((r: any) => r.type === "cover_art");
+      const fileName = cover?.attributes?.fileName;
+      if (!fileName) continue;
+      const url = `https://uploads.mangadex.org/covers/${m.id}/${fileName}.512.jpg`;
+      if (!best || score > best.score) best = { url, score };
+    }
+    if (!best || best.score < 0.5) return null;
+    return best.url;
+  } catch { return null; }
+}
+
+// ---- Fallback: Kitsu ----
+async function fetchKitsu(title: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://kitsu.io/api/edge/manga?filter[text]=${encodeURIComponent(title)}&page[limit]=8`
+    );
+    if (!res.ok) return null;
+    const j = await res.json();
+    const list: any[] = j?.data ?? [];
+    let best: { url: string; score: number } | null = null;
+    for (const m of list) {
+      const a = m.attributes ?? {};
+      const variants = [a.canonicalTitle, a.slug, ...(Object.values(a.titles ?? {}) as string[]), ...((a.abbreviatedTitles ?? []) as string[])].filter(Boolean);
+      let score = 0;
+      for (const v of variants) score = Math.max(score, similarity(title, String(v)));
+      const url = a.posterImage?.large || a.posterImage?.medium || a.posterImage?.original;
+      if (url && (!best || score > best.score)) best = { url, score };
+    }
+    if (!best || best.score < 0.5) return null;
+    return best.url;
+  } catch { return null; }
+}
+
+/** Gera variantes progressivamente menores do título pra dar mais chances de match. */
+function titleVariants(title: string): string[] {
+  const variants = new Set<string>();
+  variants.add(title);
+  // Remove sufixos comuns
+  const cleaned = title.replace(/\b(manga|manhwa|manhua|comic|comics|hq|completo|oficial|br|pt|ptbr)\b/gi, " ").replace(/\s+/g, " ").trim();
+  if (cleaned && cleaned !== title) variants.add(cleaned);
+  // Primeiros N tokens
+  const tokens = cleaned.split(/\s+/).filter(Boolean);
+  if (tokens.length > 3) variants.add(tokens.slice(0, 3).join(" "));
+  if (tokens.length > 2) variants.add(tokens.slice(0, 2).join(" "));
+  return Array.from(variants).filter((v) => v.length >= 3);
+}
+
 // ---- Último recurso: gerar via IA (edge function) ----
 // Cache em memória de "desistir" — se a IA falhou (sem créditos / rate limit),
 // não tenta de novo nesta sessão pra não floodar requisições com erro.
@@ -307,21 +372,47 @@ export async function getOnlineCover(
   if (inflight.has(key)) return inflight.get(key)!;
   const p = (async () => {
     let url: string | null = null;
+    const variants = titleVariants(title);
 
-    const ani = await fetchAniList(title);
-    if (ani && !usedMediaIds?.has(ani.mediaId) && claimUrl(ani.url, key, usedUrls)) {
-      url = ani.url;
-      usedMediaIds?.add(ani.mediaId);
+    // AniList em todas as variantes
+    for (const v of variants) {
+      const ani = await fetchAniList(v);
+      if (ani && !usedMediaIds?.has(ani.mediaId) && claimUrl(ani.url, key, usedUrls)) {
+        url = ani.url;
+        usedMediaIds?.add(ani.mediaId);
+        break;
+      }
     }
 
+    // MangaDex
     if (!url) {
-      const j = await fetchJikan(title);
-      if (claimUrl(j, key, usedUrls)) url = j;
+      for (const v of variants) {
+        const m = await fetchMangaDex(v);
+        if (claimUrl(m, key, usedUrls)) { url = m; break; }
+      }
     }
+    // Kitsu
     if (!url) {
-      const g = await fetchGoogleBooks(title);
-      if (claimUrl(g, key, usedUrls)) url = g;
+      for (const v of variants) {
+        const k = await fetchKitsu(v);
+        if (claimUrl(k, key, usedUrls)) { url = k; break; }
+      }
     }
+    // Jikan
+    if (!url) {
+      for (const v of variants) {
+        const j = await fetchJikan(v);
+        if (claimUrl(j, key, usedUrls)) { url = j; break; }
+      }
+    }
+    // Google Books
+    if (!url) {
+      for (const v of variants) {
+        const g = await fetchGoogleBooks(v);
+        if (claimUrl(g, key, usedUrls)) { url = g; break; }
+      }
+    }
+    // Último recurso: IA
     if (!url) {
       const a = await generateAICover(title, kind);
       if (claimUrl(a, key, usedUrls)) url = a;
