@@ -23,9 +23,10 @@ type Props = {
   mode?: "default" | "manga" | "manhwa";
 };
 
-// Conjunto global compartilhado de mediaIds AniList já usados nesta sessão,
-// pra impedir que duas pastas diferentes acabem com a mesma capa online.
+// Conjuntos globais compartilhados: impedem que duas pastas diferentes
+// terminem com a mesma capa (mesmo mediaId AniList OU mesma URL final).
 const usedOnlineIds = new Set<number>();
+const usedOnlineUrls = new Set<string>();
 
 const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "manhwa" }) => {
   const [errored, setErrored] = useState(false);
