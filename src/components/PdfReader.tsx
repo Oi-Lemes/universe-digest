@@ -82,8 +82,20 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
         if (!blob) {
           setProgress("Baixando PDF…");
           const res = await fetch(`${PROXY_URL}?id=${encodeURIComponent(fileId)}`);
+          if (res.status === 429) {
+            const j = await res.json().catch(() => ({}));
+            throw new Error(
+              j.message ||
+                "O Google Drive bloqueou este PDF temporariamente por excesso de downloads. Tente de novo em algumas horas."
+            );
+          }
           if (!res.ok) throw new Error(`Falha no download (${res.status})`);
-          const total = Number(res.headers.get("content-length") || 0);
+          const respCt = res.headers.get("content-type") || "";
+          if (respCt.includes("text/html")) {
+            throw new Error(
+              "O Google Drive não entregou o PDF (cota diária excedida). Tente de novo mais tarde."
+            );
+          }
           const reader = res.body?.getReader();
           const chunks: Uint8Array[] = [];
           let received = 0;
