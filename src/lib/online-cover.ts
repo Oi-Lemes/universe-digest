@@ -356,8 +356,11 @@ export async function getOnlineCover(
 
   if (mem.has(key)) {
     const u = mem.get(key) ?? null;
-    if (u) { urlOwner.set(u, key); usedUrls?.add(u); }
-    return u;
+    // Só reusa se essa URL ainda não foi reivindicada por outro título.
+    if (!u) return null;
+    if (claimUrl(u, key, usedUrls)) return u;
+    // URL já é de outro título — invalida e segue para buscar uma nova.
+    mem.delete(key);
   }
 
   const cached = await cacheGet(key);
