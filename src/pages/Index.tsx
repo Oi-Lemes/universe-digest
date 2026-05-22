@@ -71,7 +71,6 @@ const Index = () => {
     "DC Vertigo",
     "Mangás",
     "Turma da Mônica",
-    "Junji Ito",
     "Terror",
     "Homem-Aranha (Abril)",
     "Hulk (Abril)",
