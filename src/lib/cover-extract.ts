@@ -11,7 +11,8 @@ const DB_NAME = "cover-cache-v1";
 const STORE = "covers";
 const TARGET_WIDTH = 360;
 const JPEG_QUALITY = 0.78;
-const CONCURRENCY = 2;
+const CONCURRENCY = 4;
+const MAX_ATTEMPTS = 3;
 const IMAGE_RE = /\.(jpe?g|png|webp|gif|bmp|avif)$/i;
 
 // ---------- IndexedDB helpers ----------
