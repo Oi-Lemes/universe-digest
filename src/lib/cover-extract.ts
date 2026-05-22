@@ -11,7 +11,8 @@ const DB_NAME = "cover-cache-v1";
 const STORE = "covers";
 const TARGET_WIDTH = 360;
 const JPEG_QUALITY = 0.78;
-const CONCURRENCY = 2;
+const CONCURRENCY = 4;
+const MAX_ATTEMPTS = 3;
 const IMAGE_RE = /\.(jpe?g|png|webp|gif|bmp|avif)$/i;
 
 // ---------- IndexedDB helpers ----------
@@ -182,63 +183,78 @@ export async function extractCover(fileId: string, fileName: string): Promise<st
   if (existing) return existing;
 
   const job = (async () => {
-    // Persistent cache hit
+    // Persistent cache hit — só reaproveita quando temos uma capa de fato.
+    // Entradas null antigas são ignoradas pra forçar nova tentativa
+    // (garante que todo CBR acabe com capa original).
     const cached = await cacheGet(fileId);
-    if (cached) {
+    if (cached && cached.dataUrl) {
       memoryCache.set(fileId, cached.dataUrl);
       return cached.dataUrl;
     }
 
     await acquire();
     try {
-      const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
-      const res = await fetch(proxied);
-      if (!res.ok) throw new Error(`download ${res.status}`);
-      const blob = await res.blob();
+      let lastErr: unknown = null;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
+          const res = await fetch(proxied, { cache: "force-cache" });
+          if (!res.ok) throw new Error(`download ${res.status}`);
+          const blob = await res.blob();
 
-      const { Archive } = await import("libarchive.js");
-      Archive.init({ workerUrl: "/libarchive/worker-bundle.js" });
+          const { Archive } = await import("libarchive.js");
+          Archive.init({ workerUrl: "/libarchive/worker-bundle.js" });
 
-      const archive = await Archive.open(
-        new File([blob], fileName, { type: "application/octet-stream" })
-      );
-      const arr = await archive.getFilesArray();
+          const archive = await Archive.open(
+            new File([blob], fileName, { type: "application/octet-stream" })
+          );
+          const arr = await archive.getFilesArray();
 
-      const imageEntries = arr
-        .filter((e: { file: { name: string } }) => IMAGE_RE.test(e.file.name))
-        .sort(
-          (
-            a: { file: { name: string }; path: string },
-            b: { file: { name: string }; path: string }
-          ) =>
-            `${a.path}${a.file.name}`.localeCompare(
-              `${b.path}${b.file.name}`,
-              undefined,
-              { numeric: true }
-            )
-        );
+          const imageEntries = arr
+            .filter((e: { file: { name: string } }) => IMAGE_RE.test(e.file.name))
+            .sort(
+              (
+                a: { file: { name: string }; path: string },
+                b: { file: { name: string }; path: string }
+              ) =>
+                `${a.path}${a.file.name}`.localeCompare(
+                  `${b.path}${b.file.name}`,
+                  undefined,
+                  { numeric: true }
+                )
+            );
 
-      if (!imageEntries.length) {
-        memoryCache.set(fileId, null);
-        await cacheSet(fileId, { dataUrl: null, ts: Date.now() });
-        return null;
+          if (!imageEntries.length) {
+            // Arquivo sem imagens — não há o que extrair. Cacheia null
+            // pra não re-baixar o mesmo CBR vazio toda vez.
+            memoryCache.set(fileId, null);
+            await cacheSet(fileId, { dataUrl: null, ts: Date.now() });
+            return null;
+          }
+
+          const firstFile: Blob = await imageEntries[0].file.extract();
+          const dataUrl = await downscaleToDataUrl(firstFile);
+          memoryCache.set(fileId, dataUrl);
+          await cacheSet(fileId, { dataUrl, ts: Date.now() });
+          return dataUrl;
+        } catch (e) {
+          lastErr = e;
+          if (attempt < MAX_ATTEMPTS) {
+            // Backoff exponencial: 600ms, 1.2s, 2.4s…
+            await new Promise((r) => setTimeout(r, 600 * 2 ** (attempt - 1)));
+          }
+        }
       }
-
-      const firstFile: Blob = await imageEntries[0].file.extract();
-      const dataUrl = await downscaleToDataUrl(firstFile);
-      memoryCache.set(fileId, dataUrl);
-      await cacheSet(fileId, { dataUrl, ts: Date.now() });
-      return dataUrl;
-    } catch {
-      // Falha silenciosa — não cacheia falha temporária (rede/timeout) para
-      // permitir nova tentativa em sessão futura.
-      memoryCache.set(fileId, null);
+      // Esgotou tentativas — NÃO cacheia (permite nova tentativa depois,
+      // pra que nenhum CBR fique permanentemente sem capa por falha de rede).
+      console.warn("[cover-extract] esgotou tentativas para", fileName, lastErr);
       return null;
     } finally {
       release();
       inFlightExtract.delete(fileId);
     }
   })();
+
 
   inFlightExtract.set(fileId, job);
   return job;
