@@ -41,7 +41,7 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
     (async () => {
       try {
         const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
-        const res = await fetch(proxied);
+        const res = await fetch(proxied, { cache: "no-store" });
         if (!res.ok) throw new Error(`Falha no download (${res.status})`);
 
         // Stream-aware progress when content-length is known.
