@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Users can view their own access grant" ON public.access_grants;
