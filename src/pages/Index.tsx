@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 import { dedupeVisibleNodes } from "@/lib/content-dedupe";
+import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
 import { toast } from "sonner";
@@ -976,6 +977,15 @@ const Index = () => {
       };
     };
 
+    // Aplica agrupamento de séries (CBRs soltos) recursivamente numa árvore.
+    const groupLooseInTree = (node: DriveNode): DriveNode => {
+      if (!node.children) return node;
+      const groupedChildren = groupLooseSeries(
+        node.children.map((c) => (c.type === "folder" ? groupLooseInTree(c) : c))
+      );
+      return { ...node, children: groupedChildren };
+    };
+
     // Aplica nos virtuais (que vão direto pro merged)
     const virtualJunjiItoFinal = appendBucket(virtualJunjiIto, reallocBuckets.junji);
     const virtualAsterixFinal = appendBucket(virtualAsterix, reallocBuckets.asterix);
@@ -1029,11 +1039,13 @@ const Index = () => {
           ? stripChildren(cur, (c) => c.id === starWarsFolder.id)
           : cur;
         const withRealloc = appendBucket(stripped, reallocBuckets.marvel) ?? stripped;
-        return appendBucket(withRealloc, terrorMarvelExtras) ?? withRealloc;
+        const withTerror = appendBucket(withRealloc, terrorMarvelExtras) ?? withRealloc;
+        return groupLooseInTree(withTerror);
       }
       if (lname === "dc") {
         const withRealloc = appendBucket(cur, reallocBuckets.dc) ?? cur;
-        return appendBucket(withRealloc, terrorDCExtras) ?? withRealloc;
+        const withTerror = appendBucket(withRealloc, terrorDCExtras) ?? withRealloc;
+        return groupLooseInTree(withTerror);
       }
       if (lname === "image comics") {
         return appendBucket(cur, reallocBuckets.image) ?? cur;
