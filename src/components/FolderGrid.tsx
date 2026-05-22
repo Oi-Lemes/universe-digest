@@ -79,10 +79,12 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
     return () => io.disconnect();
   }, [needsArchive, archiveTarget, extractedUrl]);
 
-  // Fallback online — pra QUALQUER pasta sem thumbnail/arquivo (HQs, mangás,
-  // manhwas). O pipeline cai em AniList → Jikan → Google Books → IA gerada,
-  // garantindo que nada fique sem capa. Nunca pra capítulos isolados.
-  const onlineEligible = isFolder && !looksLikeChapter(node.name);
+  // Fallback online — SOMENTE para mangás/manhwas. Para HQs (Marvel/DC/etc.)
+  // as APIs (AniList/Jikan/MangaDex) retornavam capas de anime aleatórias
+  // (ex.: "Ultimate Homem Aranha" caía em algum mangá qualquer), então
+  // bloqueamos a busca online fora do modo manga-like.
+  const isMangaLike = mode === "manga" || mode === "manhwa";
+  const onlineEligible = isFolder && isMangaLike && !looksLikeChapter(node.name);
   const kind: "manga" | "manhwa" = mode === "manhwa" ? "manhwa" : "manga";
   const initialOnline = onlineEligible ? getCachedOnlineCover(node.name, kind) : undefined;
   const [onlineUrl, setOnlineUrl] = useState<string | null | undefined>(initialOnline);
