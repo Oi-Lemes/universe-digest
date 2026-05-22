@@ -8,11 +8,32 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": ALLOW_ORIGIN,
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "content-type, range",
-  "Access-Control-Expose-Headers": "content-length, content-range, accept-ranges, content-type",
+  "Access-Control-Expose-Headers": "content-length, content-range, accept-ranges, content-type, content-disposition",
 };
+
+const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
+const CONNECTION_KEY = Deno.env.get("GOOGLE_DRIVE_API_KEY") ?? "";
 
 function isValidId(id: string) {
   return /^[A-Za-z0-9_-]{10,}$/.test(id);
+}
+
+function sourceUrl(id: string) {
+  if (LOVABLE_KEY && CONNECTION_KEY) {
+    return `https://connector-gateway.lovable.dev/google_drive/drive/v3/files/${encodeURIComponent(id)}?alt=media`;
+  }
+  return `https://drive.usercontent.google.com/download?id=${encodeURIComponent(id)}&export=download&confirm=t`;
+}
+
+function sourceHeaders(range: string | null): HeadersInit {
+  const headers: Record<string, string> = {};
+  if (range) headers.range = range;
+  if (LOVABLE_KEY && CONNECTION_KEY) {
+    headers["X-Connection-Api-Key"] = CONNECTION_KEY;
+    headers["Lovable-API-Key"] = LOVABLE_KEY;
+    headers.Authorization = `Bearer ${LOVABLE_KEY}`;
+  }
+  return headers;
 }
 
 Deno.serve(async (req) => {
@@ -30,38 +51,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const driveUrl = `https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t`;
-
-    const headers: HeadersInit = {};
     const range = req.headers.get("range");
-    if (range) headers["range"] = range;
+    const upstream = await fetch(sourceUrl(id), {
+      headers: sourceHeaders(range),
+      redirect: "follow",
+    });
 
-    const upstream = await fetch(driveUrl, { headers, redirect: "follow" });
-
-    // Google Drive returns an HTML interstitial (not the file) when the per-file
-    // download quota is exceeded or a confirm step is required. Detect it and
-    // surface a clean 429 so the UI can show a friendly message instead of
-    // trying to parse an HTML page as a PDF/CBR.
     const ct = upstream.headers.get("content-type") || "";
-    if (ct.includes("text/html")) {
-      const body = await upstream.text();
-      const lower = body.toLowerCase();
-      const isQuota =
-        lower.includes("quota exceeded") || lower.includes("too many users");
-      return new Response(
-        JSON.stringify({
-          error: isQuota ? "drive_quota_exceeded" : "drive_unavailable",
-          message: isQuota
-            ? "O Google Drive bloqueou este arquivo temporariamente por excesso de downloads. Tente de novo em algumas horas."
-            : "O Google Drive não entregou o arquivo (resposta inesperada). Tente de novo mais tarde.",
-        }),
-        {
-          status: isQuota ? 429 : 502,
-          headers: { ...corsHeaders, "content-type": "application/json" },
-        },
-      );
-    }
-
     const respHeaders = new Headers(corsHeaders);
     if (ct) respHeaders.set("content-type", ct);
     const cl = upstream.headers.get("content-length");
@@ -70,7 +66,8 @@ Deno.serve(async (req) => {
     if (cr) respHeaders.set("content-range", cr);
     const ar = upstream.headers.get("accept-ranges");
     if (ar) respHeaders.set("accept-ranges", ar);
-    respHeaders.set("cache-control", "public, max-age=3600");
+    const cd = upstream.headers.get("content-disposition");
+    if (cd) respHeaders.set("content-disposition", cd);
 
     return new Response(upstream.body, {
       status: upstream.status,

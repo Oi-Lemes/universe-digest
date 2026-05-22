@@ -12,7 +12,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-proxy`;
 
 // ---------- Cache em IndexedDB (PDF inteiro como Blob) ----------
-const DB_NAME = "pdf-cache-v1";
+const DB_NAME = "pdf-cache-v2";
 const STORE = "pdfs";
 let dbPromise: Promise<IDBDatabase> | null = null;
 function openDb() {
@@ -53,6 +53,11 @@ async function cacheSet(key: string, blob: Blob) {
   }
 }
 
+function looksLikePdf(buf: ArrayBuffer) {
+  const head = new TextDecoder("ascii").decode(buf.slice(0, 5));
+  return head === "%PDF-";
+}
+
 type Props = { fileId: string; fileName: string };
 
 export const PdfReader = ({ fileId, fileName }: Props) => {
@@ -81,21 +86,8 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
         let blob = await cacheGet(fileId);
         if (!blob) {
           setProgress("Baixando PDF…");
-          const res = await fetch(`${PROXY_URL}?id=${encodeURIComponent(fileId)}`);
-          if (res.status === 429) {
-            const j = await res.json().catch(() => ({}));
-            throw new Error(
-              j.message ||
-                "O Google Drive bloqueou este PDF temporariamente por excesso de downloads. Tente de novo em algumas horas."
-            );
-          }
+          const res = await fetch(`${PROXY_URL}?id=${encodeURIComponent(fileId)}`, { cache: "no-store" });
           if (!res.ok) throw new Error(`Falha no download (${res.status})`);
-          const respCt = res.headers.get("content-type") || "";
-          if (respCt.includes("text/html")) {
-            throw new Error(
-              "O Google Drive não entregou o PDF (cota diária excedida). Tente de novo mais tarde."
-            );
-          }
           const total = Number(res.headers.get("content-length") || 0);
           const reader = res.body?.getReader();
           const chunks: Uint8Array[] = [];
@@ -125,6 +117,7 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
 
         const buf = await blob.arrayBuffer();
         if (cancelled) return;
+        if (!looksLikePdf(buf)) throw new Error("O arquivo recebido não é um PDF válido.");
         const doc = await pdfjsLib.getDocument({ data: buf }).promise;
         if (cancelled) {
           doc.destroy();

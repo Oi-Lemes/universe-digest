@@ -41,21 +41,8 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
     (async () => {
       try {
         const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
-        const res = await fetch(proxied);
-        if (res.status === 429) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(
-            j.message ||
-              "O Google Drive bloqueou este arquivo temporariamente por excesso de downloads. Tente de novo em algumas horas."
-          );
-        }
+        const res = await fetch(proxied, { cache: "no-store" });
         if (!res.ok) throw new Error(`Falha no download (${res.status})`);
-        const respCt = res.headers.get("content-type") || "";
-        if (respCt.includes("text/html")) {
-          throw new Error(
-            "O Google Drive não entregou o arquivo (cota diária excedida). Tente de novo mais tarde."
-          );
-        }
 
         // Stream-aware progress when content-length is known.
         const total = Number(res.headers.get("content-length") || 0);
