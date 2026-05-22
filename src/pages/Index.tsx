@@ -1030,11 +1030,13 @@ const Index = () => {
           ? stripChildren(cur, (c) => c.id === starWarsFolder.id)
           : cur;
         const withRealloc = appendBucket(stripped, reallocBuckets.marvel) ?? stripped;
-        return appendBucket(withRealloc, terrorMarvelExtras) ?? withRealloc;
+        const withTerror = appendBucket(withRealloc, terrorMarvelExtras) ?? withRealloc;
+        return groupLooseInTree(withTerror);
       }
       if (lname === "dc") {
         const withRealloc = appendBucket(cur, reallocBuckets.dc) ?? cur;
-        return appendBucket(withRealloc, terrorDCExtras) ?? withRealloc;
+        const withTerror = appendBucket(withRealloc, terrorDCExtras) ?? withRealloc;
+        return groupLooseInTree(withTerror);
       }
       if (lname === "image comics") {
         return appendBucket(cur, reallocBuckets.image) ?? cur;
