@@ -55,6 +55,12 @@ function normalizeKey(s: string): string {
 export function groupLooseSeries(children: DriveNode[]): DriveNode[] {
   if (!children?.length) return children ?? [];
 
+  // Só agrupa quando a pasta NÃO tem subpastas reais — i.e. está com tudo
+  // solto (caso típico Marvel). Se já existe estrutura (volumes em pastas),
+  // não mexemos, pra não criar pastas virtuais dentro de pastas reais.
+  const hasRealFolders = children.some((c) => c.type === "folder");
+  if (hasRealFolders) return children;
+
   const folders: DriveNode[] = [];
   const fileBuckets = new Map<string, { display: string; files: DriveNode[] }>();
   const singles: DriveNode[] = [];
