@@ -25,13 +25,23 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { title, kind } = await req.json();
-    if (!title || typeof title !== "string" || title.length < 2) {
+    const body = await req.json().catch(() => ({}));
+    const rawTitle = typeof body?.title === "string" ? body.title.trim() : "";
+    const kind = body?.kind;
+    // Strict validation: titles must be short, plain text — guards against
+    // attackers spamming the endpoint with thousands of varied prompts to
+    // drain AI credits.
+    if (
+      rawTitle.length < 2 ||
+      rawTitle.length > 80 ||
+      !/^[\p{L}\p{N}\s\-:.,!'’&()]+$/u.test(rawTitle)
+    ) {
       return new Response(JSON.stringify({ error: "invalid title" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const title = rawTitle;
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
