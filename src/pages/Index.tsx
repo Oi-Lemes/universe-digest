@@ -1057,7 +1057,7 @@ const Index = () => {
       ...(virtualManhwa ? [virtualManhwa] : []),
       ...(virtualStarWars ? [virtualStarWars] : []),
       ...(virtualMonica ? [virtualMonica] : []),
-      ...(virtualJunjiItoFinal ? [virtualJunjiItoFinal] : []),
+      
       ...(virtualTerror ? [virtualTerror] : []),
       ...(virtualHomemAranhaAbril ? [virtualHomemAranhaAbril] : []),
       ...(virtualHulkAbril ? [virtualHulkAbril] : []),
