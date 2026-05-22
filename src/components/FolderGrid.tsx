@@ -98,7 +98,7 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
     if (!needsOnline) return;
     if (onlineUrl !== undefined) return;
     let cancelled = false;
-    getOnlineCover(node.name, usedOnlineIds, kind).then((url) => {
+    getOnlineCover(node.name, usedOnlineIds, kind, usedOnlineUrls).then((url) => {
       if (!cancelled) setOnlineUrl(url);
     });
     return () => { cancelled = true; };
