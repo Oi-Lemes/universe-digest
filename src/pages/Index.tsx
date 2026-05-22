@@ -1108,7 +1108,7 @@ const Index = () => {
   }, [activePublisher, crumbs]);
 
   const items = useMemo<DriveNode[]>(
-    () => currentFolder?.children ?? [],
+    () => groupLooseSeries(currentFolder?.children ?? []),
     [currentFolder]
   );
 
