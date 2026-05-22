@@ -96,6 +96,7 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
               "O Google Drive não entregou o PDF (cota diária excedida). Tente de novo mais tarde."
             );
           }
+          const total = Number(res.headers.get("content-length") || 0);
           const reader = res.body?.getReader();
           const chunks: Uint8Array[] = [];
           let received = 0;
