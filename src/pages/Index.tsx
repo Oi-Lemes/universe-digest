@@ -829,6 +829,30 @@ const Index = () => {
     const orientalFromReallocator = dedupeAdd(reallocBuckets.mangas);
     reallocBuckets.mangas = []; // já consumido — não duplicar via appendBucket
 
+    // Junji Ito vira uma subpasta dentro de Mangás (com seus avulsos do Variados)
+    const junjiForMangas: DriveNode[] = junjiItoFolder
+      ? [
+          {
+            ...junjiItoFolder,
+            name: "Junji Ito",
+            children: [
+              ...(junjiItoFolder.children ?? []),
+              ...reallocBuckets.junji,
+            ],
+          },
+        ]
+      : reallocBuckets.junji.length > 0
+      ? [
+          {
+            id: "virtual-junji-ito-bucket",
+            name: "Junji Ito",
+            type: "folder" as const,
+            children: [...reallocBuckets.junji],
+          },
+        ]
+      : [];
+    reallocBuckets.junji = []; // consumido
+
     const allMangaChildrenRaw: DriveNode[] = [
       ...(mangas?.children ?? []),
       ...fromUpdates,
@@ -836,6 +860,7 @@ const Index = () => {
       ...orientalFromBonus,
       ...orientalFromEditorasBr,
       ...orientalFromReallocator,
+      ...junjiForMangas,
     ];
 
     // Mangás + Manhwa juntos: a aba "Mangás" agora inclui manhwas/manhuas.
