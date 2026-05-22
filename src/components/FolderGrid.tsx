@@ -169,7 +169,24 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
   );
 };
 
-export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = "default" }: Props) => {
+const ARCHIVE_RE = /\.(cbr|cbz|rar|zip)$/i;
+
+export const FolderGrid = ({ items: rawItems, onOpenFolder, onOpenFile, emptyHint, mode = "default" }: Props) => {
+  // Pente fino:
+  // 1) Nada de arquivo "solto" (CBR/CBZ/RAR/ZIP/PDF avulso) direto na seção —
+  //    só pastas aparecem no grid de uma sessão. Leitura continua acessível
+  //    de dentro da pasta correspondente.
+  // 2) Nada sem capa "original" detectável (thumb do Drive ou arquivo de onde
+  //    extrair a capa). Pastas vazias / sem conteúdo viável somem.
+  const items = useMemo(
+    () =>
+      rawItems.filter((n) => {
+        if (n.type === "file") return false; // remove arquivos soltos
+        const hasOriginalCover = !!coverUrl(n, 400) || !!firstArchiveIn(n);
+        return hasOriginalCover;
+      }),
+    [rawItems]
+  );
   // Top trending para o modo "manga" — recalcula em tempo real,
   // destacando 1 dos top 6 a cada 3.5s (efeito "em alta agora").
   const isMangaLike = mode === "manga" || mode === "manhwa";
