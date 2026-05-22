@@ -20,12 +20,17 @@ export const InfiniteCoverMarquee = ({ items, limit = 20 }: Props) => {
   useEffect(() => {
     let cancelled = false;
     const used = new Set<number>();
+    const usedUrls = new Set<string>();
     (async () => {
       const results: Array<{ id: string; name: string; url: string }> = [];
+      const seenUrls = new Set<string>();
       for (const node of top) {
-        const url = await getOnlineCover(node.name, used, "manga");
+        const url = await getOnlineCover(node.name, used, "manga", usedUrls);
         if (cancelled) return;
-        if (url) results.push({ id: node.id, name: node.name, url });
+        if (url && !seenUrls.has(url)) {
+          seenUrls.add(url);
+          results.push({ id: node.id, name: node.name, url });
+        }
         if (results.length && results.length % 3 === 0) {
           setCovers([...results]);
         }
