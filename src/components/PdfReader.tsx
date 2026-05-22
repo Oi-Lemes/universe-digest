@@ -86,7 +86,7 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
         let blob = await cacheGet(fileId);
         if (!blob) {
           setProgress("Baixando PDF…");
-          const res = await fetch(`${PROXY_URL}?id=${encodeURIComponent(fileId)}`);
+          const res = await fetch(`${PROXY_URL}?id=${encodeURIComponent(fileId)}`, { cache: "no-store" });
           if (!res.ok) throw new Error(`Falha no download (${res.status})`);
           const total = Number(res.headers.get("content-length") || 0);
           const reader = res.body?.getReader();
