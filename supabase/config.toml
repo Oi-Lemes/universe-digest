@@ -19,3 +19,5 @@ project_id = "ruovikplrtcclvihfabv"
     verify_jwt = false
   [functions.drive-list]
     verify_jwt = false
+  [functions.cover-generate]
+    verify_jwt = true
