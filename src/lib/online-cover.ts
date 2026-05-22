@@ -4,7 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-const DB_NAME = "online-cover-cache-v5";
+const DB_NAME = "online-cover-cache-v6";
 const STORE = "covers";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
