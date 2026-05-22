@@ -264,22 +264,44 @@ async function generateAICover(title: string, kind: "manga" | "manhwa"): Promise
  * Pipeline em cascata: AniList → Jikan → Google Books → IA gerada.
  * Garante que sempre retorna uma URL válida para títulos não-capítulos.
  */
+// Mapa global URL → key (título) que já está usando a URL. Garante que duas
+// edições/pastas diferentes NUNCA terminem com a mesma capa.
+const urlOwner = new Map<string, string>();
+
+function claimUrl(url: string | null, key: string, usedUrls?: Set<string>): boolean {
+  if (!url) return false;
+  const owner = urlOwner.get(url);
+  if (owner && owner !== key) return false;
+  if (usedUrls?.has(url) && owner !== key) return false;
+  urlOwner.set(url, key);
+  usedUrls?.add(url);
+  return true;
+}
+
 export async function getOnlineCover(
   rawName: string,
   usedMediaIds?: Set<number>,
-  kind: "manga" | "manhwa" = "manga"
+  kind: "manga" | "manhwa" = "manga",
+  usedUrls?: Set<string>
 ): Promise<string | null> {
   if (looksLikeChapter(rawName)) return null;
   const title = normalizeTitle(rawName);
   if (!title || title.length < 3) return null;
   const key = `${kind}:${title.toLowerCase()}`;
 
-  if (mem.has(key)) return mem.get(key) ?? null;
+  if (mem.has(key)) {
+    const u = mem.get(key) ?? null;
+    if (u) { urlOwner.set(u, key); usedUrls?.add(u); }
+    return u;
+  }
 
   const cached = await cacheGet(key);
   if (cached && Date.now() - cached.ts < MAX_AGE && cached.url) {
-    mem.set(key, cached.url);
-    return cached.url;
+    // Só reusa o cache se ninguém mais reivindicou essa URL.
+    if (claimUrl(cached.url, key, usedUrls)) {
+      mem.set(key, cached.url);
+      return cached.url;
+    }
   }
 
   if (inflight.has(key)) return inflight.get(key)!;
@@ -287,14 +309,23 @@ export async function getOnlineCover(
     let url: string | null = null;
 
     const ani = await fetchAniList(title);
-    if (ani && !usedMediaIds?.has(ani.mediaId)) {
+    if (ani && !usedMediaIds?.has(ani.mediaId) && claimUrl(ani.url, key, usedUrls)) {
       url = ani.url;
       usedMediaIds?.add(ani.mediaId);
     }
 
-    if (!url) url = await fetchJikan(title);
-    if (!url) url = await fetchGoogleBooks(title);
-    if (!url) url = await generateAICover(title, kind);
+    if (!url) {
+      const j = await fetchJikan(title);
+      if (claimUrl(j, key, usedUrls)) url = j;
+    }
+    if (!url) {
+      const g = await fetchGoogleBooks(title);
+      if (claimUrl(g, key, usedUrls)) url = g;
+    }
+    if (!url) {
+      const a = await generateAICover(title, kind);
+      if (claimUrl(a, key, usedUrls)) url = a;
+    }
 
     mem.set(key, url);
     cacheSet(key, { url, ts: Date.now() });
