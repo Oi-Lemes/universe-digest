@@ -204,19 +204,25 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Optional shared-token check (Yampi lets you append ?token=... to webhook URL)
-    if (YAMPI_WEBHOOK_TOKEN) {
-      const url = new URL(req.url);
-      const provided =
-        url.searchParams.get("token") ??
-        req.headers.get("x-webhook-token") ??
-        "";
-      if (provided !== YAMPI_WEBHOOK_TOKEN) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    // Mandatory shared-token check. If the secret is not configured,
+    // refuse all requests rather than silently accepting them.
+    if (!YAMPI_WEBHOOK_TOKEN) {
+      console.error("YAMPI_WEBHOOK_TOKEN is not configured — rejecting request");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const url = new URL(req.url);
+    const provided =
+      url.searchParams.get("token") ??
+      req.headers.get("x-webhook-token") ??
+      "";
+    if (provided !== YAMPI_WEBHOOK_TOKEN) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const payload = await req.json().catch(() => ({}));
