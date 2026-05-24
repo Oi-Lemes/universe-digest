@@ -1264,11 +1264,11 @@ const Index = () => {
             <h1 className="font-comic text-xl tracking-wide">
               IMPÉRIO DOS <span className="text-accent">QUADRINHOS</span>
             </h1>
-            <p className="text-[10px] text-muted-foreground hidden sm:block">
-              {isTrial
-                ? `${publishers.length} editoras · modo demonstração`
-                : `${publishers.length} editoras`}
-            </p>
+            {isTrial && (
+              <p className="text-[10px] text-muted-foreground hidden sm:block">
+                modo demonstração
+              </p>
+            )}
           </div>
           {isTrial && (
             <div
