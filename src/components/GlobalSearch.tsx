@@ -87,10 +87,19 @@ export const GlobalSearch = ({
           setQuery(e.target.value);
           setOpen(true);
         }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && results.length > 0) {
+            e.preventDefault();
+            handleSelect(results[0]);
+          } else if (e.key === "Escape") {
+            setOpen(false);
+          }
+        }}
         placeholder={placeholder}
         className="pl-8 pr-8 h-9 bg-secondary border-border"
         aria-label="Buscar no acervo"
       />
+
       {query && (
         <button
           type="button"
