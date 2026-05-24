@@ -1329,20 +1329,22 @@ const Index = () => {
                   : <>Mostrando <strong className="text-foreground">{nodes.length}</strong> resultado{nodes.length === 1 ? "" : "s"} para <strong className="text-foreground">"{searchQuery}"</strong></>}
               </h2>
               {nodes.length > 0 && (
-                <FolderGrid
-                  items={nodes}
-                  onOpenFolder={(n) => {
-                    const hit = results.find((r) => r.node.id === n.id);
-                    if (!hit) return;
-                    const isPublisher = hit.node.id === hit.publisher.id;
-                    const pathIds = isPublisher ? [] : [...hit.pathIds.slice(1), hit.node.id];
-                    const pathNames = isPublisher ? [] : [...hit.pathNames.slice(1), hit.node.name];
-                    handleJumpTo(hit.publisher, pathIds, pathNames);
-                    setSearchQuery("");
-                  }}
-                  onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
-                  emptyHint="Sem resultados."
-                />
+                <div className="max-h-[calc(100vh-220px)] overflow-y-auto overscroll-contain pr-2 rounded-lg">
+                  <FolderGrid
+                    items={nodes}
+                    onOpenFolder={(n) => {
+                      const hit = results.find((r) => r.node.id === n.id);
+                      if (!hit) return;
+                      const isPublisher = hit.node.id === hit.publisher.id;
+                      const pathIds = isPublisher ? [] : [...hit.pathIds.slice(1), hit.node.id];
+                      const pathNames = isPublisher ? [] : [...hit.pathNames.slice(1), hit.node.name];
+                      handleJumpTo(hit.publisher, pathIds, pathNames);
+                      setSearchQuery("");
+                    }}
+                    onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
+                    emptyHint="Sem resultados."
+                  />
+                </div>
               )}
             </section>
           );
