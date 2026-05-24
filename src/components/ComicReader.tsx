@@ -41,28 +41,31 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
 
   return (
     <Dialog open={!!fileId} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-6xl h-[90vh] p-0 overflow-hidden bg-card border-border">
+      <DialogContent className="max-w-6xl w-[100vw] sm:w-auto h-[100dvh] sm:h-[90vh] max-h-[100dvh] p-0 overflow-hidden bg-card border-border rounded-none sm:rounded-lg">
         <DialogTitle className="sr-only">{fileName}</DialogTitle>
         <div className="flex flex-col h-full">
-          <header className="flex items-center gap-2 px-4 py-2 pr-12 border-b border-border bg-secondary/40">
-            <h2 className="font-semibold truncate text-sm flex-1 pr-2">{fileName}</h2>
+          <header className="flex items-center gap-2 px-3 sm:px-4 py-2 pr-12 border-b border-border bg-secondary/40 min-w-0">
+            <h2 className="font-semibold truncate text-xs sm:text-sm flex-1 min-w-0">{fileName}</h2>
             {fileId && !isTrial && (
-              <Button asChild size="sm" variant="secondary" className="h-7 gap-1 mr-2">
+              <Button asChild size="sm" variant="secondary" className="h-7 gap-1 shrink-0 px-2">
                 <a
                   href={fileDownloadUrl(fileId)}
                   onClick={handleDownload}
                   download={fileName}
                 >
-                  <Download className="w-3.5 h-3.5" /> Baixar
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Baixar</span>
                 </a>
               </Button>
             )}
             {fileId && isTrial && (
-              <span className="h-7 inline-flex items-center gap-1 px-2 mr-2 rounded-md text-[11px] font-semibold border border-destructive/40 bg-destructive/10 text-destructive">
-                <Lock className="w-3 h-3" /> Download bloqueado
+              <span className="h-7 inline-flex items-center gap-1 px-2 rounded-md text-[11px] font-semibold border border-destructive/40 bg-destructive/10 text-destructive shrink-0">
+                <Lock className="w-3 h-3" />
+                <span className="hidden sm:inline">Download bloqueado</span>
               </span>
             )}
           </header>
+
 
           {fileId && isArchive && (
             <ComicArchiveReader fileId={fileId} fileName={fileName} />
