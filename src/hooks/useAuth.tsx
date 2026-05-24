@@ -14,6 +14,11 @@ type AuthCtx = {
   signOut: () => void;
 };
 
+type AccessCheckResult = {
+  status: AccessStatus;
+  error?: string;
+};
+
 const STORAGE_KEY = "iq_email";
 const TRIAL_KEY = "iq_trial_expires_v3";
 const TRIAL_DEADLINE_KEY = "iq_trial_deadline_v3"; // absolute deadline, survives signOut
@@ -32,9 +37,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [trialExpiresAt, setTrialExpiresAt] = useState<number | null>(null);
   const trialTimer = useRef<number | null>(null);
 
-  const checkAccess = useCallback(async (e: string): Promise<AccessStatus> => {
-    const { data } = await supabase.rpc("check_access_status", { _email: e });
-    return ((data as string | null) ?? null) as AccessStatus;
+  const checkAccess = useCallback(async (e: string): Promise<AccessCheckResult> => {
+    const normalizedEmail = e.trim().toLowerCase();
+    const { data, error } = await supabase.rpc("check_access_status", { _email: normalizedEmail });
+
+    if (error) {
+      return {
+        status: null,
+        error: "Não consegui consultar sua compra agora. Tente novamente em alguns segundos.",
+      };
+    }
+
+    return { status: ((data as string | null) ?? null) as AccessStatus };
   }, []);
 
   const clearTrialTimer = () => {
@@ -101,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setEmail(saved);
-    checkAccess(saved).then((status) => {
+    checkAccess(saved).then(({ status }) => {
       setAccessStatus(status);
       setLoading(false);
     });
@@ -134,11 +148,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { ok: true, status: "active" as AccessStatus };
       }
 
-      const status = await checkAccess(e);
+      const normalizedEmail = e.trim().toLowerCase();
+      const { status, error } = await checkAccess(normalizedEmail);
+      if (error) {
+        return { ok: false, status, error };
+      }
       if (status === "active") {
-        localStorage.setItem(STORAGE_KEY, e);
+        localStorage.setItem(STORAGE_KEY, normalizedEmail);
         localStorage.removeItem(TRIAL_KEY);
-        setEmail(e);
+        setEmail(normalizedEmail);
         setAccessStatus(status);
         setTrialExpiresAt(null);
         return { ok: true, status };
