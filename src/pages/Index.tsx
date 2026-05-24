@@ -1284,8 +1284,10 @@ const Index = () => {
               tree={tree}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
               onOpenFolder={(pub, ids, names) => handleJumpTo(pub, ids, names)}
+              onQueryChange={setSearchQuery}
               className="w-full max-w-xs hidden sm:block"
             />
+
             <Button
               variant="ghost"
               size="sm"
