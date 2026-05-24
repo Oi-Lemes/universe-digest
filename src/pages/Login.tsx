@@ -32,11 +32,16 @@ const Login = () => {
       return;
     }
     setChecking(true);
-    const { ok, status } = await signIn(parsed.data);
+    const { ok, status, error } = await signIn(parsed.data);
     setChecking(false);
 
     if (ok) {
       toast.success("Acesso liberado!");
+      return;
+    }
+
+    if (error) {
+      toast.error(error);
       return;
     }
 
