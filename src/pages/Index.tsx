@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Tabs, TabsList, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ type Crumb = { id: string; name: string };
 const Index = () => {
   const { email, signOut, isTrial, trialExpiresAt } = useAuth();
   const [trialRemaining, setTrialRemaining] = useState<number>(0);
+  const headerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!isTrial || !trialExpiresAt) return;
@@ -48,6 +49,30 @@ const Index = () => {
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  useEffect(() => {
+    const isSearchOpen = searchQuery.length >= 2;
+
+    const updateHeaderHeight = () => {
+      document.documentElement.style.setProperty(
+        "--app-header-height",
+        `${headerRef.current?.offsetHeight ?? 0}px`
+      );
+    };
+
+    updateHeaderHeight();
+    window.addEventListener("resize", updateHeaderHeight);
+
+    const originalOverflow = document.body.style.overflow;
+    if (isSearchOpen && window.matchMedia("(max-width: 639px)").matches) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateHeaderHeight);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isTrial, searchQuery]);
 
 
   useEffect(() => {
@@ -1252,7 +1277,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
+      <header ref={headerRef} className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
         {isTrial && (
           <div className="bg-destructive text-destructive-foreground text-center text-xs sm:text-sm font-bold py-1.5 px-3">
             ⏱️ Modo demonstração. Expira em <span className="tabular-nums">{trialMmSs}</span> · Downloads bloqueados
@@ -1322,14 +1347,14 @@ const Index = () => {
           const results = tree ? searchTree(tree, searchQuery, 120) : [];
           const nodes = results.map((r) => r.node);
           return (
-            <section className="max-w-7xl mx-auto px-4 py-6">
-              <h2 className="text-sm text-muted-foreground mb-3">
+            <section className="max-w-7xl mx-auto px-4 py-4 sm:py-6 h-[calc(100dvh-var(--app-header-height,0px))] sm:h-auto overflow-hidden sm:overflow-visible flex flex-col">
+              <h2 className="text-sm text-muted-foreground mb-3 shrink-0">
                 {nodes.length === 0
                   ? <>Nenhum resultado para <strong className="text-foreground">"{searchQuery}"</strong>.</>
                   : <>Mostrando <strong className="text-foreground">{nodes.length}</strong> resultado{nodes.length === 1 ? "" : "s"} para <strong className="text-foreground">"{searchQuery}"</strong></>}
               </h2>
               {nodes.length > 0 && (
-                <div className="sm:max-h-[calc(100dvh-220px)] sm:overflow-y-auto sm:overscroll-contain sm:pr-2 rounded-lg">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y pr-1 pb-6 rounded-lg sm:max-h-[calc(100dvh-220px)] sm:pr-2">
                   <FolderGrid
                     items={nodes}
                     onOpenFolder={(n) => {
