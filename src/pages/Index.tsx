@@ -1329,7 +1329,7 @@ const Index = () => {
                   : <>Mostrando <strong className="text-foreground">{nodes.length}</strong> resultado{nodes.length === 1 ? "" : "s"} para <strong className="text-foreground">"{searchQuery}"</strong></>}
               </h2>
               {nodes.length > 0 && (
-                <div className="max-h-[calc(100vh-220px)] overflow-y-auto overscroll-contain pr-2 rounded-lg">
+                <div className="sm:max-h-[calc(100dvh-220px)] sm:overflow-y-auto sm:overscroll-contain sm:pr-2 rounded-lg">
                   <FolderGrid
                     items={nodes}
                     onOpenFolder={(n) => {
