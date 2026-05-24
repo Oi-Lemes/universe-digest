@@ -20,6 +20,8 @@ type Props = {
   ) => void;
   className?: string;
   placeholder?: string;
+  /** Notifies parent of debounced query changes (for live filtering below). */
+  onQueryChange?: (query: string) => void;
 };
 
 export const GlobalSearch = ({
@@ -28,6 +30,7 @@ export const GlobalSearch = ({
   onOpenFolder,
   className,
   placeholder = "Buscar HQs no acervo inteiro...",
+  onQueryChange,
 }: Props) => {
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -38,6 +41,11 @@ export const GlobalSearch = ({
     const t = setTimeout(() => setDebounced(query), 120);
     return () => clearTimeout(t);
   }, [query]);
+
+  useEffect(() => {
+    onQueryChange?.(debounced.trim());
+  }, [debounced, onQueryChange]);
+
 
   const results = useMemo<SearchResult[]>(
     () => (debounced.trim().length >= 2 ? searchTree(tree, debounced, 60) : []),
@@ -79,10 +87,19 @@ export const GlobalSearch = ({
           setQuery(e.target.value);
           setOpen(true);
         }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && results.length > 0) {
+            e.preventDefault();
+            handleSelect(results[0]);
+          } else if (e.key === "Escape") {
+            setOpen(false);
+          }
+        }}
         placeholder={placeholder}
         className="pl-8 pr-8 h-9 bg-secondary border-border"
         aria-label="Buscar no acervo"
       />
+
       {query && (
         <button
           type="button"

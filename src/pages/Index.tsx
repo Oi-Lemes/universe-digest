@@ -9,6 +9,8 @@ import { FolderGrid } from "@/components/FolderGrid";
 import { InfiniteCoverMarquee } from "@/components/InfiniteCoverMarquee";
 import { ComicReader } from "@/components/ComicReader";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { searchTree } from "@/lib/search";
+
 import { PublisherTab } from "@/components/PublisherTab";
 import { OnlinePresence } from "@/components/OnlinePresence";
 import { useAuth } from "@/hooks/useAuth";
@@ -45,6 +47,8 @@ const Index = () => {
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
 
   useEffect(() => {
     loadDriveTree()
@@ -1280,8 +1284,10 @@ const Index = () => {
               tree={tree}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
               onOpenFolder={(pub, ids, names) => handleJumpTo(pub, ids, names)}
+              onQueryChange={setSearchQuery}
               className="w-full max-w-xs hidden sm:block"
             />
+
             <Button
               variant="ghost"
               size="sm"
@@ -1305,11 +1311,45 @@ const Index = () => {
             tree={tree}
             onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
             onOpenFolder={(pub, ids, names) => handleJumpTo(pub, ids, names)}
+            onQueryChange={setSearchQuery}
           />
+
         </div>
       </header>
 
+      {searchQuery.length >= 2 ? (
+        (() => {
+          const results = tree ? searchTree(tree, searchQuery, 120) : [];
+          const nodes = results.map((r) => r.node);
+          return (
+            <section className="max-w-7xl mx-auto px-4 py-6">
+              <h2 className="text-sm text-muted-foreground mb-3">
+                {nodes.length === 0
+                  ? <>Nenhum resultado para <strong className="text-foreground">"{searchQuery}"</strong>.</>
+                  : <>Mostrando <strong className="text-foreground">{nodes.length}</strong> resultado{nodes.length === 1 ? "" : "s"} para <strong className="text-foreground">"{searchQuery}"</strong></>}
+              </h2>
+              {nodes.length > 0 && (
+                <FolderGrid
+                  items={nodes}
+                  onOpenFolder={(n) => {
+                    const hit = results.find((r) => r.node.id === n.id);
+                    if (!hit) return;
+                    const isPublisher = hit.node.id === hit.publisher.id;
+                    const pathIds = isPublisher ? [] : [...hit.pathIds.slice(1), hit.node.id];
+                    const pathNames = isPublisher ? [] : [...hit.pathNames.slice(1), hit.node.name];
+                    handleJumpTo(hit.publisher, pathIds, pathNames);
+                    setSearchQuery("");
+                  }}
+                  onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
+                  emptyHint="Sem resultados."
+                />
+              )}
+            </section>
+          );
+        })()
+      ) : (
       <Tabs
+
         value={activePublisherId ?? undefined}
         onValueChange={handleSelectPublisher}
         className="max-w-7xl mx-auto px-4 py-4"
@@ -1374,6 +1414,8 @@ const Index = () => {
           </TabsContent>
         ))}
       </Tabs>
+      )}
+
 
       <ComicReader
         fileId={reader?.id ?? null}
