@@ -1414,6 +1414,8 @@ const Index = () => {
           </TabsContent>
         ))}
       </Tabs>
+      )}
+
 
       <ComicReader
         fileId={reader?.id ?? null}
