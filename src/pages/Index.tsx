@@ -9,6 +9,8 @@ import { FolderGrid } from "@/components/FolderGrid";
 import { InfiniteCoverMarquee } from "@/components/InfiniteCoverMarquee";
 import { ComicReader } from "@/components/ComicReader";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { searchTree } from "@/lib/search";
+
 import { PublisherTab } from "@/components/PublisherTab";
 import { OnlinePresence } from "@/components/OnlinePresence";
 import { useAuth } from "@/hooks/useAuth";
