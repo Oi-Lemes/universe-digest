@@ -45,6 +45,8 @@ const Index = () => {
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
 
   useEffect(() => {
     loadDriveTree()
