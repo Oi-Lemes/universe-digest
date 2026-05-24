@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X, Folder, BookOpen, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { DriveNode, DriveTree, isViewableInDrive } from "@/lib/drive";
 import { searchTree, SearchResult } from "@/lib/search";
 import { cn } from "@/lib/utils";
