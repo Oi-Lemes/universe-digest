@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X, Folder, BookOpen, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { DriveNode, DriveTree, isViewableInDrive } from "@/lib/drive";
 import { searchTree, SearchResult } from "@/lib/search";
 import { cn } from "@/lib/utils";
@@ -121,7 +119,7 @@ export const GlobalSearch = ({
               Nenhum resultado para <strong>"{query}"</strong>.
             </div>
           ) : (
-            <ScrollArea className="max-h-[60vh]">
+            <div className="max-h-[calc(100dvh-170px)] overflow-y-auto overscroll-contain touch-pan-y sm:max-h-[60vh]">
               <ul className="py-1">
                 {results.map((r) => {
                   const isFile = r.node.type === "file";
@@ -160,7 +158,7 @@ export const GlobalSearch = ({
                   );
                 })}
               </ul>
-            </ScrollArea>
+            </div>
           )}
           <div className="px-3 py-1.5 border-t border-border bg-secondary/40 text-[10px] text-muted-foreground">
             Mostrando {results.length} resultado{results.length === 1 ? "" : "s"} · busca o acervo inteiro
