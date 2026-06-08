@@ -6,10 +6,12 @@ import {
   isViewableInDrive,
   fileExt,
 } from "@/lib/drive";
-import { Download, FileWarning, Lock } from "lucide-react";
+import { Check, Download, FileWarning, Lock } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
 import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
+import { toggleRead, useReadStatus } from "@/lib/read-status";
+import { cn } from "@/lib/utils";
 
 // CBR/CBZ/RAR/ZIP — extracted client-side via libarchive.js (WASM).
 const ARCHIVE_EXTS = new Set(["cbr", "cbz", "rar", "zip"]);
@@ -22,6 +24,7 @@ type Props = {
 
 export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   const { isTrial } = useAuth();
+  const read = useReadStatus(fileId);
   const ext = fileName ? fileExt(fileName) : "";
   const isArchive = !!fileId && ARCHIVE_EXTS.has(ext);
   const isPdf = !!fileId && ext === "pdf";
@@ -44,8 +47,25 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
       <DialogContent className="max-w-6xl w-[100vw] sm:w-auto h-[100dvh] sm:h-[90vh] max-h-[100dvh] p-0 overflow-hidden bg-card border-border rounded-none sm:rounded-lg">
         <DialogTitle className="sr-only">{fileName}</DialogTitle>
         <div className="flex flex-col h-full">
-          <header className="flex items-center gap-2 px-3 sm:px-4 py-2 pr-12 border-b border-border bg-secondary/40 min-w-0">
+          <header className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 pr-12 border-b border-border bg-secondary/40 min-w-0">
             <h2 className="font-semibold truncate text-xs sm:text-sm flex-1 min-w-0">{fileName}</h2>
+            {fileId && (
+              <Button
+                type="button"
+                size="sm"
+                variant={read ? "default" : "secondary"}
+                onClick={() => toggleRead(fileId)}
+                className={cn(
+                  "h-7 gap-1 shrink-0 px-2",
+                  read && "bg-[hsl(150_70%_42%)] hover:bg-[hsl(150_70%_38%)] text-white"
+                )}
+                title={read ? "Marcado como lido — clique pra desmarcar" : "Marcar como lido"}
+                aria-pressed={read}
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{read ? "Lido" : "Já li"}</span>
+              </Button>
+            )}
             {fileId && !isTrial && (
               <Button asChild size="sm" variant="secondary" className="h-7 gap-1 shrink-0 px-2">
                 <a
