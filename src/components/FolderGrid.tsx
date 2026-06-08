@@ -8,11 +8,12 @@ import {
   isViewableInDrive,
 } from "@/lib/drive";
 import { extractCover, getCachedCover } from "@/lib/cover-extract";
-import { BookOpen, FolderOpen, FileWarning, Loader2, Flame, Sparkles, Clock, Star, ArrowDownAZ } from "lucide-react";
+import { BookOpen, Check, FolderOpen, FileWarning, Loader2, Flame, Sparkles, Clock, Star, ArrowDownAZ } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pickTrending, popularityScore } from "@/lib/manga-popularity";
 import { getOnlineCover, getCachedOnlineCover, looksLikeChapter } from "@/lib/online-cover";
 import { getFirstSeen, isNew, NEW_WINDOW_DAYS } from "@/lib/recency";
+import { useReadStatus } from "@/lib/read-status";
 
 type Props = {
   items: DriveNode[];
@@ -196,7 +197,7 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
 
   // ---------- Filtros de ordenação por seção ----------
   type SortKey = "recent" | "popular" | "chronological" | "az";
-  const defaultSort: SortKey = isMangaLike ? "popular" : "chronological";
+  const defaultSort: SortKey = "popular";
   const [sort, setSort] = useState<SortKey>(defaultSort);
   // Reset quando o conjunto de itens mudar (ex.: trocou de editora/pasta).
   useEffect(() => { setSort(defaultSort); }, [items, defaultSort]);
