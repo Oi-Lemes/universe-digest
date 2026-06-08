@@ -11,6 +11,7 @@ import { extractCover, getCachedCover } from "@/lib/cover-extract";
 import { BookOpen, Check, FolderOpen, FileWarning, Loader2, Flame, Sparkles, Clock, Star, ArrowDownAZ } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pickTrending, popularityScore } from "@/lib/manga-popularity";
+import { comicsPopularityScore } from "@/lib/comics-popularity";
 import { getOnlineCover, getCachedOnlineCover, looksLikeChapter } from "@/lib/online-cover";
 import { getFirstSeen, isNew, NEW_WINDOW_DAYS } from "@/lib/recency";
 import { useReadStatus } from "@/lib/read-status";
@@ -256,11 +257,9 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
         });
       case "popular":
         return arr.sort((a, b) => {
-          if (isMangaLike) {
-            const pa = popularityScore(a.name);
-            const pb = popularityScore(b.name);
-            if (pb !== pa) return pb - pa;
-          }
+          const pa = isMangaLike ? popularityScore(a.name) : comicsPopularityScore(a.name);
+          const pb = isMangaLike ? popularityScore(b.name) : comicsPopularityScore(b.name);
+          if (pb !== pa) return pa - pb; // menor score = mais famoso → vem antes
           const sa = sizeOf(a);
           const sb = sizeOf(b);
           if (sb !== sa) return sb - sa;
