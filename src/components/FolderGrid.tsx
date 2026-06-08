@@ -8,11 +8,12 @@ import {
   isViewableInDrive,
 } from "@/lib/drive";
 import { extractCover, getCachedCover } from "@/lib/cover-extract";
-import { BookOpen, FolderOpen, FileWarning, Loader2, Flame, Sparkles, Clock, Star, ArrowDownAZ } from "lucide-react";
+import { BookOpen, Check, FolderOpen, FileWarning, Loader2, Flame, Sparkles, Clock, Star, ArrowDownAZ } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pickTrending, popularityScore } from "@/lib/manga-popularity";
 import { getOnlineCover, getCachedOnlineCover, looksLikeChapter } from "@/lib/online-cover";
 import { getFirstSeen, isNew, NEW_WINDOW_DAYS } from "@/lib/recency";
+import { useReadStatus } from "@/lib/read-status";
 
 type Props = {
   items: DriveNode[];
@@ -196,7 +197,7 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
 
   // ---------- Filtros de ordenação por seção ----------
   type SortKey = "recent" | "popular" | "chronological" | "az";
-  const defaultSort: SortKey = isMangaLike ? "popular" : "chronological";
+  const defaultSort: SortKey = "popular";
   const [sort, setSort] = useState<SortKey>(defaultSort);
   // Reset quando o conjunto de itens mudar (ex.: trocou de editora/pasta).
   useEffect(() => { setSort(defaultSort); }, [items, defaultSort]);
@@ -313,62 +314,98 @@ export const FolderGrid = ({ items, onOpenFolder, onOpenFile, emptyHint, mode = 
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-        {sorted.map((node) => {
-          const isFolder = node.type === "folder";
-          const stats = isFolder ? countDescendants(node) : null;
-          const isTrending = trendingSet.has(node.name.toLowerCase());
-          const isHotNow = hotNow !== null && node.name.toLowerCase() === hotNow.toLowerCase();
-          const fresh = isNew(node.id);
-          return (
-            <button
-              key={node.id}
-              onClick={() => (isFolder ? onOpenFolder(node) : onOpenFile(node))}
-              className={cn(
-                "group relative text-left rounded-lg border border-border bg-card p-2 transition-all",
-                "hover:border-primary hover:-translate-y-0.5 hover:shadow-[var(--shadow-comic)]",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                isHotNow && "border-[hsl(335_92%_60%)] shadow-[0_0_0_2px_hsl(335_92%_60%/0.45),0_8px_24px_-6px_hsl(335_92%_55%/0.6)] -translate-y-0.5",
-                fresh && !isHotNow && "border-[hsl(150_70%_45%)] shadow-[0_0_0_1px_hsl(150_70%_45%/0.45)]"
-              )}
-            >
-              <Cover node={node} mode={mode} />
-              {isTrending && (
-                <span
-                  className={cn(
-                    "absolute top-1 left-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full",
-                    "text-[9px] font-bold uppercase tracking-wide",
-                    "bg-gradient-to-r from-[hsl(20_95%_55%)] via-[hsl(8_95%_52%)] to-[hsl(335_92%_55%)]",
-                    "text-white shadow-[0_2px_8px_hsl(8_95%_52%/0.6)]",
-                    isHotNow && "animate-pulse scale-110"
-                  )}
-                  title={isHotNow ? "🔥 Em alta agora" : "Em alta"}
-                >
-                  <Flame className={cn("w-2.5 h-2.5", isHotNow && "animate-bounce")} strokeWidth={2.5} />
-                  {isHotNow ? "EM ALTA" : "HOT"}
-                </span>
-              )}
-              {fresh && (
-                <span
-                  className="absolute top-1 right-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-[hsl(150_70%_42%)] text-white shadow-[0_2px_8px_hsl(150_70%_40%/0.6)]"
-                  title="Adicionado recentemente"
-                >
-                  <Sparkles className="w-2.5 h-2.5" strokeWidth={2.5} />
-                  NOVO
-                </span>
-              )}
-              <div className="text-xs font-medium leading-snug line-clamp-2 group-hover:text-primary px-0.5">
-                {node.name}
-              </div>
-              {stats && (
-                <div className="mt-1 text-[10px] text-muted-foreground px-0.5">
-                  {stats.folders > 0 && `${stats.folders} pastas · `}
-                  {stats.files} HQs
-                </div>
-              )}
-            </button>
-          );
-        })}
+        {sorted.map((node) => (
+          <GridItem
+            key={node.id}
+            node={node}
+            mode={mode}
+            hotNow={hotNow}
+            trendingSet={trendingSet}
+            onOpenFolder={onOpenFolder}
+            onOpenFile={onOpenFile}
+          />
+        ))}
       </div>
     </div>
+  );
+};
+
+type GridItemProps = {
+  node: DriveNode;
+  mode: "default" | "manga" | "manhwa";
+  hotNow: string | null;
+  trendingSet: Set<string>;
+  onOpenFolder: (node: DriveNode) => void;
+  onOpenFile: (node: DriveNode) => void;
+};
+
+const GridItem = ({ node, mode, hotNow, trendingSet, onOpenFolder, onOpenFile }: GridItemProps) => {
+  const isFolder = node.type === "folder";
+  const stats = isFolder ? countDescendants(node) : null;
+  const isTrending = trendingSet.has(node.name.toLowerCase());
+  const isHotNow = hotNow !== null && node.name.toLowerCase() === hotNow.toLowerCase();
+  const fresh = isNew(node.id);
+  const read = useReadStatus(!isFolder ? node.id : null);
+  return (
+    <button
+      onClick={() => (isFolder ? onOpenFolder(node) : onOpenFile(node))}
+      className={cn(
+        "group relative text-left rounded-lg border border-border bg-card p-2 transition-all",
+        "hover:border-primary hover:-translate-y-0.5 hover:shadow-[var(--shadow-comic)]",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        isHotNow && "border-[hsl(335_92%_60%)] shadow-[0_0_0_2px_hsl(335_92%_60%/0.45),0_8px_24px_-6px_hsl(335_92%_55%/0.6)] -translate-y-0.5",
+        fresh && !isHotNow && "border-[hsl(150_70%_45%)] shadow-[0_0_0_1px_hsl(150_70%_45%/0.45)]",
+        read && "opacity-75"
+      )}
+    >
+      <div className="relative">
+        <Cover node={node} mode={mode} />
+        {read && (
+          <span
+            className="absolute bottom-3 right-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-[hsl(150_70%_42%)] text-white shadow-[0_2px_8px_hsl(150_70%_40%/0.6)]"
+            title="Você já leu"
+          >
+            <Check className="w-2.5 h-2.5" strokeWidth={3} />
+            LIDO
+          </span>
+        )}
+      </div>
+      {isTrending && (
+        <span
+          className={cn(
+            "absolute top-1 left-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full",
+            "text-[9px] font-bold uppercase tracking-wide",
+            "bg-gradient-to-r from-[hsl(20_95%_55%)] via-[hsl(8_95%_52%)] to-[hsl(335_92%_55%)]",
+            "text-white shadow-[0_2px_8px_hsl(8_95%_52%/0.6)]",
+            isHotNow && "animate-pulse scale-110"
+          )}
+          title={isHotNow ? "🔥 Em alta agora" : "Em alta"}
+        >
+          <Flame className={cn("w-2.5 h-2.5", isHotNow && "animate-bounce")} strokeWidth={2.5} />
+          {isHotNow ? "EM ALTA" : "HOT"}
+        </span>
+      )}
+      {fresh && (
+        <span
+          className="absolute top-1 right-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-[hsl(150_70%_42%)] text-white shadow-[0_2px_8px_hsl(150_70%_40%/0.6)]"
+          title="Adicionado recentemente"
+        >
+          <Sparkles className="w-2.5 h-2.5" strokeWidth={2.5} />
+          NOVO
+        </span>
+      )}
+      <div className={cn(
+        "text-xs font-medium leading-snug line-clamp-2 group-hover:text-primary px-0.5",
+        read && "line-through decoration-[hsl(150_70%_42%)]/60"
+      )}>
+        {node.name}
+      </div>
+      {stats && (
+        <div className="mt-1 text-[10px] text-muted-foreground px-0.5">
+          {stats.folders > 0 && `${stats.folders} pastas · `}
+          {stats.files} HQs
+        </div>
+      )}
+    </button>
   );
 };
