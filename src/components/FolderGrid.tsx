@@ -11,6 +11,7 @@ import { extractCover, getCachedCover } from "@/lib/cover-extract";
 import { BookOpen, Check, FolderOpen, FileWarning, Loader2, Flame, Sparkles, Clock, Star, ArrowDownAZ } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pickTrending, popularityScore } from "@/lib/manga-popularity";
+import { comicsPopularityScore } from "@/lib/comics-popularity";
 import { getOnlineCover, getCachedOnlineCover, looksLikeChapter } from "@/lib/online-cover";
 import { getFirstSeen, isNew, NEW_WINDOW_DAYS } from "@/lib/recency";
 import { useReadStatus } from "@/lib/read-status";
