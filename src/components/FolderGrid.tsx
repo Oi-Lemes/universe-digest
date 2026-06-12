@@ -402,7 +402,7 @@ const GridItem = ({ node, mode, hotNow, trendingSet, onOpenFolder, onOpenFile }:
       {stats && (
         <div className="mt-1 text-[10px] text-muted-foreground px-0.5">
           {stats.folders > 0 && `${stats.folders} pastas · `}
-          {stats.files} HQs
+          {stats.files} {mode === "default" ? "HQs" : "capítulos"}
         </div>
       )}
     </button>
