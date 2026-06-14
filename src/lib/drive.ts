@@ -12,6 +12,10 @@ export type DriveTree = {
   children: DriveNode[];
 };
 
+const DRIVE_ID_OVERRIDES: Record<string, string> = {
+  "Wolverine.Origens.Anual #01.pdf": "1Pl5vRzVN2NWzcLlD_KfRmCxZXrwxESww",
+};
+
 let cache: Promise<DriveTree> | null = null;
 const DRIVE_TREE_VERSION = "2026-05-12-aot-covers";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
@@ -85,6 +89,11 @@ export function loadDriveTree(): Promise<DriveTree> {
   return cache;
 }
 
+export function resolveDriveFileId(id: string, fileName?: string): string {
+  if (!fileName) return id;
+  return DRIVE_ID_OVERRIDES[fileName] ?? id;
+}
+
 export function folderUrl(id: string): string {
   return `https://drive.google.com/drive/folders/${id}`;
 }
@@ -103,13 +112,13 @@ export function directDriveDownloadUrl(id: string): string {
 }
 
 export function fileContentUrl(id: string, fileName?: string): string {
-  const params = new URLSearchParams({ id });
+  const params = new URLSearchParams({ id: resolveDriveFileId(id, fileName) });
   if (fileName) params.set("name", fileName);
   return `${SUPABASE_URL}/functions/v1/drive-proxy?${params.toString()}`;
 }
 
 export function fileDownloadUrl(id: string, fileName?: string): string {
-  const params = new URLSearchParams({ id, download: "1" });
+  const params = new URLSearchParams({ id: resolveDriveFileId(id, fileName), download: "1" });
   if (fileName) params.set("name", fileName);
   return `${SUPABASE_URL}/functions/v1/drive-proxy?${params.toString()}`;
 }
