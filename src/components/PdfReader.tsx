@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Loader2, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
-import { downloadDriveFile, driveProxyHeaders } from "@/lib/drive";
+import { downloadDriveFile, driveProxyHeaders, fileContentUrl } from "@/lib/drive";
 import { useAuth } from "@/hooks/useAuth";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Worker servido localmente (evita CORS e funciona offline depois do 1º load).
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-
-const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-proxy`;
 
 // ---------- Cache em IndexedDB (PDF inteiro como Blob) ----------
 const DB_NAME = "pdf-cache-v2";
@@ -86,7 +84,7 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
         let blob = await cacheGet(fileId);
         if (!blob) {
           setProgress("Baixando PDF…");
-          const res = await fetch(`${PROXY_URL}?id=${encodeURIComponent(fileId)}`, {
+          const res = await fetch(fileContentUrl(fileId, fileName), {
             cache: "no-store",
             headers: driveProxyHeaders(),
           });
