@@ -127,7 +127,7 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
           if (cancelled) return;
           blob = new Blob(chunks as BlobPart[], { type: "application/pdf" });
           // Salva no cache para próximas aberturas serem instantâneas.
-          cacheSet(fileId, blob);
+          cacheSet(cacheKey, blob);
         } else {
           setProgress("Abrindo do cache…");
         }
