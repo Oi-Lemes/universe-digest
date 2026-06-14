@@ -103,9 +103,8 @@ export function directDriveDownloadUrl(id: string): string {
 }
 
 export function fileDownloadUrl(id: string, fileName?: string): string {
-  const params = new URLSearchParams({ id });
+  const params = new URLSearchParams({ id, download: "1" });
   if (fileName) params.set("name", fileName);
-  if (SUPABASE_PUBLISHABLE_KEY) params.set("apikey", SUPABASE_PUBLISHABLE_KEY);
   return `${SUPABASE_URL}/functions/v1/drive-proxy?${params.toString()}`;
 }
 
@@ -118,7 +117,7 @@ export function driveProxyHeaders(): HeadersInit {
 }
 
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  const url = directDriveDownloadUrl(id);
+  const url = fileDownloadUrl(id, fileName);
   const link = document.createElement("a");
   link.href = url;
   link.download = fileName;
