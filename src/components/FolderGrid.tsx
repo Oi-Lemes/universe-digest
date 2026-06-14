@@ -8,6 +8,7 @@ import {
   isViewableInDrive,
 } from "@/lib/drive";
 import { extractCover, getCachedCover } from "@/lib/cover-extract";
+import { getBucketCoverSync } from "@/lib/bucket-covers";
 import { BookOpen, Check, FolderOpen, FileWarning, Loader2, Flame, Sparkles, Clock, Star, ArrowDownAZ } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pickTrending, popularityScore } from "@/lib/manga-popularity";
@@ -32,7 +33,15 @@ const usedOnlineUrls = new Set<string>();
 
 const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "manhwa" }) => {
   const [errored, setErrored] = useState(false);
-  const directUrl = coverUrl(node, 400);
+  // Bucket cover (server-extracted Marvel/DC) takes priority — instant + no Drive dependency.
+  const bucketUrl =
+    node.type === "file"
+      ? getBucketCoverSync(node.id)
+      : (() => {
+          const first = firstArchiveIn(node);
+          return first ? getBucketCoverSync(first.id) : undefined;
+        })();
+  const directUrl = bucketUrl ?? coverUrl(node, 400);
   const isFolder = node.type === "folder";
   const viewable = !isFolder && isViewableInDrive(node.name);
   // ----- Lazy CBR cover extraction fallback -----
