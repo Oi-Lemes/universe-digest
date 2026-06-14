@@ -1,49 +1,51 @@
-# Plano: Briefing UGC v2 — Império dos Quadrinhos
+## Objetivo
+Extrair, de uma vez só, a primeira página de cada arquivo CBR/CBZ/PDF dentro das pastas **Marvel** e **DC**, salvar essas capas no bucket `comic-covers` do backend, e fazer o app usar essas capas direto — parando de depender da thumbnail do Google Drive (que falha em arquivos grandes).
 
-**Arquivo de saída:** `/mnt/documents/briefing-ugc-imperio-quadrinhos-v2.docx`
+Mangás, manhwas e outras editoras continuam funcionando como hoje (sem mexer).
 
-## Estrutura do documento
+## O que será feito
 
-1. **Capa / Título**: Briefing UGC — Império dos Quadrinhos (v2)
-2. **Resumo do projeto**: O que é o app, público-alvo, objetivo do vídeo
-3. **Perfil ideal do creator** (nova seção):
-   - Aparência típica de fã de HQs/mangás
-   - Sugestões: camisetas de super-heróis/animes, óculos, ambiente nerd ao fundo (estante de quadrinhos, action figures, pôsteres)
-   - Energia autêntica de quem curte o universo geek
-4. **Especificações técnicas**:
-   - Formato vertical 9:16
-   - **Duração: máximo 30 segundos**
-   - Áudio limpo (lapela ou similar)
-   - Boa iluminação (natural ou ring light)
-5. **Setup de gravação obrigatório**:
-   - Filmar com **celular na mão** navegando o app
-   - Filmar **alternando para o computador/notebook** mostrando a mesma experiência
-   - Transições visíveis entre os dois dispositivos
-6. **Roteiro cena-a-cena (30s total)** — em formato de tabela:
-   - **Cena 1 (0–7s) — Hook**: expressão de descoberta com celular na mão
-   - **Cena 2 (7–15s) — Multi-dispositivo**: alterna celular ↔ PC. Fala: *"Dá pra ver tanto no PC quanto no celular, e pode usar no Kindle também"*
-   - **Cena 3 (15–23s) — Catálogo + Bônus**: mostra editoras (Marvel, DC, Vertigo…) + *"E ainda tem um bônus sensacional com mangás antigos e atualizados"*
-   - **Cena 4 (23–30s) — Pitch + CTA**: *"Tudo isso por R$ 5,99 — pagamento único, sem mensalidade. Comenta EU QUERO ou clica em Saiba Mais"*
-7. **Frases obrigatórias na narração** (lista destacada):
-   - "Dá pra ver tanto no PC quanto no celular, e pode usar no Kindle também"
-   - "Bônus sensacional com mangás antigos e atualizados"
-   - "R$ 5,99 — pagamento único, sem mensalidade"
-   - CTA: "Comenta EU QUERO" **ou** "Clica em Saiba Mais"
-8. **Tom e estilo**: autêntico, empolgado, descoberta genuína — não robótico, não comercial
-9. **Entregáveis**: vídeo final editado (MP4 vertical) + arquivos brutos (raw)
-10. **Direitos de uso**: 12 meses para tráfego pago e orgânico
-11. **Como se candidatar** (texto pronto pra colar como descrição da vaga no 99Freelas)
+1. **Edge function `extract-marvel-dc-covers`** (rodada manualmente quando você quiser atualizar):
+   - Lê `public/data/drive_tree.json`.
+   - Acha as pastas raiz "Marvel" e "DC" (case-insensitive).
+   - Para cada arquivo CBR/CBZ dentro delas:
+     - Baixa via `drive-proxy`.
+     - Extrai a 1ª imagem com `libarchive` (rodando no Deno).
+     - Redimensiona pra ~600px de largura, JPEG q=0.82.
+     - Faz upload em `comic-covers/{fileId}.jpg` (público).
+   - Pula arquivos já presentes no bucket (idempotente — pode rodar de novo a qualquer hora pra capturar novos uploads).
+   - Retorna um JSON com `{processed, skipped, failed}`.
 
-## Implementação técnica
+2. **Tabela `comic_cover_index`** (pequena, só pra controle):
+   - `file_id` (pk), `bucket_path`, `extracted_at`, `status`.
+   - RLS: leitura pública (`anon`), escrita só pelo `service_role`.
+   - Frontend lê isso uma vez no boot e monta um mapa `fileId → URL pública`.
 
-- Usar `docx-js` com Arial como fonte padrão
-- Headings sobrescritos (H1/H2) para hierarquia
-- Listas com `LevelFormat.BULLET` (sem unicode manual)
-- **Tabela** para o roteiro cena-a-cena: colunas `Tempo | Ação visual | Fala/Narração`
-- Página US Letter, margens 1"
-- Validar com `validate_document.py` após gerar
-- QA: converter para PDF e imagens, revisar todas as páginas antes de entregar
+3. **Frontend — `src/lib/drive.ts` e `src/components/FolderGrid.tsx`**:
+   - Nova função `getBucketCover(fileId)` retornando a URL pública do bucket (se existir no índice).
+   - Ordem de prioridade nova para capas em HQ Marvel/DC:
+     1. Capa do bucket (`comic-covers`) ← **nova fonte estável**
+     2. Thumb do Drive (fallback)
+     3. Extração on-demand (fallback final, como hoje)
+   - Para pastas Marvel/DC, usa a capa do primeiro arquivo dentro como capa da pasta (usando o mesmo índice).
 
-## Saída final
+4. **Botão admin "Atualizar capas Marvel/DC"** (visível só pra você):
+   - Chama a edge function e mostra progresso/resultado.
+   - Fica em algum canto discreto da Home ou Admin.
 
-Emitir tag `<lov-artifact>` apontando para o arquivo v2 em `/mnt/documents/`.
+## Resultado esperado
+
+- Primeira rodada: leva alguns minutos (depende de quantos CBRs tem em Marvel/DC).
+- Depois disso: capas aparecem instantâneas, sem depender do Drive.
+- Quando você subir novos HQs Marvel/DC, é só clicar no botão de novo — só os novos serão processados.
+- Mangás/Manhwas: zero mudança.
+
+## Detalhes técnicos
+
+- Bucket `comic-covers` já existe e é público — só vamos usar.
+- `libarchive` em Deno: usa `npm:libarchive.js` com o worker bundle servido inline.
+- Concorrência limitada a 3 downloads simultâneos pra não estourar memória do edge runtime.
+- Timeout total da função: 60s por batch; cliente chama em loop até `processed === 0` pra cobrir acervos grandes.
+- Migration cria a tabela com os GRANTs corretos (`SELECT` pra `anon`, `ALL` pra `service_role`).
+
+Posso seguir?
