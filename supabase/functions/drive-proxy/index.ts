@@ -7,7 +7,7 @@ const ALLOW_ORIGIN = "*";
 const corsHeaders = {
   "Access-Control-Allow-Origin": ALLOW_ORIGIN,
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "content-type, range",
+  "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type, range",
   "Access-Control-Expose-Headers": "content-length, content-range, accept-ranges, content-type, content-disposition",
 };
 
