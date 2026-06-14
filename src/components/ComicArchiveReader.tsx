@@ -164,7 +164,7 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
         <p className="text-sm text-muted-foreground max-w-md">{error}</p>
         {!isTrial && (
           <Button asChild size="sm" variant="secondary">
-            <a href={fileDownloadUrl(fileId)} download={fileName}>
+            <a href={fileDownloadUrl(fileId, fileName)} download={fileName}>
               Baixar arquivo
             </a>
           </Button>

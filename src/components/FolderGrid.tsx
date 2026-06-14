@@ -33,15 +33,17 @@ const usedOnlineUrls = new Set<string>();
 
 const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "manhwa" }) => {
   const [errored, setErrored] = useState(false);
-  // Bucket cover (server-extracted Marvel/DC) takes priority — instant + no Drive dependency.
-  const bucketUrl =
-    node.type === "file"
+  const originalUrl = coverUrl(node, 400);
+  // Mantém sempre a capa original/manual do catálogo; usa bucket só onde não há capa.
+  const bucketUrl = originalUrl
+    ? undefined
+    : node.type === "file"
       ? getBucketCoverSync(node.id)
       : (() => {
           const first = firstArchiveIn(node);
           return first ? getBucketCoverSync(first.id) : undefined;
         })();
-  const directUrl = bucketUrl ?? coverUrl(node, 400);
+  const directUrl = originalUrl ?? bucketUrl ?? null;
   const isFolder = node.type === "folder";
   const viewable = !isFolder && isViewableInDrive(node.name);
   // ----- Lazy CBR cover extraction fallback -----

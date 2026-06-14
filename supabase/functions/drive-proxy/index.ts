@@ -18,6 +18,13 @@ function isValidId(id: string) {
   return /^[A-Za-z0-9_-]{10,}$/.test(id);
 }
 
+function contentDispositionName(name: string | null) {
+  if (!name) return null;
+  const safe = name.replace(/[\r\n"\\]/g, " ").trim().slice(0, 180);
+  if (!safe) return null;
+  return `attachment; filename*=UTF-8''${encodeURIComponent(safe)}`;
+}
+
 function sourceUrl(id: string) {
   if (LOVABLE_KEY && CONNECTION_KEY) {
     return `https://connector-gateway.lovable.dev/google_drive/drive/v3/files/${encodeURIComponent(id)}?alt=media`;
@@ -44,6 +51,7 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
+    const name = url.searchParams.get("name");
     if (!id || !isValidId(id)) {
       return new Response(JSON.stringify({ error: "missing or invalid id" }), {
         status: 400,
@@ -66,7 +74,7 @@ Deno.serve(async (req) => {
     if (cr) respHeaders.set("content-range", cr);
     const ar = upstream.headers.get("accept-ranges");
     if (ar) respHeaders.set("accept-ranges", ar);
-    const cd = upstream.headers.get("content-disposition");
+    const cd = contentDispositionName(name) ?? upstream.headers.get("content-disposition");
     if (cd) respHeaders.set("content-disposition", cd);
 
     return new Response(upstream.body, {

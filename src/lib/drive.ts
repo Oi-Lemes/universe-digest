@@ -14,6 +14,7 @@ export type DriveTree = {
 
 let cache: Promise<DriveTree> | null = null;
 const DRIVE_TREE_VERSION = "2026-05-12-aot-covers";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
 /**
  * Aplica capas manuais (cover_overrides.json) em pastas/arquivos cujo id
@@ -96,10 +97,10 @@ export function fileViewUrl(id: string): string {
   return `https://drive.google.com/file/d/${id}/view`;
 }
 
-export function fileDownloadUrl(id: string): string {
-  // Abre a página do arquivo no Drive — o cliente baixa pelo botão nativo
-  // (mais confiável que tentar download direto, que volta 404 em arquivos grandes).
-  return `https://drive.google.com/file/d/${id}/view`;
+export function fileDownloadUrl(id: string, fileName?: string): string {
+  const params = new URLSearchParams({ id });
+  if (fileName) params.set("name", fileName);
+  return `${SUPABASE_URL}/functions/v1/drive-proxy?${params.toString()}`;
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
