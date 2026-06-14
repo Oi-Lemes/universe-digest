@@ -41,24 +41,38 @@ function persist(map: SeenMap) {
  */
 export function registerSeen(ids: Iterable<string>): SeenMap {
   const map = { ...load() };
-  const now = Date.now();
-  const bootstrapped = (() => {
-    try { return localStorage.getItem(BOOTSTRAP_KEY) === "1"; } catch { return false; }
-  })();
-  // Bootstrap: usa timestamp ANTIGO pra nada aparecer como novo no 1º load.
-  const stamp = bootstrapped ? now : now - (NEW_WINDOW_DAYS + 1) * 86_400_000;
+  // Timestamp bem antigo → isNew() sempre retorna false pra ids vistos via
+  // simples carregamento da árvore. O selo NOVO só aparece quando você
+  // marcar explicitamente via markAsNew() (ex.: ao subir conteúdo novo).
+  const oldStamp = Date.now() - (NEW_WINDOW_DAYS + 30) * 86_400_000;
   let changed = false;
   for (const id of ids) {
     if (!(id in map)) {
-      map[id] = stamp;
+      map[id] = oldStamp;
       changed = true;
     }
   }
   if (changed) persist(map);
-  if (!bootstrapped) {
-    try { localStorage.setItem(BOOTSTRAP_KEY, "1"); } catch { /* ignore */ }
-  }
+  // Mantém a flag de bootstrap por compatibilidade (não é mais usada na lógica).
+  try { localStorage.setItem(BOOTSTRAP_KEY, "1"); } catch { /* ignore */ }
   return map;
+}
+
+/** Marca explicitamente ids como recém-adicionados (mostra selo NOVO). */
+export function markAsNew(ids: Iterable<string>): void {
+  const map = { ...load() };
+  const now = Date.now();
+  for (const id of ids) map[id] = now;
+  persist(map);
+}
+
+/** Reseta todos os timestamps para "antigos" — limpa selos NOVO em massa. */
+export function clearAllNew(): void {
+  const map = load();
+  const oldStamp = Date.now() - (NEW_WINDOW_DAYS + 30) * 86_400_000;
+  const next: SeenMap = {};
+  for (const id of Object.keys(map)) next[id] = oldStamp;
+  persist(next);
 }
 
 export function getFirstSeen(id: string): number | undefined {
