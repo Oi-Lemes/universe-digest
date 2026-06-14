@@ -126,8 +126,12 @@ export async function downloadDriveFile(id: string, fileName: string): Promise<v
   });
 
   if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-    await navigator.share({ files: [file], title: fileName });
-    return;
+    try {
+      await navigator.share({ files: [file], title: fileName });
+      return;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+    }
   }
 
   const url = URL.createObjectURL(blob);
