@@ -32,10 +32,10 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
 
   return (
     <Dialog open={!!fileId} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-6xl w-[100vw] sm:w-auto h-[100dvh] sm:h-[90vh] max-h-[100dvh] p-0 overflow-hidden bg-card border-border rounded-none sm:rounded-lg">
+      <DialogContent className="w-screen h-[100dvh] max-w-none max-h-[100dvh] p-0 overflow-hidden bg-card border-0 rounded-none sm:rounded-none">
         <DialogTitle className="sr-only">{fileName}</DialogTitle>
         <div className="flex flex-col h-full">
-          <header className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 pr-12 border-b border-border bg-secondary/40 min-w-0">
+          <header className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 pr-12 pt-[calc(0.5rem+env(safe-area-inset-top))] border-b border-border bg-secondary/40 min-w-0 shrink-0">
             <h2 className="font-semibold truncate text-xs sm:text-sm flex-1 min-w-0">{fileName}</h2>
             {fileId && (
               <Button
