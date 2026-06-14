@@ -25,22 +25,38 @@ function contentDispositionName(name: string | null) {
   return `attachment; filename*=UTF-8''${encodeURIComponent(safe)}`;
 }
 
-function sourceUrl(id: string) {
-  if (LOVABLE_KEY && CONNECTION_KEY) {
+function sourceUrl(id: string, useConnector = true) {
+  if (useConnector && LOVABLE_KEY && CONNECTION_KEY) {
     return `https://connector-gateway.lovable.dev/google_drive/drive/v3/files/${encodeURIComponent(id)}?alt=media`;
   }
   return `https://drive.usercontent.google.com/download?id=${encodeURIComponent(id)}&export=download&confirm=t`;
 }
 
-function sourceHeaders(range: string | null): HeadersInit {
+function sourceHeaders(range: string | null, useConnector = true): HeadersInit {
   const headers: Record<string, string> = {};
   if (range) headers.range = range;
-  if (LOVABLE_KEY && CONNECTION_KEY) {
+  if (useConnector && LOVABLE_KEY && CONNECTION_KEY) {
     headers["X-Connection-Api-Key"] = CONNECTION_KEY;
     headers["Lovable-API-Key"] = LOVABLE_KEY;
     headers.Authorization = `Bearer ${LOVABLE_KEY}`;
   }
   return headers;
+}
+
+async function fetchSource(id: string, range: string | null) {
+  const canUseConnector = Boolean(LOVABLE_KEY && CONNECTION_KEY);
+  if (canUseConnector) {
+    const upstream = await fetch(sourceUrl(id, true), {
+      headers: sourceHeaders(range, true),
+      redirect: "follow",
+    });
+    if (upstream.ok || ![403, 404].includes(upstream.status)) return upstream;
+  }
+
+  return fetch(sourceUrl(id, false), {
+    headers: sourceHeaders(range, false),
+    redirect: "follow",
+  });
 }
 
 Deno.serve(async (req) => {
@@ -60,10 +76,7 @@ Deno.serve(async (req) => {
     }
 
     const range = req.headers.get("range");
-    const upstream = await fetch(sourceUrl(id), {
-      headers: sourceHeaders(range),
-      redirect: "follow",
-    });
+    const upstream = await fetchSource(id, range);
 
     const ct = upstream.headers.get("content-type") || "";
     const respHeaders = new Headers(corsHeaders);
