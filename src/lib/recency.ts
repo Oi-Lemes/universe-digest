@@ -13,6 +13,8 @@ type SeenMap = Record<string, number>;
 
 let cache: SeenMap | null = null;
 
+const CLEAR_FLAG = "drive:firstSeen:cleared-novo:v2";
+
 function load(): SeenMap {
   if (cache) return cache;
   try {
@@ -21,6 +23,17 @@ function load(): SeenMap {
   } catch {
     cache = {};
   }
+  // Migração única: zera selos NOVO acumulados pela lógica antiga.
+  try {
+    if (localStorage.getItem(CLEAR_FLAG) !== "1") {
+      const oldStamp = Date.now() - (NEW_WINDOW_DAYS + 30) * 86_400_000;
+      const next: SeenMap = {};
+      for (const id of Object.keys(cache!)) next[id] = oldStamp;
+      cache = next;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
+      localStorage.setItem(CLEAR_FLAG, "1");
+    }
+  } catch { /* ignore */ }
   return cache!;
 }
 
