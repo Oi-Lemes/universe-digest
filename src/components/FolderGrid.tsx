@@ -119,9 +119,10 @@ const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "m
     return () => { cancelled = true; };
   }, [needsOnline, onlineUrl, node.name, kind]);
 
-  // Prioridade: thumb do Drive → 1ª página extraída do arquivo → capa online (AniList)
+  // Prioridade: original/manual → bucket (servidor) → extração no navegador → online (mangás)
   const finalUrl =
-    (errored ? null : directUrl) ??
+    (errored ? null : originalUrl) ??
+    bucketUrl ??
     extractedUrl ??
     (onlineUrl ?? null);
 
