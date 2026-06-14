@@ -31,47 +31,13 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   const isArchive = !!fileId && ARCHIVE_EXTS.has(ext);
   const isPdf = !!fileId && ext === "pdf";
   const viewable = fileId ? isViewableInDrive(fileName) : false;
-  const [downloading, setDownloading] = useState(false);
+  const downloadHref = fileId ? fileDownloadUrl(fileId, fileName) : "#";
 
-  const handleDownload = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    if (!fileId || downloading) return;
-    setDownloading(true);
-    const tId = toast.loading(`Baixando ${fileName}…`);
-    try {
-      const res = await fetch(fileDownloadUrl(fileId));
-      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
-      const total = Number(res.headers.get("content-length") || 0);
-      const reader = res.body.getReader();
-      const chunks: Uint8Array[] = [];
-      let received = 0;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        received += value.length;
-        if (total) {
-          const pct = Math.round((received / total) * 100);
-          toast.loading(`Baixando ${fileName}… ${pct}%`, { id: tId });
-        }
-      }
-      const blob = new Blob(chunks as BlobPart[]);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      a.rel = "noopener";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-      toast.success("Download concluído", { id: tId });
-    } catch (err) {
-      console.error("download failed", err);
-      toast.error("Falha ao baixar. Tente novamente.", { id: tId });
-    } finally {
-      setDownloading(false);
-    }
+  const handleDownload = (_e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Não previne default: deixa o navegador navegar pra URL, que vem com
+    // Content-Disposition: attachment, e salva nativo em Downloads/Arquivos.
+    if (!fileId) return;
+    toast.success("Download iniciado", { description: fileName });
   };
 
   return (
