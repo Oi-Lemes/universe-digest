@@ -34,10 +34,10 @@ const usedOnlineUrls = new Set<string>();
 const Cover = ({ node, mode }: { node: DriveNode; mode: "default" | "manga" | "manhwa" }) => {
   const [errored, setErrored] = useState(false);
   const originalUrl = coverUrl(node, 400);
-  // Mantém sempre a capa original/manual do catálogo; usa bucket só onde não há capa.
-  const bucketUrl = originalUrl
-    ? undefined
-    : node.type === "file"
+  // Bucket cover (capa extraída no servidor a partir do CBR/CBZ) é fallback —
+  // calculado sempre, pra entrar em ação se a thumb do Drive falhar (404 em CBR/RAR5).
+  const bucketUrl =
+    node.type === "file"
       ? getBucketCoverSync(node.id)
       : (() => {
           const first = firstArchiveIn(node);
