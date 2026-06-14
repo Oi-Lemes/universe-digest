@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Loader2, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
-import { downloadDriveFile, driveProxyHeaders, fileDownloadUrl } from "@/lib/drive";
+import { downloadDriveFile, driveProxyHeaders } from "@/lib/drive";
 import { useAuth } from "@/hooks/useAuth";
 import * as pdfjsLib from "pdfjs-dist";
 
