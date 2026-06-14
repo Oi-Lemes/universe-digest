@@ -173,17 +173,33 @@ export function firstFileIn(node: DriveNode): DriveNode | null {
   const sortName = (a: DriveNode, b: DriveNode) =>
     a.name.localeCompare(b.name, "pt-BR", { numeric: true });
 
+  // 1) Qualquer descendente com capa manual (override) tem prioridade absoluta.
+  const withOverride = (n: DriveNode): DriveNode | null => {
+    if (n.coverUrl) return n;
+    if (!n.children) return null;
+    for (const c of [...n.children].sort(sortName)) {
+      const found = withOverride(c);
+      if (found) return found;
+    }
+    return null;
+  };
+  const overridden = withOverride(node);
+  if (overridden) return overridden;
+
+  // 2) Arquivo visualizável (PDF/imagem) na pasta atual.
   const viewableHere = node.children
     .filter((c) => c.type === "file" && isViewableInDrive(c.name))
     .sort(sortName);
   if (viewableHere.length) return viewableHere[0];
 
+  // 3) Recurse buscando visualizável em subpastas.
   const folders = node.children.filter((c) => c.type === "folder").sort(sortName);
   for (const f of folders) {
     const found = firstFileIn(f);
     if (found && isViewableInDrive(found.name)) return found;
   }
 
+  // 4) Último recurso: qualquer arquivo (inclui CBR/CBZ) — dispara fallback de bucket/extração.
   const filesHere = node.children
     .filter((c) => c.type === "file")
     .sort(sortName);
