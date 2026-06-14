@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Loader2, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
-import { downloadDriveFile, driveProxyHeaders } from "@/lib/drive";
+import { downloadDriveFile, driveProxyHeaders, fileContentUrl, resolveDriveFileId } from "@/lib/drive";
 import { useAuth } from "@/hooks/useAuth";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Worker servido localmente (evita CORS e funciona offline depois do 1º load).
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-
-const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-proxy`;
 
 // ---------- Cache em IndexedDB (PDF inteiro como Blob) ----------
 const DB_NAME = "pdf-cache-v2";
@@ -53,6 +51,20 @@ async function cacheSet(key: string, blob: Blob) {
   }
 }
 
+async function cacheDelete(key: string) {
+  try {
+    const db = await openDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch {
+    /* sem cache, segue */
+  }
+}
+
 function looksLikePdf(buf: ArrayBuffer) {
   const head = new TextDecoder("ascii").decode(buf.slice(0, 5));
   return head === "%PDF-";
@@ -76,6 +88,8 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
   // Carrega bytes (cache → proxy) e abre o PDF.
   useEffect(() => {
     let cancelled = false;
+    const resolvedId = resolveDriveFileId(fileId, fileName);
+    const cacheKey = `${resolvedId}:${fileName}`;
     setLoading(true);
     setError(null);
     setPage(1);
@@ -83,10 +97,10 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
 
     (async () => {
       try {
-        let blob = await cacheGet(fileId);
+        let blob = await cacheGet(cacheKey);
         if (!blob) {
           setProgress("Baixando PDF…");
-          const res = await fetch(`${PROXY_URL}?id=${encodeURIComponent(fileId)}`, {
+          const res = await fetch(fileContentUrl(fileId, fileName), {
             cache: "no-store",
             headers: driveProxyHeaders(),
           });
@@ -113,14 +127,17 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
           if (cancelled) return;
           blob = new Blob(chunks as BlobPart[], { type: "application/pdf" });
           // Salva no cache para próximas aberturas serem instantâneas.
-          cacheSet(fileId, blob);
+          cacheSet(cacheKey, blob);
         } else {
           setProgress("Abrindo do cache…");
         }
 
         const buf = await blob.arrayBuffer();
         if (cancelled) return;
-        if (!looksLikePdf(buf)) throw new Error("O arquivo recebido não é um PDF válido.");
+        if (!looksLikePdf(buf)) {
+          await cacheDelete(cacheKey);
+          throw new Error("O arquivo recebido não é um PDF válido.");
+        }
         const doc = await pdfjsLib.getDocument({ data: buf }).promise;
         if (cancelled) {
           doc.destroy();
@@ -140,7 +157,7 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
     return () => {
       cancelled = true;
     };
-  }, [fileId]);
+  }, [fileId, fileName]);
 
   // Cleanup do documento ao trocar de arquivo / desmontar.
   useEffect(() => {
