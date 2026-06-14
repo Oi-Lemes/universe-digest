@@ -114,10 +114,9 @@ export function driveProxyHeaders(): HeadersInit {
 }
 
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  // Abre o arquivo no Google Drive em nova aba — o usuário baixa de lá,
-  // que é mais confiável (especialmente em celular e arquivos grandes).
-  void fileName;
-  window.open(fileViewUrl(id), "_blank", "noopener,noreferrer");
+  // Baixa pelo proxy do app em navegação direta. Evita o redirecionamento do
+  // Google para drive.usercontent.google.com, que quebra no iOS/WebView com COOP.
+  window.location.assign(fileDownloadUrl(id, fileName));
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
