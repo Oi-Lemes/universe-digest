@@ -102,6 +102,12 @@ export function directDriveDownloadUrl(id: string): string {
   return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(id)}`;
 }
 
+export function fileContentUrl(id: string, fileName?: string): string {
+  const params = new URLSearchParams({ id });
+  if (fileName) params.set("name", fileName);
+  return `${SUPABASE_URL}/functions/v1/drive-proxy?${params.toString()}`;
+}
+
 export function fileDownloadUrl(id: string, fileName?: string): string {
   const params = new URLSearchParams({ id, download: "1" });
   if (fileName) params.set("name", fileName);
@@ -125,12 +131,11 @@ function isMobileUA(): boolean {
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
   const proxyUrl = fileDownloadUrl(id, fileName);
 
-  // On mobile (iOS/Android) browsers, blob downloads via <a download> are
-  // unreliable (iOS Safari ignores `download`, large blobs OOM). Navigate
-  // directly to the proxy — Content-Disposition: attachment makes the OS
-  // handle the save natively ("Salvar em Arquivos", Downloads, etc.).
+  // On mobile (iOS/Android), blob downloads via <a download> are unreliable.
+  // Open a real browser tab so the OS can handle Content-Disposition natively.
   if (isMobileUA()) {
-    window.location.href = proxyUrl;
+    const opened = window.open(proxyUrl, "_blank", "noopener,noreferrer");
+    if (!opened) window.location.assign(proxyUrl);
     return;
   }
 
