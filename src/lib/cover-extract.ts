@@ -6,6 +6,8 @@
 //  - Cacheia resultado (mesmo "sem imagem encontrada") para não re-tentar.
 //  - Downscale para ~360px de largura, JPEG q=0.78 → ~20-40 KB por capa.
 
+import { driveProxyHeaders } from "@/lib/drive";
+
 const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-proxy`;
 const DB_NAME = "cover-cache-v1";
 const STORE = "covers";
@@ -198,7 +200,7 @@ export async function extractCover(fileId: string, fileName: string): Promise<st
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
           const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
-          const res = await fetch(proxied, { cache: "force-cache" });
+          const res = await fetch(proxied, { cache: "force-cache", headers: driveProxyHeaders() });
           if (!res.ok) throw new Error(`download ${res.status}`);
           const blob = await res.blob();
 
