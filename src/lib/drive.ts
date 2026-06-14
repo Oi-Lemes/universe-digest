@@ -114,9 +114,17 @@ export function driveProxyHeaders(): HeadersInit {
 }
 
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  // Baixa pelo proxy do app em navegação direta. Evita o redirecionamento do
-  // Google para drive.usercontent.google.com, que quebra no iOS/WebView com COOP.
-  window.location.assign(fileDownloadUrl(id, fileName));
+  // Abre a página de visualização do Google Drive numa nova aba. Lá o usuário
+  // tem o botão de download nativo do Drive, que funciona em qualquer
+  // navegador/celular sem precisar passar pelo nosso proxy (que exige header
+  // apikey do Supabase e por isso falha em navegação direta).
+  void fileName;
+  const url = fileViewUrl(id);
+  const win = window.open(url, "_blank", "noopener,noreferrer");
+  if (!win) {
+    // Pop-up bloqueado (comum em iOS) — navega na própria aba.
+    window.location.href = url;
+  }
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
