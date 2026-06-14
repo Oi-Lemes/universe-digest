@@ -15,6 +15,7 @@ export type DriveTree = {
 let cache: Promise<DriveTree> | null = null;
 const DRIVE_TREE_VERSION = "2026-05-12-aot-covers";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
 /**
  * Aplica capas manuais (cover_overrides.json) em pastas/arquivos cujo id
@@ -101,6 +102,31 @@ export function fileDownloadUrl(id: string, fileName?: string): string {
   const params = new URLSearchParams({ id });
   if (fileName) params.set("name", fileName);
   return `${SUPABASE_URL}/functions/v1/drive-proxy?${params.toString()}`;
+}
+
+export function driveProxyHeaders(): HeadersInit {
+  if (!SUPABASE_PUBLISHABLE_KEY) return {};
+  return {
+    apikey: SUPABASE_PUBLISHABLE_KEY,
+    Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+  };
+}
+
+export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
+  const res = await fetch(fileDownloadUrl(id, fileName), {
+    headers: driveProxyHeaders(),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`Falha no download (${res.status})`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName || "arquivo";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export function thumbnailUrl(id: string, size = 400): string {

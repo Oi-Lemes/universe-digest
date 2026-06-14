@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Loader2, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
-import { fileDownloadUrl } from "@/lib/drive";
+import { downloadDriveFile, driveProxyHeaders, fileDownloadUrl } from "@/lib/drive";
 import { useAuth } from "@/hooks/useAuth";
 import * as pdfjsLib from "pdfjs-dist";
 
@@ -86,7 +86,10 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
         let blob = await cacheGet(fileId);
         if (!blob) {
           setProgress("Baixando PDF…");
-          const res = await fetch(`${PROXY_URL}?id=${encodeURIComponent(fileId)}`, { cache: "no-store" });
+          const res = await fetch(`${PROXY_URL}?id=${encodeURIComponent(fileId)}`, {
+            cache: "no-store",
+            headers: driveProxyHeaders(),
+          });
           if (!res.ok) throw new Error(`Falha no download (${res.status})`);
           const total = Number(res.headers.get("content-length") || 0);
           const reader = res.body?.getReader();
@@ -203,10 +206,8 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
         <p className="text-destructive font-semibold">Não foi possível abrir o PDF</p>
         <p className="text-sm text-muted-foreground max-w-md">{error}</p>
         {!isTrial && (
-          <Button asChild size="sm" variant="secondary">
-            <a href={fileDownloadUrl(fileId, fileName)} download={fileName}>
-              Baixar arquivo
-            </a>
+          <Button type="button" size="sm" variant="secondary" onClick={() => void downloadDriveFile(fileId, fileName)}>
+            Baixar arquivo
           </Button>
         )}
       </div>

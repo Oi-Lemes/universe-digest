@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Loader2, Maximize2 } from "lucide-react";
-import { fileDownloadUrl } from "@/lib/drive";
+import { downloadDriveFile, driveProxyHeaders, fileDownloadUrl } from "@/lib/drive";
 import { useAuth } from "@/hooks/useAuth";
 
 // Supabase edge function that proxies Google Drive downloads with CORS headers
@@ -41,7 +41,7 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
     (async () => {
       try {
         const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
-        const res = await fetch(proxied, { cache: "no-store" });
+        const res = await fetch(proxied, { cache: "no-store", headers: driveProxyHeaders() });
         if (!res.ok) throw new Error(`Falha no download (${res.status})`);
 
         // Stream-aware progress when content-length is known.
@@ -163,10 +163,8 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
         <p className="text-destructive font-semibold">Não foi possível abrir o arquivo</p>
         <p className="text-sm text-muted-foreground max-w-md">{error}</p>
         {!isTrial && (
-          <Button asChild size="sm" variant="secondary">
-            <a href={fileDownloadUrl(fileId, fileName)} download={fileName}>
-              Baixar arquivo
-            </a>
+          <Button type="button" size="sm" variant="secondary" onClick={() => void downloadDriveFile(fileId, fileName)}>
+            Baixar arquivo
           </Button>
         )}
       </div>

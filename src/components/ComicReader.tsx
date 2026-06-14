@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
+  downloadDriveFile,
   fileDownloadUrl,
   filePreviewUrl,
   isViewableInDrive,
@@ -55,16 +56,15 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
               </Button>
             )}
             {fileId && !isTrial && (
-              <Button asChild size="sm" variant="secondary" className="h-7 gap-1 shrink-0 px-2">
-                <a
-                  href={fileDownloadUrl(fileId, fileName)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download={fileName}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Baixar</span>
-                </a>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="h-7 gap-1 shrink-0 px-2"
+                onClick={() => void downloadDriveFile(fileId, fileName)}
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Baixar</span>
               </Button>
             )}
             {fileId && isTrial && (
@@ -124,15 +124,8 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
                   <Lock className="w-4 h-4" /> Somente quem comprou pode baixar
                 </div>
               ) : (
-                <Button asChild size="lg">
-                  <a
-                    href={fileDownloadUrl(fileId, fileName)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download={fileName}
-                  >
-                    <Download className="w-4 h-4 mr-1.5" /> Baixar HQ
-                  </a>
+                <Button type="button" size="lg" onClick={() => void downloadDriveFile(fileId, fileName)}>
+                  <Download className="w-4 h-4 mr-1.5" /> Baixar HQ
                 </Button>
               )}
             </div>
