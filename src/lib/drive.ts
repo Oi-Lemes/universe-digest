@@ -96,11 +96,13 @@ export function fileViewUrl(id: string): string {
   return `https://drive.google.com/file/d/${id}/view`;
 }
 
-export function fileDownloadUrl(id: string): string {
-  // Stream via nossa edge function (CORS habilitado) pra baixar dentro do app
-  // em vez de redirecionar pro Drive.
+export function fileDownloadUrl(id: string, name?: string): string {
+  // Stream via edge function com Content-Disposition: attachment — o navegador
+  // salva nativo em Downloads (Android/desktop) ou no app Arquivos (iOS).
   const base = import.meta.env.VITE_SUPABASE_URL;
-  return `${base}/functions/v1/drive-proxy?id=${encodeURIComponent(id)}`;
+  const params = new URLSearchParams({ id, dl: "1" });
+  if (name) params.set("name", name);
+  return `${base}/functions/v1/drive-proxy?${params.toString()}`;
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
