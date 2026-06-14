@@ -48,7 +48,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
       <DialogContent className="w-screen h-[100dvh] max-w-none max-h-[100dvh] gap-0 p-0 overflow-hidden bg-card border-0 rounded-none sm:rounded-none">
         <DialogTitle className="sr-only">{fileName}</DialogTitle>
         <div className="flex flex-col h-full">
-          <header className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 pr-12 pt-[calc(0.5rem+env(safe-area-inset-top))] border-b border-border bg-secondary/40 min-w-0 shrink-0">
+          <header className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 pr-12 sm:pr-16 pt-[calc(0.5rem+env(safe-area-inset-top))] border-b border-border bg-secondary/40 min-w-0 shrink-0">
             <h2 className="font-semibold truncate text-xs sm:text-sm flex-1 min-w-0">{fileName}</h2>
             {fileId && (
               <Button
