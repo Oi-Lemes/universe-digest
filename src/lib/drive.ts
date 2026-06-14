@@ -137,16 +137,32 @@ function isMobileUA(): boolean {
   return /Android|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i.test(ua);
 }
 
+function saveBlobWithLink(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+async function shareBlobIfPossible(blob: Blob, fileName: string): Promise<boolean> {
+  if (!isMobileUA() || typeof navigator === "undefined" || !("share" in navigator)) return false;
+  const file = new File([blob], fileName, { type: blob.type || "application/octet-stream" });
+  const nav = navigator as Navigator & {
+    canShare?: (data: { files?: File[] }) => boolean;
+    share: (data: { files?: File[]; title?: string }) => Promise<void>;
+  };
+  if (nav.canShare && !nav.canShare({ files: [file] })) return false;
+  await nav.share({ files: [file], title: fileName });
+  return true;
+}
+
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
   const proxyUrl = fileDownloadUrl(id, fileName);
-
-  // On mobile (iOS/Android), blob downloads via <a download> are unreliable.
-  // Open a real browser tab so the OS can handle Content-Disposition natively.
-  if (isMobileUA()) {
-    const opened = window.open(proxyUrl, "_blank", "noopener,noreferrer");
-    if (!opened) window.location.assign(proxyUrl);
-    return;
-  }
 
   const res = await fetch(proxyUrl, {
     cache: "no-store",
@@ -158,15 +174,8 @@ export async function downloadDriveFile(id: string, fileName: string): Promise<v
   }
 
   const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  link.rel = "noopener";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  const shared = await shareBlobIfPossible(blob, fileName);
+  if (!shared) saveBlobWithLink(blob, fileName);
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
