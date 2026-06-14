@@ -19,9 +19,9 @@ function isValidId(id: string) {
 }
 
 function contentDispositionName(name: string | null) {
-  if (!name) return null;
+  if (!name) return "attachment";
   const safe = name.replace(/[\r\n"\\]/g, " ").trim().slice(0, 180);
-  if (!safe) return null;
+  if (!safe) return "attachment";
   return `attachment; filename*=UTF-8''${encodeURIComponent(safe)}`;
 }
 
