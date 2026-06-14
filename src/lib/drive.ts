@@ -114,15 +114,10 @@ export function driveProxyHeaders(): HeadersInit {
 }
 
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  // Direct browser download via <a download> — the browser streams to disk,
-  // shows native progress, and doesn't blow up memory on large CBR files.
-  const a = document.createElement("a");
-  a.href = fileDownloadUrl(id, fileName);
-  a.download = fileName || "arquivo";
-  a.rel = "noopener";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  // Abre o arquivo no Google Drive em nova aba — o usuário baixa de lá,
+  // que é mais confiável (especialmente em celular e arquivos grandes).
+  void fileName;
+  window.open(fileViewUrl(id), "_blank", "noopener,noreferrer");
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
