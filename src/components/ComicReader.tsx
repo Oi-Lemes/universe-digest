@@ -12,6 +12,7 @@ import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
 import { toggleRead, useReadStatus } from "@/lib/read-status";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 // CBR/CBZ/RAR/ZIP — extracted client-side via libarchive.js (WASM).
 const ARCHIVE_EXTS = new Set(["cbr", "cbz", "rar", "zip"]);
@@ -29,13 +30,25 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   const isArchive = !!fileId && ARCHIVE_EXTS.has(ext);
   const isPdf = !!fileId && ext === "pdf";
   const viewable = fileId ? isViewableInDrive(fileName) : false;
+  const handleDownload = async () => {
+    if (!fileId) return;
+    try {
+      await downloadDriveFile(fileId, fileName);
+    } catch {
+      toast({
+        title: "Não foi possível baixar",
+        description: "Esse arquivo não respondeu pelo Drive. Verifique se o link ainda existe e está liberado.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Dialog open={!!fileId} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-6xl w-[100vw] sm:w-auto h-[100dvh] sm:h-[90vh] max-h-[100dvh] p-0 overflow-hidden bg-card border-border rounded-none sm:rounded-lg">
+      <DialogContent className="w-screen h-[100dvh] max-w-none max-h-[100dvh] gap-0 p-0 overflow-hidden bg-card border-0 rounded-none sm:rounded-none">
         <DialogTitle className="sr-only">{fileName}</DialogTitle>
         <div className="flex flex-col h-full">
-          <header className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 pr-12 border-b border-border bg-secondary/40 min-w-0">
+          <header className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 pr-12 pt-[calc(0.5rem+env(safe-area-inset-top))] border-b border-border bg-secondary/40 min-w-0 shrink-0">
             <h2 className="font-semibold truncate text-xs sm:text-sm flex-1 min-w-0">{fileName}</h2>
             {fileId && (
               <Button
@@ -60,7 +73,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
                 size="sm"
                 variant="secondary"
                 className="h-7 gap-1 shrink-0 px-2"
-                onClick={() => void downloadDriveFile(fileId, fileName)}
+                onClick={() => void handleDownload()}
               >
                 <Download className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Baixar</span>
@@ -123,7 +136,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
                   <Lock className="w-4 h-4" /> Somente quem comprou pode baixar
                 </div>
               ) : (
-                <Button type="button" size="lg" onClick={() => void downloadDriveFile(fileId, fileName)}>
+                <Button type="button" size="lg" onClick={() => void handleDownload()}>
                   <Download className="w-4 h-4 mr-1.5" /> Baixar HQ
                 </Button>
               )}

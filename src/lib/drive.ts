@@ -103,9 +103,8 @@ export function directDriveDownloadUrl(id: string): string {
 }
 
 export function fileDownloadUrl(id: string, fileName?: string): string {
-  const params = new URLSearchParams({ id });
+  const params = new URLSearchParams({ id, download: "1" });
   if (fileName) params.set("name", fileName);
-  if (SUPABASE_PUBLISHABLE_KEY) params.set("apikey", SUPABASE_PUBLISHABLE_KEY);
   return `${SUPABASE_URL}/functions/v1/drive-proxy?${params.toString()}`;
 }
 
@@ -118,15 +117,41 @@ export function driveProxyHeaders(): HeadersInit {
 }
 
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  const url = directDriveDownloadUrl(id);
+  const res = await fetch(fileDownloadUrl(id, fileName), {
+    cache: "no-store",
+    headers: driveProxyHeaders(),
+  });
+  if (!res.ok) {
+    const details = await res.text().catch(() => "");
+    throw new Error(`Falha ao baixar (${res.status})${details ? `: ${details}` : ""}`);
+  }
+
+  const blob = await res.blob();
+  const file = new File([blob], fileName, {
+    type: blob.type || "application/octet-stream",
+  });
+  const share = navigator as Navigator & {
+    canShare?: (data: ShareData) => boolean;
+    share?: (data: ShareData) => Promise<void>;
+  };
+  if (share.canShare?.({ files: [file] }) && share.share) {
+    try {
+      await share.share({ files: [file], title: fileName });
+      return;
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+    }
+  }
+
+  const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = fileName;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
+  link.rel = "noopener";
   document.body.appendChild(link);
   link.click();
   link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
