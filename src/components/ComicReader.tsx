@@ -33,13 +33,8 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!fileId) return;
     e.preventDefault();
-    const a = document.createElement("a");
-    a.href = fileDownloadUrl(fileId);
-    a.download = fileName;
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // Abre a página do Drive em nova aba — o usuário baixa pelo botão nativo.
+    window.open(fileDownloadUrl(fileId), "_blank", "noopener,noreferrer");
   };
 
   return (
