@@ -97,10 +97,10 @@ export function fileViewUrl(id: string): string {
 }
 
 export function fileDownloadUrl(id: string): string {
-  // Abre a página do arquivo no Drive em vez do endpoint usercontent
-  // (que retorna 404 frequentemente em pastas compartilhadas/arquivos grandes).
-  // O usuário clica no botão de download nativo do Drive — sempre funciona.
-  return `https://drive.google.com/file/d/${id}/view`;
+  // Stream via nossa edge function (CORS habilitado) pra baixar dentro do app
+  // em vez de redirecionar pro Drive.
+  const base = import.meta.env.VITE_SUPABASE_URL;
+  return `${base}/functions/v1/drive-proxy?id=${encodeURIComponent(id)}`;
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
