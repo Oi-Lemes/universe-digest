@@ -88,6 +88,8 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
   // Carrega bytes (cache → proxy) e abre o PDF.
   useEffect(() => {
     let cancelled = false;
+    const resolvedId = resolveDriveFileId(fileId, fileName);
+    const cacheKey = `${resolvedId}:${fileName}`;
     setLoading(true);
     setError(null);
     setPage(1);
@@ -95,7 +97,7 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
 
     (async () => {
       try {
-        let blob = await cacheGet(fileId);
+        let blob = await cacheGet(cacheKey);
         if (!blob) {
           setProgress("Baixando PDF…");
           const res = await fetch(fileContentUrl(fileId, fileName), {
@@ -132,7 +134,10 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
 
         const buf = await blob.arrayBuffer();
         if (cancelled) return;
-        if (!looksLikePdf(buf)) throw new Error("O arquivo recebido não é um PDF válido.");
+        if (!looksLikePdf(buf)) {
+          await cacheDelete(cacheKey);
+          throw new Error("O arquivo recebido não é um PDF válido.");
+        }
         const doc = await pdfjsLib.getDocument({ data: buf }).promise;
         if (cancelled) {
           doc.destroy();
@@ -152,7 +157,7 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
     return () => {
       cancelled = true;
     };
-  }, [fileId]);
+  }, [fileId, fileName]);
 
   // Cleanup do documento ao trocar de arquivo / desmontar.
   useEffect(() => {
