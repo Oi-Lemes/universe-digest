@@ -59,6 +59,33 @@ export type Database = {
         }
         Relationships: []
       }
+      comic_cover_index: {
+        Row: {
+          bucket_path: string
+          extracted_at: string
+          file_id: string
+          publisher: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bucket_path: string
+          extracted_at?: string
+          file_id: string
+          publisher: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bucket_path?: string
+          extracted_at?: string
+          file_id?: string
+          publisher?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
