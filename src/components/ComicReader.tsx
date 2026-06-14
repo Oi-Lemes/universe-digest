@@ -135,7 +135,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
               ) : (
                 <Button asChild size="lg">
                   <a
-                    href={fileDownloadUrl(fileId)}
+                    href={downloadHref}
                     onClick={handleDownload}
                     download={fileName}
                   >
