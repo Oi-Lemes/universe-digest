@@ -178,12 +178,17 @@ export function firstFileIn(node: DriveNode): DriveNode | null {
     .sort(sortName);
   if (viewableHere.length) return viewableHere[0];
 
+  const folders = node.children.filter((c) => c.type === "folder").sort(sortName);
+  for (const f of folders) {
+    const found = firstFileIn(f);
+    if (found && isViewableInDrive(found.name)) return found;
+  }
+
   const filesHere = node.children
     .filter((c) => c.type === "file")
     .sort(sortName);
   if (filesHere.length) return filesHere[0];
 
-  const folders = node.children.filter((c) => c.type === "folder").sort(sortName);
   for (const f of folders) {
     const found = firstFileIn(f);
     if (found) return found;
