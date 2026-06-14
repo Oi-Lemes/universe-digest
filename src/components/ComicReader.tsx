@@ -6,12 +6,14 @@ import {
   isViewableInDrive,
   fileExt,
 } from "@/lib/drive";
-import { Check, Download, FileWarning, Lock } from "lucide-react";
+import { Check, Download, FileWarning, Loader2, Lock } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
 import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
 import { toggleRead, useReadStatus } from "@/lib/read-status";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { toast } from "sonner";
 
 // CBR/CBZ/RAR/ZIP — extracted client-side via libarchive.js (WASM).
 const ARCHIVE_EXTS = new Set(["cbr", "cbz", "rar", "zip"]);
