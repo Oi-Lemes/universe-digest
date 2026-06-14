@@ -6,13 +6,12 @@ import {
   isViewableInDrive,
   fileExt,
 } from "@/lib/drive";
-import { Check, Download, FileWarning, Loader2, Lock } from "lucide-react";
+import { Check, Download, FileWarning, Lock } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
 import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
 import { toggleRead, useReadStatus } from "@/lib/read-status";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { toast } from "sonner";
 
 // CBR/CBZ/RAR/ZIP — extracted client-side via libarchive.js (WASM).
@@ -31,47 +30,13 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   const isArchive = !!fileId && ARCHIVE_EXTS.has(ext);
   const isPdf = !!fileId && ext === "pdf";
   const viewable = fileId ? isViewableInDrive(fileName) : false;
-  const [downloading, setDownloading] = useState(false);
+  const downloadHref = fileId ? fileDownloadUrl(fileId, fileName) : "#";
 
-  const handleDownload = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    if (!fileId || downloading) return;
-    setDownloading(true);
-    const tId = toast.loading(`Baixando ${fileName}…`);
-    try {
-      const res = await fetch(fileDownloadUrl(fileId));
-      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
-      const total = Number(res.headers.get("content-length") || 0);
-      const reader = res.body.getReader();
-      const chunks: Uint8Array[] = [];
-      let received = 0;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        received += value.length;
-        if (total) {
-          const pct = Math.round((received / total) * 100);
-          toast.loading(`Baixando ${fileName}… ${pct}%`, { id: tId });
-        }
-      }
-      const blob = new Blob(chunks as BlobPart[]);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      a.rel = "noopener";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-      toast.success("Download concluído", { id: tId });
-    } catch (err) {
-      console.error("download failed", err);
-      toast.error("Falha ao baixar. Tente novamente.", { id: tId });
-    } finally {
-      setDownloading(false);
-    }
+  const handleDownload = (_e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Não previne default: deixa o navegador navegar pra URL, que vem com
+    // Content-Disposition: attachment, e salva nativo em Downloads/Arquivos.
+    if (!fileId) return;
+    toast.success("Download iniciado", { description: fileName });
   };
 
   return (
@@ -99,15 +64,14 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
               </Button>
             )}
             {fileId && !isTrial && (
-              <Button asChild size="sm" variant="secondary" className="h-7 gap-1 shrink-0 px-2" disabled={downloading}>
+              <Button asChild size="sm" variant="secondary" className="h-7 gap-1 shrink-0 px-2">
                 <a
-                  href={fileDownloadUrl(fileId)}
+                  href={downloadHref}
                   onClick={handleDownload}
                   download={fileName}
-                  aria-disabled={downloading}
                 >
-                  {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-                  <span className="hidden sm:inline">{downloading ? "Baixando…" : "Baixar"}</span>
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Baixar</span>
                 </a>
               </Button>
             )}
@@ -170,7 +134,7 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
               ) : (
                 <Button asChild size="lg">
                   <a
-                    href={fileDownloadUrl(fileId)}
+                    href={downloadHref}
                     onClick={handleDownload}
                     download={fileName}
                   >
