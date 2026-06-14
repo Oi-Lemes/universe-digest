@@ -9,6 +9,7 @@ import Index from "./pages/Index.tsx";
 import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
+import AdminCovers from "./pages/AdminCovers.tsx";
 import PwaInstall from "./components/PwaInstall";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/admin/covers" element={<AdminCovers />} />
             <Route
               path="/"
               element={
