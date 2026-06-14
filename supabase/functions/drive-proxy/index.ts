@@ -22,7 +22,8 @@ function contentDispositionName(name: string | null) {
   if (!name) return "attachment";
   const safe = name.replace(/[\r\n"\\]/g, " ").trim().slice(0, 180);
   if (!safe) return "attachment";
-  return `attachment; filename*=UTF-8''${encodeURIComponent(safe)}`;
+  const ascii = safe.replace(/[^\x20-\x7E]/g, "_");
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(safe)}`;
 }
 
 function sourceUrl(id: string, useConnector = true) {
@@ -87,11 +88,11 @@ Deno.serve(async (req) => {
     if (cr) respHeaders.set("content-range", cr);
     const ar = upstream.headers.get("accept-ranges");
     if (ar) respHeaders.set("accept-ranges", ar);
-    const cd = contentDispositionName(name);
-    respHeaders.set("content-disposition", cd);
-    // Force download instead of inline preview for binary blobs
-    if (!ct || ct.startsWith("application/")) {
+    if (url.searchParams.get("download") === "1") {
+      respHeaders.set("content-disposition", contentDispositionName(name));
       respHeaders.set("content-type", "application/octet-stream");
+    } else {
+      respHeaders.set("content-disposition", "inline");
     }
 
     return new Response(upstream.body, {
