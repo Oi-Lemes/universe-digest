@@ -97,10 +97,9 @@ export function fileViewUrl(id: string): string {
 }
 
 export function fileDownloadUrl(id: string): string {
-  // Stream via nossa edge function (CORS habilitado) pra baixar dentro do app
-  // em vez de redirecionar pro Drive.
-  const base = import.meta.env.VITE_SUPABASE_URL;
-  return `${base}/functions/v1/drive-proxy?id=${encodeURIComponent(id)}`;
+  // Abre a página do arquivo no Drive — o cliente baixa pelo botão nativo
+  // (mais confiável que tentar download direto, que volta 404 em arquivos grandes).
+  return `https://drive.google.com/file/d/${id}/view`;
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
