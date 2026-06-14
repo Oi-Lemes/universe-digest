@@ -99,14 +99,15 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
               </Button>
             )}
             {fileId && !isTrial && (
-              <Button asChild size="sm" variant="secondary" className="h-7 gap-1 shrink-0 px-2">
+              <Button asChild size="sm" variant="secondary" className="h-7 gap-1 shrink-0 px-2" disabled={downloading}>
                 <a
                   href={fileDownloadUrl(fileId)}
                   onClick={handleDownload}
                   download={fileName}
+                  aria-disabled={downloading}
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Baixar</span>
+                  {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  <span className="hidden sm:inline">{downloading ? "Baixando…" : "Baixar"}</span>
                 </a>
               </Button>
             )}
