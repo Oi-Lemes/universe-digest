@@ -116,8 +116,25 @@ export function driveProxyHeaders(): HeadersInit {
   };
 }
 
+function isMobileUA(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  return /Android|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i.test(ua);
+}
+
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  const res = await fetch(fileDownloadUrl(id, fileName), {
+  const proxyUrl = fileDownloadUrl(id, fileName);
+
+  // On mobile (iOS/Android) browsers, blob downloads via <a download> are
+  // unreliable (iOS Safari ignores `download`, large blobs OOM). Navigate
+  // directly to the proxy — Content-Disposition: attachment makes the OS
+  // handle the save natively ("Salvar em Arquivos", Downloads, etc.).
+  if (isMobileUA()) {
+    window.location.href = proxyUrl;
+    return;
+  }
+
+  const res = await fetch(proxyUrl, {
     cache: "no-store",
     headers: driveProxyHeaders(),
   });
@@ -127,22 +144,6 @@ export async function downloadDriveFile(id: string, fileName: string): Promise<v
   }
 
   const blob = await res.blob();
-  const file = new File([blob], fileName, {
-    type: blob.type || "application/octet-stream",
-  });
-  const share = navigator as Navigator & {
-    canShare?: (data: ShareData) => boolean;
-    share?: (data: ShareData) => Promise<void>;
-  };
-  if (share.canShare?.({ files: [file] }) && share.share) {
-    try {
-      await share.share({ files: [file], title: fileName });
-      return;
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
-    }
-  }
-
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
