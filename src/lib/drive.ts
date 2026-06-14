@@ -101,6 +101,7 @@ export function fileViewUrl(id: string): string {
 export function fileDownloadUrl(id: string, fileName?: string): string {
   const params = new URLSearchParams({ id });
   if (fileName) params.set("name", fileName);
+  if (SUPABASE_PUBLISHABLE_KEY) params.set("apikey", SUPABASE_PUBLISHABLE_KEY);
   return `${SUPABASE_URL}/functions/v1/drive-proxy?${params.toString()}`;
 }
 
@@ -113,20 +114,15 @@ export function driveProxyHeaders(): HeadersInit {
 }
 
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  const res = await fetch(fileDownloadUrl(id, fileName), {
-    headers: driveProxyHeaders(),
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Falha no download (${res.status})`);
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
+  // Direct browser download via <a download> — the browser streams to disk,
+  // shows native progress, and doesn't blow up memory on large CBR files.
   const a = document.createElement("a");
-  a.href = url;
+  a.href = fileDownloadUrl(id, fileName);
   a.download = fileName || "arquivo";
+  a.rel = "noopener";
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export function thumbnailUrl(id: string, size = 400): string {

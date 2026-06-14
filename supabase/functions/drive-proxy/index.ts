@@ -19,9 +19,9 @@ function isValidId(id: string) {
 }
 
 function contentDispositionName(name: string | null) {
-  if (!name) return null;
+  if (!name) return "attachment";
   const safe = name.replace(/[\r\n"\\]/g, " ").trim().slice(0, 180);
-  if (!safe) return null;
+  if (!safe) return "attachment";
   return `attachment; filename*=UTF-8''${encodeURIComponent(safe)}`;
 }
 
@@ -74,8 +74,12 @@ Deno.serve(async (req) => {
     if (cr) respHeaders.set("content-range", cr);
     const ar = upstream.headers.get("accept-ranges");
     if (ar) respHeaders.set("accept-ranges", ar);
-    const cd = contentDispositionName(name) ?? upstream.headers.get("content-disposition");
-    if (cd) respHeaders.set("content-disposition", cd);
+    const cd = contentDispositionName(name);
+    respHeaders.set("content-disposition", cd);
+    // Force download instead of inline preview for binary blobs
+    if (!ct || ct.startsWith("application/")) {
+      respHeaders.set("content-type", "application/octet-stream");
+    }
 
     return new Response(upstream.body, {
       status: upstream.status,
