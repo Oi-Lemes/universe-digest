@@ -184,7 +184,7 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
   const current = pages[index];
 
   return (
-    <div ref={containerRef} className="flex-1 flex flex-col bg-black">
+    <div ref={containerRef} className="flex-1 min-h-0 flex flex-col bg-black">
       <div className="relative flex-1 overflow-auto flex items-center justify-center select-none">
         {current && (
           <img
@@ -211,7 +211,7 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
         />
       </div>
 
-      <div className="flex items-center gap-3 px-4 py-2 border-t border-border bg-secondary/40">
+      <div className="flex items-center gap-3 px-4 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] border-t border-border bg-secondary/40 shrink-0">
         <Button
           size="icon"
           variant="ghost"
