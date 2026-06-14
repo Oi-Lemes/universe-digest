@@ -2,12 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Loader2, Maximize2 } from "lucide-react";
-import { downloadDriveFile, driveProxyHeaders } from "@/lib/drive";
+import { downloadDriveFile, driveProxyHeaders, fileContentUrl } from "@/lib/drive";
 import { useAuth } from "@/hooks/useAuth";
-
-// Supabase edge function that proxies Google Drive downloads with CORS headers
-// so libarchive.js can read the bytes from the browser.
-const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-proxy`;
 
 type Props = {
   fileId: string;
@@ -40,7 +36,7 @@ export const ComicArchiveReader = ({ fileId, fileName }: Props) => {
 
     (async () => {
       try {
-        const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
+        const proxied = fileContentUrl(fileId, fileName);
         const res = await fetch(proxied, { cache: "no-store", headers: driveProxyHeaders() });
         if (!res.ok) throw new Error(`Falha no download (${res.status})`);
 
