@@ -44,8 +44,6 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
-    const dl = url.searchParams.get("dl") === "1";
-    const name = url.searchParams.get("name");
     if (!id || !isValidId(id)) {
       return new Response(JSON.stringify({ error: "missing or invalid id" }), {
         status: 400,
@@ -68,20 +66,8 @@ Deno.serve(async (req) => {
     if (cr) respHeaders.set("content-range", cr);
     const ar = upstream.headers.get("accept-ranges");
     if (ar) respHeaders.set("accept-ranges", ar);
-
-    // Quando ?dl=1, força o navegador a salvar nativamente em Downloads/Arquivos
-    // com o nome certo (RFC 5987 pra suportar acentos/unicode).
-    if (dl) {
-      const safe = (name || "download").replace(/[\r\n"]/g, "_");
-      const ascii = safe.replace(/[^\x20-\x7E]/g, "_");
-      respHeaders.set(
-        "content-disposition",
-        `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(safe)}`,
-      );
-    } else {
-      const cd = upstream.headers.get("content-disposition");
-      if (cd) respHeaders.set("content-disposition", cd);
-    }
+    const cd = upstream.headers.get("content-disposition");
+    if (cd) respHeaders.set("content-disposition", cd);
 
     return new Response(upstream.body, {
       status: upstream.status,
