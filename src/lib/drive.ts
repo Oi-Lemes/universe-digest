@@ -97,9 +97,10 @@ export function fileViewUrl(id: string): string {
 }
 
 export function fileDownloadUrl(id: string): string {
-  // usercontent endpoint serves Content-Disposition: attachment and bypasses
-  // the "can't scan for viruses" interstitial for large files.
-  return `https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t`;
+  // Abre a página do arquivo no Drive em vez do endpoint usercontent
+  // (que retorna 404 frequentemente em pastas compartilhadas/arquivos grandes).
+  // O usuário clica no botão de download nativo do Drive — sempre funciona.
+  return `https://drive.google.com/file/d/${id}/view`;
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
