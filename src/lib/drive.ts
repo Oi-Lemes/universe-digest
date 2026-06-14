@@ -114,17 +114,35 @@ export function driveProxyHeaders(): HeadersInit {
 }
 
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  // Abre a página de visualização do Google Drive numa nova aba. Lá o usuário
-  // tem o botão de download nativo do Drive, que funciona em qualquer
-  // navegador/celular sem precisar passar pelo nosso proxy (que exige header
-  // apikey do Supabase e por isso falha em navegação direta).
-  void fileName;
-  const url = fileViewUrl(id);
-  const win = window.open(url, "_blank", "noopener,noreferrer");
-  if (!win) {
-    // Pop-up bloqueado (comum em iOS) — navega na própria aba.
-    window.location.href = url;
+  const res = await fetch(fileDownloadUrl(id, fileName), {
+    cache: "no-store",
+    headers: driveProxyHeaders(),
+  });
+  if (!res.ok) throw new Error(`Falha ao baixar arquivo (${res.status})`);
+
+  const blob = await res.blob();
+  const file = new File([blob], fileName, {
+    type: blob.type || "application/octet-stream",
+  });
+
+  if (navigator.canShare?.({ files: [file] }) && navigator.share) {
+    try {
+      await navigator.share({ files: [file], title: fileName });
+      return;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+    }
   }
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
