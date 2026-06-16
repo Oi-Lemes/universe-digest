@@ -13,6 +13,7 @@ const corsHeaders = {
 
 const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
 const CONNECTION_KEY = Deno.env.get("GOOGLE_DRIVE_API_KEY") ?? "";
+const RETRYABLE_STATUS = new Set([408, 429, 500, 502, 503, 504]);
 
 function isValidId(id: string) {
   return /^[A-Za-z0-9_-]{10,}$/.test(id);
@@ -44,18 +45,29 @@ function sourceHeaders(range: string | null, useConnector = true): HeadersInit {
   return headers;
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function closeResponse(response: Response) {
+  await response.body?.cancel().catch(() => undefined);
+}
+
 async function fetchSource(id: string, range: string | null) {
   const canUseConnector = Boolean(LOVABLE_KEY && CONNECTION_KEY);
   if (canUseConnector) {
-    try {
-      const upstream = await fetch(sourceUrl(id, true), {
-        headers: sourceHeaders(range, true),
-        redirect: "follow",
-      });
-      if (upstream.ok) return upstream;
-      await upstream.body?.cancel().catch(() => undefined);
-    } catch {
-      // Falha temporária do gateway/conector: tenta o link público direto do Drive.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const upstream = await fetch(sourceUrl(id, true), {
+          headers: sourceHeaders(range, true),
+          redirect: "follow",
+        });
+        if (upstream.ok || !RETRYABLE_STATUS.has(upstream.status)) return upstream;
+        await closeResponse(upstream);
+      } catch {
+        // Falha temporária do gateway/conector: tenta novamente antes do fallback.
+      }
+      await wait(250 * (attempt + 1));
     }
   }
 
@@ -85,6 +97,15 @@ Deno.serve(async (req) => {
     const upstream = await fetchSource(id, range);
 
     const ct = upstream.headers.get("content-type") || "";
+    if (!upstream.ok || /text\/html/i.test(ct)) {
+      const status = upstream.ok ? 502 : upstream.status;
+      const details = await upstream.text().catch(() => "");
+      return new Response(JSON.stringify({ error: "drive upstream failed", status, details: details.slice(0, 500) }), {
+        status,
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
     const respHeaders = new Headers(corsHeaders);
     if (ct) respHeaders.set("content-type", ct);
     const cl = upstream.headers.get("content-length");
