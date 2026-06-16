@@ -47,11 +47,16 @@ function sourceHeaders(range: string | null, useConnector = true): HeadersInit {
 async function fetchSource(id: string, range: string | null) {
   const canUseConnector = Boolean(LOVABLE_KEY && CONNECTION_KEY);
   if (canUseConnector) {
-    const upstream = await fetch(sourceUrl(id, true), {
-      headers: sourceHeaders(range, true),
-      redirect: "follow",
-    });
-    if (upstream.ok || ![403, 404].includes(upstream.status)) return upstream;
+    try {
+      const upstream = await fetch(sourceUrl(id, true), {
+        headers: sourceHeaders(range, true),
+        redirect: "follow",
+      });
+      if (upstream.ok) return upstream;
+      await upstream.body?.cancel().catch(() => undefined);
+    } catch {
+      // Falha temporária do gateway/conector: tenta o link público direto do Drive.
+    }
   }
 
   return fetch(sourceUrl(id, false), {
