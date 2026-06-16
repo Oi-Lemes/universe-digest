@@ -149,6 +149,17 @@ function saveBlobWithLink(blob: Blob, fileName: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
+function openNativeDownload(url: string, fileName: string) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.target = "_blank";
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
 async function shareBlobIfPossible(blob: Blob, fileName: string): Promise<boolean> {
   if (!isMobileUA() || typeof navigator === "undefined" || !("share" in navigator)) return false;
   const file = new File([blob], fileName, { type: blob.type || "application/octet-stream" });
@@ -163,6 +174,11 @@ async function shareBlobIfPossible(blob: Blob, fileName: string): Promise<boolea
 
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
   const proxyUrl = fileDownloadUrl(id, fileName);
+
+  if (isMobileUA()) {
+    openNativeDownload(proxyUrl, fileName);
+    return;
+  }
 
   const res = await fetch(proxyUrl, {
     cache: "no-store",
