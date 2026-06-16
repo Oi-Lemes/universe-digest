@@ -2,73 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Loader2, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
-import { downloadDriveFile, driveProxyHeaders, fileContentUrl, resolveDriveFileId } from "@/lib/drive";
+import { downloadDriveFile, driveProxyHeaders, fileContentUrl } from "@/lib/drive";
 import { useAuth } from "@/hooks/useAuth";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Worker servido localmente (evita CORS e funciona offline depois do 1º load).
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-
-// ---------- Cache em IndexedDB (PDF inteiro como Blob) ----------
-const DB_NAME = "pdf-cache-v2";
-const STORE = "pdfs";
-let dbPromise: Promise<IDBDatabase> | null = null;
-function openDb() {
-  if (!dbPromise) {
-    dbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, 1);
-      req.onupgradeneeded = () => req.result.createObjectStore(STORE);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  return dbPromise;
-}
-async function cacheGet(key: string): Promise<Blob | null> {
-  try {
-    const db = await openDb();
-    return await new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, "readonly");
-      const req = tx.objectStore(STORE).get(key);
-      req.onsuccess = () => resolve((req.result as Blob) ?? null);
-      req.onerror = () => reject(req.error);
-    });
-  } catch {
-    return null;
-  }
-}
-async function cacheSet(key: string, blob: Blob) {
-  try {
-    const db = await openDb();
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      tx.objectStore(STORE).put(blob, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  } catch {
-    /* sem cache, segue */
-  }
-}
-
-async function cacheDelete(key: string) {
-  try {
-    const db = await openDb();
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      tx.objectStore(STORE).delete(key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  } catch {
-    /* sem cache, segue */
-  }
-}
-
-function looksLikePdf(buf: ArrayBuffer) {
-  const head = new TextDecoder("ascii").decode(buf.slice(0, 5));
-  return head === "%PDF-";
-}
 
 type Props = { fileId: string; fileName: string };
 
@@ -84,61 +23,30 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const renderTaskRef = useRef<pdfjsLib.RenderTask | null>(null);
+  const loadingTaskRef = useRef<ReturnType<typeof pdfjsLib.getDocument> | null>(null);
 
-  // Carrega bytes (cache → proxy) e abre o PDF.
+  // Abre o PDF por range/stream, sem baixar o arquivo inteiro na memória.
   useEffect(() => {
     let cancelled = false;
-    const resolvedId = resolveDriveFileId(fileId, fileName);
-    const cacheKey = `${resolvedId}:${fileName}`;
     setLoading(true);
     setError(null);
     setPage(1);
-    setProgress("Procurando no cache…");
+    setProgress("Carregando PDF…");
 
     (async () => {
       try {
-        let blob = await cacheGet(cacheKey);
-        if (!blob) {
-          setProgress("Baixando PDF…");
-          const res = await fetch(fileContentUrl(fileId, fileName), {
-            cache: "no-store",
-            headers: driveProxyHeaders(),
-          });
-          if (!res.ok) throw new Error(`Falha no download (${res.status})`);
-          const total = Number(res.headers.get("content-length") || 0);
-          const reader = res.body?.getReader();
-          const chunks: Uint8Array[] = [];
-          let received = 0;
-          if (reader) {
-            while (true) {
-              const { value, done } = await reader.read();
-              if (done) break;
-              if (value) {
-                chunks.push(value);
-                received += value.byteLength;
-                if (total) {
-                  setProgress(`Baixando… ${Math.round((received / total) * 100)}%`);
-                } else {
-                  setProgress(`Baixando… ${(received / 1024 / 1024).toFixed(1)} MB`);
-                }
-              }
-            }
-          }
+        const loadingTask = pdfjsLib.getDocument({
+          url: fileContentUrl(fileId, fileName),
+          httpHeaders: driveProxyHeaders(),
+          rangeChunkSize: 256 * 1024,
+        });
+        loadingTaskRef.current = loadingTask;
+        loadingTask.onProgress = ({ loaded, total }) => {
           if (cancelled) return;
-          blob = new Blob(chunks as BlobPart[], { type: "application/pdf" });
-          // Salva no cache para próximas aberturas serem instantâneas.
-          cacheSet(cacheKey, blob);
-        } else {
-          setProgress("Abrindo do cache…");
-        }
-
-        const buf = await blob.arrayBuffer();
-        if (cancelled) return;
-        if (!looksLikePdf(buf)) {
-          await cacheDelete(cacheKey);
-          throw new Error("O arquivo recebido não é um PDF válido.");
-        }
-        const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+          if (total) setProgress(`Carregando… ${Math.round((loaded / total) * 100)}%`);
+          else if (loaded) setProgress(`Carregando… ${(loaded / 1024 / 1024).toFixed(1)} MB`);
+        };
+        const doc = await loadingTask.promise;
         if (cancelled) {
           doc.destroy();
           return;
@@ -156,6 +64,8 @@ export const PdfReader = ({ fileId, fileName }: Props) => {
 
     return () => {
       cancelled = true;
+      loadingTaskRef.current?.destroy();
+      loadingTaskRef.current = null;
     };
   }, [fileId, fileName]);
 
