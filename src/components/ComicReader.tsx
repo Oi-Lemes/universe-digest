@@ -6,7 +6,7 @@ import {
   isViewableInDrive,
   fileExt,
 } from "@/lib/drive";
-import { Check, Download, FileWarning, Lock } from "lucide-react";
+import { Check, Download, FileWarning, Lock, X } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
 import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
@@ -45,48 +45,72 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
 
   return (
     <Dialog open={!!fileId} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="w-screen h-[100dvh] max-w-none max-h-[100dvh] gap-0 p-0 overflow-hidden bg-card border-0 rounded-none sm:rounded-none">
+      <DialogContent
+        hideClose
+        className="w-screen h-[100dvh] max-w-none max-h-[100dvh] gap-0 p-0 overflow-hidden bg-black border-0 rounded-none sm:rounded-none"
+      >
         <DialogTitle className="sr-only">{fileName}</DialogTitle>
-        <div className="flex flex-col h-full">
-          <header className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 pr-12 sm:pr-16 pt-[calc(0.5rem+env(safe-area-inset-top))] border-b border-border bg-secondary/40 min-w-0 shrink-0">
-            <h2 className="font-semibold truncate text-xs sm:text-sm flex-1 min-w-0">{fileName}</h2>
-            {fileId && (
+        <div className="relative flex flex-col h-full">
+          {/* Floating toolbar — top-right, sobrepõe o conteúdo pra dar tela cheia de verdade. */}
+          {fileId && (
+            <div
+              className="absolute z-50 right-2 sm:right-3 flex items-center gap-1.5 rounded-full bg-black/55 backdrop-blur-md border border-white/10 px-1.5 py-1 shadow-lg"
+              style={{ top: "calc(0.5rem + env(safe-area-inset-top))" }}
+            >
               <Button
                 type="button"
                 size="sm"
-                variant={read ? "default" : "secondary"}
+                variant={read ? "default" : "ghost"}
                 onClick={() => toggleRead(fileId)}
                 className={cn(
-                  "h-7 gap-1 shrink-0 px-2",
-                  read && "bg-[hsl(150_70%_42%)] hover:bg-[hsl(150_70%_38%)] text-white"
+                  "h-8 gap-1 px-2.5 rounded-full text-white hover:text-white",
+                  read
+                    ? "bg-[hsl(150_70%_42%)] hover:bg-[hsl(150_70%_38%)]"
+                    : "hover:bg-white/15"
                 )}
                 title={read ? "Marcado como lido — clique pra desmarcar" : "Marcar como lido"}
                 aria-pressed={read}
               >
-                <Check className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{read ? "Lido" : "Já li"}</span>
+                <Check className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs font-semibold">
+                  {read ? "Lido" : "Já li"}
+                </span>
               </Button>
-            )}
-            {fileId && !isTrial && (
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                className="h-7 gap-1 shrink-0 px-2"
-                onClick={() => void handleDownload()}
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Baixar</span>
-              </Button>
-            )}
-            {fileId && isTrial && (
-              <span className="h-7 inline-flex items-center gap-1 px-2 rounded-md text-[11px] font-semibold border border-destructive/40 bg-destructive/10 text-destructive shrink-0">
-                <Lock className="w-3 h-3" />
-                <span className="hidden sm:inline">Download bloqueado</span>
-              </span>
-            )}
-          </header>
 
+              {!isTrial && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 gap-1 px-2.5 rounded-full text-white hover:text-white hover:bg-white/15"
+                  onClick={() => void handleDownload()}
+                  title="Baixar"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline text-xs font-semibold">Baixar</span>
+                </Button>
+              )}
+
+              {isTrial && (
+                <span
+                  className="h-8 inline-flex items-center gap-1 px-2.5 rounded-full text-[11px] font-semibold border border-destructive/40 bg-destructive/15 text-destructive"
+                  title="Download bloqueado no teste"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Bloqueado</span>
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fechar leitor"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-full text-white hover:bg-white/15 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {fileId && isArchive && (
             <ComicArchiveReader fileId={fileId} fileName={fileName} />
