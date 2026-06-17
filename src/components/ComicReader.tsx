@@ -6,7 +6,7 @@ import {
   isViewableInDrive,
   fileExt,
 } from "@/lib/drive";
-import { Check, Download, FileWarning, Lock } from "lucide-react";
+import { Check, Download, FileWarning, Lock, X } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
 import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
