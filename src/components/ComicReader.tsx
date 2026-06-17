@@ -46,8 +46,9 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
   return (
     <Dialog open={!!fileId} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
+        fullScreen
         hideClose
-        className="fixed inset-0 w-screen h-[100dvh] max-w-none max-h-[100dvh] gap-0 p-0 overflow-hidden bg-black border-0 rounded-none translate-x-0 translate-y-0"
+        className="bg-black"
       >
         <DialogTitle className="sr-only">{fileName}</DialogTitle>
         <div className="relative flex flex-col h-full">
