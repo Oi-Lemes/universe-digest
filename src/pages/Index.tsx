@@ -1144,7 +1144,7 @@ const Index = () => {
         id: "virtual-plus18",
         name: "+18",
         type: "folder" as const,
-        children: [],
+        children: plus18Children ?? [],
       },
     ];
 
