@@ -49,6 +49,8 @@ const Index = () => {
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [plus18Children, setPlus18Children] = useState<DriveNode[] | null>(null);
+  const [plus18Loading, setPlus18Loading] = useState(false);
 
   useEffect(() => {
     const isSearchOpen = searchQuery.length >= 2;
