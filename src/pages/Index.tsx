@@ -49,6 +49,8 @@ const Index = () => {
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [plus18Children, setPlus18Children] = useState<DriveNode[] | null>(null);
+  const [plus18Loading, setPlus18Loading] = useState(false);
 
   useEffect(() => {
     const isSearchOpen = searchQuery.length >= 2;
@@ -1142,7 +1144,7 @@ const Index = () => {
         id: "virtual-plus18",
         name: "+18",
         type: "folder" as const,
-        children: [],
+        children: plus18Children ?? [],
       },
     ];
 
@@ -1167,15 +1169,15 @@ const Index = () => {
     return plus18 ? [...deduped, plus18] : deduped;
   }, [tree]);
 
-  // Seleciona Marvel como padrão e nunca deixa "+18" virar aba ativa,
-  // porque ela é só um atalho externo para o Drive.
+  // Seleciona Marvel como padrão. A aba "+18" agora pode ser ativa
+  // (carrega o conteúdo via edge function), mas só pra quem não é trial.
   useEffect(() => {
     if (!publishers.length) return;
 
     const active = activePublisherId
       ? publishers.find((p) => p.id === activePublisherId)
       : null;
-    if (!active || active.id === EXTERNAL_PUBLISHER_ID) {
+    if (!active) {
       const defaultPublisher = getDefaultPublisher(publishers);
       if (defaultPublisher) {
         setActivePublisherId(defaultPublisher.id);
@@ -1207,17 +1209,34 @@ const Index = () => {
 
   const handleSelectPublisher = (id: string) => {
     if (id === EXTERNAL_PUBLISHER_ID) {
-      // Aba +18 não navega internamente — abre direto a pasta no Drive.
-      const defaultPublisher = getDefaultPublisher(publishers);
-      if (defaultPublisher) {
-        setActivePublisherId(defaultPublisher.id);
-        setCrumbs([]);
-      }
       if (isTrial) {
         toast.error("Pack +18 bloqueado. Somente quem comprou pode acessar.");
         return;
       }
-      window.open(PLUS18_DRIVE_URL, "_blank", "noopener,noreferrer");
+      setActivePublisherId(id);
+      setCrumbs([]);
+      // Lazy-load do conteúdo da pasta +18 via edge function.
+      if (!plus18Children && !plus18Loading) {
+        setPlus18Loading(true);
+        fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-list?id=${PLUS18_DRIVE_ID}&name=${encodeURIComponent("+18")}`,
+          {
+            headers: {
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string}`,
+            },
+          }
+        )
+          .then(async (r) => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const tree = await r.json();
+            setPlus18Children((tree?.children ?? []) as DriveNode[]);
+          })
+          .catch((e) => {
+            toast.error("Falha ao carregar +18: " + String(e));
+          })
+          .finally(() => setPlus18Loading(false));
+      }
       return;
     }
     if (isTrial) {
