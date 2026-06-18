@@ -1169,15 +1169,15 @@ const Index = () => {
     return plus18 ? [...deduped, plus18] : deduped;
   }, [tree]);
 
-  // Seleciona Marvel como padrão e nunca deixa "+18" virar aba ativa,
-  // porque ela é só um atalho externo para o Drive.
+  // Seleciona Marvel como padrão. A aba "+18" agora pode ser ativa
+  // (carrega o conteúdo via edge function), mas só pra quem não é trial.
   useEffect(() => {
     if (!publishers.length) return;
 
     const active = activePublisherId
       ? publishers.find((p) => p.id === activePublisherId)
       : null;
-    if (!active || active.id === EXTERNAL_PUBLISHER_ID) {
+    if (!active) {
       const defaultPublisher = getDefaultPublisher(publishers);
       if (defaultPublisher) {
         setActivePublisherId(defaultPublisher.id);
