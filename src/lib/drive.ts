@@ -94,7 +94,10 @@ export async function loadDriveFolderTree(id: string, name: string): Promise<Dri
   const res = await fetch(`${SUPABASE_URL}/functions/v1/drive-list?${params.toString()}`, {
     cache: "no-store",
     headers: SUPABASE_PUBLISHABLE_KEY
-      ? { Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}` }
+      ? {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+        }
       : undefined,
   });
   if (!res.ok) {
