@@ -70,6 +70,7 @@ const Index = () => {
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
+  const [driveWarnOpen, setDriveWarnOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [plus18Children, setPlus18Children] = useState<DriveNode[] | null>(null);
   const [plus18Loading, setPlus18Loading] = useState(false);
