@@ -4,14 +4,14 @@
  * - PWA standalone (iOS/Android) onde `window.open` costuma falhar
  * - Webview embarcado (alguns bloqueiam window.open com noopener)
  *
- * Usa um <a target="_blank"> sintético, com fallback para location.href
- * caso o clique seja bloqueado.
+ * Usa um link real, disparado dentro do clique do usuário. O alvo pode ser
+ * `_blank` (nova aba) ou `_top` (sair de iframe/prévia e navegar a janela atual).
  */
-export function openExternalUrl(url: string): void {
+export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank"): void {
   try {
     const a = document.createElement("a");
     a.href = url;
-    a.target = "_blank";
+    a.target = target;
     a.rel = "noopener noreferrer";
     // Alguns browsers só disparam a navegação se o elemento está no DOM.
     a.style.display = "none";
@@ -19,8 +19,12 @@ export function openExternalUrl(url: string): void {
     a.click();
     a.remove();
   } catch {
-    // Último recurso: navega na própria janela.
-    window.location.href = url;
+    // Último recurso: sai da prévia/iframe quando possível e navega na janela atual.
+    try {
+      window.top?.location.assign(url);
+    } catch {
+      window.location.assign(url);
+    }
   }
 }
 
