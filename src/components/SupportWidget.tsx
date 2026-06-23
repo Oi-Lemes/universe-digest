@@ -46,7 +46,7 @@ export const SupportWidget = () => {
         onClick={() => setOpen((v) => !v)}
         aria-label="Abrir suporte"
         className={cn(
-          "fixed bottom-4 right-4 z-[60] h-14 w-14 rounded-full bg-cta shadow-cta",
+          "fixed bottom-4 left-4 z-[60] h-14 w-14 rounded-full bg-cta shadow-cta",
           "flex items-center justify-center text-primary-foreground",
           "transition-transform hover:scale-105 active:scale-95",
           !open && "animate-pulse",
@@ -62,7 +62,7 @@ export const SupportWidget = () => {
       {open && (
         <div
           className={cn(
-            "fixed bottom-20 right-4 z-[60] w-[calc(100vw-2rem)] max-w-sm",
+            "fixed bottom-20 left-4 z-[60] w-[calc(100vw-2rem)] max-w-sm",
             "rounded-xl border border-border bg-card shadow-card overflow-hidden",
             "animate-in fade-in slide-in-from-bottom-2",
           )}
@@ -84,7 +84,7 @@ export const SupportWidget = () => {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[80]" position="popper">
                   {CATEGORIES.map((c) => (
                     <SelectItem key={c.value} value={c.value}>
                       {c.label}
