@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import AdminCovers from "./pages/AdminCovers.tsx";
 import PwaInstall from "./components/PwaInstall";
+import { SupportWidget } from "./components/SupportWidget";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +31,10 @@ const App = () => (
               path="/"
               element={
                 <ProtectedRoute>
-                  <Index />
+                  <>
+                    <Index />
+                    <SupportWidget />
+                  </>
                 </ProtectedRoute>
               }
             />
