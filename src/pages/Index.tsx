@@ -4,6 +4,28 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight, Home, LogOut } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+// Ícone oficial do Google Drive (triângulo colorido) — lucide não tem.
+const GoogleDriveIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da" />
+    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47" />
+    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335" />
+    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d" />
+    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc" />
+    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00" />
+  </svg>
+);
 import { DriveNode, DriveTree, loadDriveTree } from "@/lib/drive";
 import { FolderGrid } from "@/components/FolderGrid";
 import { InfiniteCoverMarquee } from "@/components/InfiniteCoverMarquee";
@@ -48,6 +70,7 @@ const Index = () => {
   const [activePublisherId, setActivePublisherId] = useState<string | null>(null);
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
   const [reader, setReader] = useState<{ id: string; name: string } | null>(null);
+  const [driveWarnOpen, setDriveWarnOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [plus18Children, setPlus18Children] = useState<DriveNode[] | null>(null);
   const [plus18Loading, setPlus18Loading] = useState(false);
@@ -1310,6 +1333,19 @@ const Index = () => {
               className="w-full max-w-xs hidden sm:block"
             />
 
+            {!isTrial && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDriveWarnOpen(true)}
+                title="Abrir pasta no Google Drive"
+                className="gap-1.5"
+              >
+                <GoogleDriveIcon className="w-4 h-4" />
+                <span className="hidden md:inline">Drive</span>
+              </Button>
+            )}
+
             <Button
               variant="ghost"
               size="sm"
@@ -1324,10 +1360,20 @@ const Index = () => {
         </div>
         {/* mobile: drive button + search */}
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
-          {isTrial && (
+          {isTrial ? (
             <div className="w-full text-center text-xs font-semibold rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 py-2">
               🔒 Drive bloqueado. Somente quem comprou pode acessar
             </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDriveWarnOpen(true)}
+              className="w-full gap-2"
+            >
+              <GoogleDriveIcon className="w-4 h-4" />
+              Abrir pasta no Google Drive
+            </Button>
           )}
           <GlobalSearch
             tree={tree}
@@ -1338,6 +1384,49 @@ const Index = () => {
 
         </div>
       </header>
+
+      <AlertDialog open={driveWarnOpen} onOpenChange={setDriveWarnOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <GoogleDriveIcon className="w-5 h-5" />
+              Antes de abrir o Drive — leia com atenção
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm leading-relaxed">
+                <p>
+                  Os arquivos disponíveis nessa pasta do Google Drive são o <strong>acervo antigo</strong>.
+                </p>
+                <p>
+                  As <strong>atualizações recentes</strong>, lançadas <strong>a cada 15 dias</strong>,
+                  ficam em <strong>pastas separadas vinculadas direto ao app</strong> — isso evita
+                  má-fé de clientes mal-intencionados que baixariam tudo e pediriam reembolso depois.
+                </p>
+                <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive font-semibold">
+                  Ao clicar para abrir o Drive, o <strong>reembolso deixa de estar disponível</strong>.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (tree?.id) {
+                  window.open(
+                    `https://drive.google.com/drive/folders/${tree.id}`,
+                    "_blank",
+                    "noopener,noreferrer"
+                  );
+                }
+              }}
+            >
+              Entendi, abrir mesmo assim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {searchQuery.length >= 2 ? (
         (() => {
