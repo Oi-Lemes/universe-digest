@@ -26,7 +26,7 @@ const GoogleDriveIcon = ({ className }: { className?: string }) => (
     <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00" />
   </svg>
 );
-import { DriveNode, DriveTree, loadDriveTree } from "@/lib/drive";
+import { DriveNode, DriveTree, loadDriveFolderTree, loadDriveTree } from "@/lib/drive";
 import { FolderGrid } from "@/components/FolderGrid";
 import { InfiniteCoverMarquee } from "@/components/InfiniteCoverMarquee";
 import { ComicReader } from "@/components/ComicReader";
@@ -75,6 +75,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [plus18Children, setPlus18Children] = useState<DriveNode[] | null>(null);
   const [plus18Loading, setPlus18Loading] = useState(false);
+  const [plus18Loaded, setPlus18Loaded] = useState(false);
 
   useEffect(() => {
     const isSearchOpen = searchQuery.length >= 2;
@@ -1242,7 +1243,20 @@ const Index = () => {
         toast.error("Pack +18 bloqueado. Somente quem comprou pode acessar.");
         return;
       }
-      openExternalUrl(PLUS18_DRIVE_URL, "_blank");
+      setActivePublisherId(id);
+      setCrumbs([]);
+      if (!plus18Loaded && !plus18Loading) {
+        setPlus18Loading(true);
+        loadDriveFolderTree(PLUS18_DRIVE_ID, "+18")
+          .then((folder) => {
+            setPlus18Children(folder.children ?? []);
+            setPlus18Loaded(true);
+          })
+          .catch(() => {
+            toast.error("Não consegui carregar o +18 agora. Tente novamente em alguns segundos.");
+          })
+          .finally(() => setPlus18Loading(false));
+      }
       return;
     }
 
@@ -1519,7 +1533,7 @@ const Index = () => {
               items={items}
               onOpenFolder={handleOpenFolder}
               onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
-              emptyHint="Pasta vazia."
+              emptyHint={p.id === EXTERNAL_PUBLISHER_ID && plus18Loading ? "Carregando +18…" : "Pasta vazia."}
               mode={(() => {
                 if (crumbs.length !== 0) return "default";
                 const n = p.name.trim().toLowerCase();
