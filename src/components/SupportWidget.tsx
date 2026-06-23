@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Headphones, X, Send } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -35,6 +36,9 @@ export const SupportWidget = () => {
       `Categoria: ${label}\n\n${message}\n\n---\nEnviado pelo app`,
     );
     window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
+    toast.success("Mensagem pronta para envio!", {
+      description: `Conclua o envio no seu app de email para ${SUPPORT_EMAIL}.`,
+    });
     setMessage("");
     setOpen(false);
   };
