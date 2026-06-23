@@ -1328,6 +1328,25 @@ const Index = () => {
               onQueryChange={setSearchQuery}
               className="w-full max-w-xs hidden sm:block"
             />
+            {!isTrial && (
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                title="Abrir pasta Império dos Quadrinhos no Google Drive"
+                className="gap-1.5"
+              >
+                <a
+                  href={IMPERIO_DRIVE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer external"
+                  referrerPolicy="no-referrer"
+                >
+                  <GoogleDriveIcon className="w-4 h-4" />
+                  <span className="hidden md:inline">Drive</span>
+                </a>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -1342,6 +1361,18 @@ const Index = () => {
         </div>
         {/* mobile: drive button + search */}
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
+          {!isTrial && (
+            <a
+              href={IMPERIO_DRIVE_URL}
+              target="_blank"
+              rel="noopener noreferrer external"
+              referrerPolicy="no-referrer"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <GoogleDriveIcon className="w-4 h-4" />
+              Abrir pasta no Google Drive
+            </a>
+          )}
           <GlobalSearch
             tree={tree}
             onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
@@ -1351,6 +1382,7 @@ const Index = () => {
 
         </div>
       </header>
+
 
       {searchQuery.length >= 2 ? (
         (() => {
