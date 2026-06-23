@@ -1414,11 +1414,7 @@ const Index = () => {
             <AlertDialogAction
               onClick={() => {
                 if (tree?.id) {
-                  window.open(
-                    `https://drive.google.com/drive/folders/${tree.id}`,
-                    "_blank",
-                    "noopener,noreferrer"
-                  );
+                  openExternalUrl(driveFolderUrl(tree.id));
                 }
               }}
             >
