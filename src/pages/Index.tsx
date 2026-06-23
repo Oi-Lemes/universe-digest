@@ -1333,6 +1333,19 @@ const Index = () => {
               className="w-full max-w-xs hidden sm:block"
             />
 
+            {!isTrial && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDriveWarnOpen(true)}
+                title="Abrir pasta no Google Drive"
+                className="gap-1.5"
+              >
+                <GoogleDriveIcon className="w-4 h-4" />
+                <span className="hidden md:inline">Drive</span>
+              </Button>
+            )}
+
             <Button
               variant="ghost"
               size="sm"
@@ -1347,10 +1360,20 @@ const Index = () => {
         </div>
         {/* mobile: drive button + search */}
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
-          {isTrial && (
+          {isTrial ? (
             <div className="w-full text-center text-xs font-semibold rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 py-2">
               🔒 Drive bloqueado. Somente quem comprou pode acessar
             </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDriveWarnOpen(true)}
+              className="w-full gap-2"
+            >
+              <GoogleDriveIcon className="w-4 h-4" />
+              Abrir pasta no Google Drive
+            </Button>
           )}
           <GlobalSearch
             tree={tree}
@@ -1361,6 +1384,49 @@ const Index = () => {
 
         </div>
       </header>
+
+      <AlertDialog open={driveWarnOpen} onOpenChange={setDriveWarnOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <GoogleDriveIcon className="w-5 h-5" />
+              Antes de abrir o Drive — leia com atenção
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm leading-relaxed">
+                <p>
+                  Os arquivos disponíveis nessa pasta do Google Drive são o <strong>acervo antigo</strong>.
+                </p>
+                <p>
+                  As <strong>atualizações recentes</strong>, lançadas <strong>a cada 15 dias</strong>,
+                  ficam em <strong>pastas separadas vinculadas direto ao app</strong> — isso evita
+                  má-fé de clientes mal-intencionados que baixariam tudo e pediriam reembolso depois.
+                </p>
+                <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive font-semibold">
+                  Ao clicar para abrir o Drive, o <strong>reembolso deixa de estar disponível</strong>.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (tree?.id) {
+                  window.open(
+                    `https://drive.google.com/drive/folders/${tree.id}`,
+                    "_blank",
+                    "noopener,noreferrer"
+                  );
+                }
+              }}
+            >
+              Entendi, abrir mesmo assim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {searchQuery.length >= 2 ? (
         (() => {
