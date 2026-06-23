@@ -1413,6 +1413,19 @@ const Index = () => {
               ))}
             </nav>
 
+            {p.id === EXTERNAL_PUBLISHER_ID && (
+              <div className="mb-4">
+                <a
+                  href={`https://drive.google.com/drive/folders/${PLUS18_DRIVE_ID}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary/60 hover:bg-secondary px-3 py-2 text-sm font-medium transition-colors"
+                >
+                  Abrir no Google Drive
+                </a>
+              </div>
+            )}
+
             {(() => {
               const n = p.name.trim().toLowerCase();
               const isMangaTab = n === "mangás" || n === "mangas";
