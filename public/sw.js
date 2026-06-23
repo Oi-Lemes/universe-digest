@@ -2,7 +2,7 @@
 // Objetivo: ao fechar e reabrir a aba/app, capas, ícones e arquivos estáticos
 // já estão em disco e renderizam instantaneamente, sem refazer fetch.
 
-const VERSION = "v4";
+const VERSION = "v5";
 const IMG_CACHE = `img-cache-${VERSION}`;
 const ASSET_CACHE = `asset-cache-${VERSION}`;
 const RUNTIME_CACHE = `runtime-${VERSION}`;
@@ -17,7 +17,6 @@ const IMAGE_HOSTS = [
   "lh4.googleusercontent.com",
   "lh5.googleusercontent.com",
   "lh6.googleusercontent.com",
-  "drive.google.com",
 ];
 
 const MAX_IMG_ENTRIES = 600;
@@ -99,6 +98,12 @@ async function staleWhileRevalidate(request, cacheName) {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
+
+  // Nunca intercepta navegação de páginas/documentos.
+  // Antes, qualquer request para drive.google.com entrava no cache de imagem;
+  // isso podia fazer o Service Worker responder uma navegação para o Drive com
+  // uma resposta cross-origin opaca, e navegadores exibiam "bloqueado".
+  if (request.mode === "navigate" || request.destination === "document") return;
 
   let url;
   try {
