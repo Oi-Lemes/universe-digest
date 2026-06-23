@@ -1305,14 +1305,6 @@ const Index = () => {
               </p>
             )}
           </div>
-          {isTrial && (
-            <div
-              className="ml-3 hidden md:inline-flex items-center gap-2 px-3 h-9 rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-xs font-semibold cursor-not-allowed"
-              title="Somente quem comprou pode acessar"
-            >
-              🔒 Drive bloqueado. Somente quem comprou
-            </div>
-          )}
           <div className="ml-auto flex items-center gap-2">
             <OnlinePresence />
             <GlobalSearch
@@ -1322,20 +1314,6 @@ const Index = () => {
               onQueryChange={setSearchQuery}
               className="w-full max-w-xs hidden sm:block"
             />
-
-            {!isTrial && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDriveWarnOpen(true)}
-                title="Abrir pasta no Google Drive"
-                className="gap-1.5"
-              >
-                <GoogleDriveIcon className="w-4 h-4" />
-                <span className="hidden md:inline">Drive</span>
-              </Button>
-            )}
-
             <Button
               variant="ghost"
               size="sm"
@@ -1350,21 +1328,6 @@ const Index = () => {
         </div>
         {/* mobile: drive button + search */}
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
-          {isTrial ? (
-            <div className="w-full text-center text-xs font-semibold rounded-md border border-destructive/40 bg-destructive/10 text-destructive px-3 py-2">
-              🔒 Drive bloqueado. Somente quem comprou pode acessar
-            </div>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDriveWarnOpen(true)}
-              className="w-full gap-2"
-            >
-              <GoogleDriveIcon className="w-4 h-4" />
-              Abrir pasta no Google Drive
-            </Button>
-          )}
           <GlobalSearch
             tree={tree}
             onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
