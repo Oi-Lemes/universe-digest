@@ -9,12 +9,32 @@ import { prewarmExtractedCovers } from "./lib/cover-extract";
 prewarmOnlineCoverCache();
 prewarmExtractedCovers();
 
-// Registra Service Worker para cache offline-first de imagens e assets.
+// Remove o Service Worker antigo. Ele cacheava requisições do drive.google.com
+// como imagem e alguns navegadores bloqueavam a navegação externa para o Drive.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      /* falha silenciosa — app funciona sem SW */
-    });
+    navigator.serviceWorker
+      .getRegistrations()
+      .then(async (registrations) => {
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(
+            keys
+              .filter((key) => /^(img-cache|asset-cache|runtime)-/.test(key))
+              .map((key) => caches.delete(key))
+          );
+        }
+
+        if (navigator.serviceWorker.controller && !sessionStorage.getItem("iq_sw_removed_v1")) {
+          sessionStorage.setItem("iq_sw_removed_v1", "1");
+          window.location.reload();
+        }
+      })
+      .catch(() => {
+        /* falha silenciosa — app funciona sem SW */
+      });
   });
 }
 
