@@ -43,6 +43,7 @@ import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
 import { toast } from "sonner";
+import { openExternalUrl, driveFolderUrl } from "@/lib/open-external";
 
 type Crumb = { id: string; name: string };
 
@@ -181,7 +182,7 @@ const Index = () => {
   ];
 
   const PLUS18_DRIVE_ID = "1JQwmwaCod3_lmCsOxGRwz_I4nYW64WDZ";
-  const PLUS18_DRIVE_URL = `https://drive.google.com/drive/folders/${PLUS18_DRIVE_ID}?usp=drive_link`;
+  const PLUS18_DRIVE_URL = driveFolderUrl(PLUS18_DRIVE_ID);
   const EXTERNAL_PUBLISHER_ID = "virtual-plus18";
 
   const getDefaultPublisher = (list: DriveNode[]) =>
@@ -1236,7 +1237,7 @@ const Index = () => {
         toast.error("Pack +18 bloqueado. Somente quem comprou pode acessar.");
         return;
       }
-      window.open(PLUS18_DRIVE_URL, "_blank", "noopener,noreferrer");
+      openExternalUrl(PLUS18_DRIVE_URL);
       return;
     }
 
@@ -1413,11 +1414,7 @@ const Index = () => {
             <AlertDialogAction
               onClick={() => {
                 if (tree?.id) {
-                  window.open(
-                    `https://drive.google.com/drive/folders/${tree.id}`,
-                    "_blank",
-                    "noopener,noreferrer"
-                  );
+                  openExternalUrl(driveFolderUrl(tree.id));
                 }
               }}
             >
