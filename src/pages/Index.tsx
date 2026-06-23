@@ -43,6 +43,7 @@ import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
 import { toast } from "sonner";
+import { openExternalUrl, driveFolderUrl } from "@/lib/open-external";
 
 type Crumb = { id: string; name: string };
 
