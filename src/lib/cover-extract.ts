@@ -234,11 +234,12 @@ export async function extractCover(fileId: string, fileName: string): Promise<st
 
     await acquire();
     try {
+      const isPdf = PDF_RE.test(fileName);
       let lastErr: unknown = null;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        // Tentativa 1 e 2 no mobile: pede só os primeiros MB (Range).
-        // Tentativa 3 (ou desktop): baixa o arquivo inteiro como fallback.
-        const usePartial = PARTIAL_BYTES > 0 && attempt < MAX_ATTEMPTS;
+        // Tentativa 1 e 2 no mobile (apenas CBR/CBZ): pede só os primeiros MB.
+        // PDF precisa do trailer no fim, então sempre baixamos inteiro.
+        const usePartial = !isPdf && PARTIAL_BYTES > 0 && attempt < MAX_ATTEMPTS;
         try {
           const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
           const headers = driveProxyHeaders();
@@ -249,6 +250,13 @@ export async function extractCover(fileId: string, fileName: string): Promise<st
           // 200 (servidor ignorou Range) e 206 (Partial Content) ambos servem.
           if (!res.ok && res.status !== 206) throw new Error(`download ${res.status}`);
           const blob = await res.blob();
+
+          if (isPdf) {
+            const dataUrl = await pdfFirstPageToDataUrl(blob);
+            memoryCache.set(fileId, dataUrl);
+            await cacheSet(fileId, { dataUrl, ts: Date.now() });
+            return dataUrl;
+          }
 
           const { Archive } = await import("libarchive.js");
           Archive.init({ workerUrl: "/libarchive/worker-bundle.js" });
