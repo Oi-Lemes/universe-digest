@@ -13,7 +13,18 @@ const DB_NAME = "cover-cache-v1";
 const STORE = "covers";
 const TARGET_WIDTH = 360;
 const JPEG_QUALITY = 0.78;
-const CONCURRENCY = 4;
+// Detecta mobile/conexão fraca pra reduzir paralelismo e usar Range parcial.
+// No mobile 4 downloads simultâneos de CBRs grandes saturam a banda e estouram
+// o timeout do browser. 2 de cada vez chega muito mais consistente.
+const IS_MOBILE =
+  typeof navigator !== "undefined" &&
+  /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+const CONCURRENCY = IS_MOBILE ? 2 : 4;
+// Em mobile, pedimos só os primeiros ~3 MB do arquivo. Pra CBR (RAR) o header
+// fica no começo, então normalmente já dá pra extrair a primeira imagem sem
+// baixar o arquivo inteiro (que pode ter 200+ MB). Se a extração parcial falhar
+// (ex.: CBZ com índice no fim), o catch tenta de novo sem Range.
+const PARTIAL_BYTES = IS_MOBILE ? 3 * 1024 * 1024 : 0;
 const MAX_ATTEMPTS = 3;
 const IMAGE_RE = /\.(jpe?g|png|webp|gif|bmp|avif)$/i;
 
@@ -198,10 +209,18 @@ export async function extractCover(fileId: string, fileName: string): Promise<st
     try {
       let lastErr: unknown = null;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        // Tentativa 1 e 2 no mobile: pede só os primeiros MB (Range).
+        // Tentativa 3 (ou desktop): baixa o arquivo inteiro como fallback.
+        const usePartial = PARTIAL_BYTES > 0 && attempt < MAX_ATTEMPTS;
         try {
           const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
-          const res = await fetch(proxied, { cache: "force-cache", headers: driveProxyHeaders() });
-          if (!res.ok) throw new Error(`download ${res.status}`);
+          const headers = driveProxyHeaders();
+          if (usePartial) {
+            (headers as Record<string, string>)["Range"] = `bytes=0-${PARTIAL_BYTES - 1}`;
+          }
+          const res = await fetch(proxied, { cache: "force-cache", headers });
+          // 200 (servidor ignorou Range) e 206 (Partial Content) ambos servem.
+          if (!res.ok && res.status !== 206) throw new Error(`download ${res.status}`);
           const blob = await res.blob();
 
           const { Archive } = await import("libarchive.js");
