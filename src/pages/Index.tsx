@@ -1237,7 +1237,7 @@ const Index = () => {
         toast.error("Pack +18 bloqueado. Somente quem comprou pode acessar.");
         return;
       }
-      window.open(PLUS18_DRIVE_URL, "_blank", "noopener,noreferrer");
+      openExternalUrl(PLUS18_DRIVE_URL);
       return;
     }
 
