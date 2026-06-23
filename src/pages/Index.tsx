@@ -43,7 +43,7 @@ import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
 import { toast } from "sonner";
-import { openExternalUrl, driveFolderUrl } from "@/lib/open-external";
+import { openExternalUrl, driveRedirectUrl } from "@/lib/open-external";
 
 type Crumb = { id: string; name: string };
 
@@ -182,7 +182,7 @@ const Index = () => {
   ];
 
   const PLUS18_DRIVE_ID = "1JQwmwaCod3_lmCsOxGRwz_I4nYW64WDZ";
-  const PLUS18_DRIVE_URL = driveFolderUrl(PLUS18_DRIVE_ID);
+  const PLUS18_DRIVE_URL = driveRedirectUrl(PLUS18_DRIVE_ID);
   const EXTERNAL_PUBLISHER_ID = "virtual-plus18";
 
   const getDefaultPublisher = (list: DriveNode[]) =>
@@ -1232,7 +1232,7 @@ const Index = () => {
   );
 
   const rootDriveUrl = useMemo(
-    () => (tree?.id ? driveFolderUrl(tree.id) : "#"),
+    () => (tree?.id ? driveRedirectUrl(tree.id) : "#"),
     [tree?.id]
   );
 
@@ -1242,7 +1242,7 @@ const Index = () => {
         toast.error("Pack +18 bloqueado. Somente quem comprou pode acessar.");
         return;
       }
-      openExternalUrl(PLUS18_DRIVE_URL, "_top");
+      openExternalUrl(PLUS18_DRIVE_URL, "_blank");
       return;
     }
 

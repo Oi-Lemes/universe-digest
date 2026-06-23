@@ -36,3 +36,12 @@ export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank
 export function driveFolderUrl(id: string): string {
   return `https://drive.google.com/drive/folders/${encodeURIComponent(id)}?usp=sharing`;
 }
+
+/**
+ * URL interna que abre primeiro uma página do próprio app e só então redireciona
+ * para o Google Drive. Isso evita o bloqueio que alguns navegadores fazem
+ * quando o Drive é aberto direto de iframe, webview, preview ou PWA.
+ */
+export function driveRedirectUrl(id: string): string {
+  return `/abrir-drive?id=${encodeURIComponent(id)}`;
+}
