@@ -1390,7 +1390,7 @@ const Index = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <GoogleDriveIcon className="w-5 h-5" />
-              Antes de abrir o Drive — leia com atenção
+              Antes de abrir o Drive, leia com atenção
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-sm leading-relaxed">
@@ -1399,7 +1399,7 @@ const Index = () => {
                 </p>
                 <p>
                   As <strong>atualizações recentes</strong>, lançadas <strong>a cada 15 dias</strong>,
-                  ficam em <strong>pastas separadas vinculadas direto ao app</strong> — isso evita
+                  ficam em <strong>pastas separadas vinculadas direto ao app</strong>. Isso evita
                   má-fé de clientes mal-intencionados que baixariam tudo e pediriam reembolso depois.
                 </p>
                 <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive font-semibold">
