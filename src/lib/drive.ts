@@ -184,21 +184,28 @@ export function thumbnailUrl(id: string, size = 400): string {
 
 const VIEWABLE_EXTS = ["pdf", "jpg", "jpeg", "png", "gif", "webp", "mp4", "webm", "mov"];
 const ARCHIVE_EXTS = ["cbr", "cbz", "rar", "zip"];
+// Extensões "extraíveis" pra capa — inclui PDF, que também tem capa via pdf.js
+// e está indexado no bucket comic-covers junto com os CBR/CBZ.
+const COVERABLE_EXTS = [...ARCHIVE_EXTS, "pdf"];
 
 export function isArchive(name: string): boolean {
   return ARCHIVE_EXTS.includes(fileExt(name));
 }
 
-/** Find the first CBR/CBZ/RAR/ZIP archive descending the tree (for cover extraction). */
+function isCoverable(name: string): boolean {
+  return COVERABLE_EXTS.includes(fileExt(name));
+}
+
+/** Find the first CBR/CBZ/RAR/ZIP/PDF file descending the tree (for cover extraction). */
 export function firstArchiveIn(node: DriveNode): DriveNode | null {
-  if (node.type === "file") return isArchive(node.name) ? node : null;
+  if (node.type === "file") return isCoverable(node.name) ? node : null;
   if (!node.children) return null;
   const sortName = (a: DriveNode, b: DriveNode) =>
     a.name.localeCompare(b.name, "pt-BR", { numeric: true });
-  const archivesHere = node.children
-    .filter((c) => c.type === "file" && isArchive(c.name))
+  const filesHere = node.children
+    .filter((c) => c.type === "file" && isCoverable(c.name))
     .sort(sortName);
-  if (archivesHere.length) return archivesHere[0];
+  if (filesHere.length) return filesHere[0];
   const folders = node.children.filter((c) => c.type === "folder").sort(sortName);
   for (const f of folders) {
     const found = firstArchiveIn(f);
