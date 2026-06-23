@@ -43,7 +43,7 @@ import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
 import { toast } from "sonner";
-import { openExternalUrl, driveRedirectUrl } from "@/lib/open-external";
+import { driveRedirectUrl } from "@/lib/open-external";
 
 type Crumb = { id: string; name: string };
 
@@ -183,7 +183,6 @@ const Index = () => {
   ];
 
   const PLUS18_DRIVE_ID = "1JQwmwaCod3_lmCsOxGRwz_I4nYW64WDZ";
-  const PLUS18_DRIVE_URL = driveRedirectUrl(PLUS18_DRIVE_ID);
   const EXTERNAL_PUBLISHER_ID = "virtual-plus18";
 
   const getDefaultPublisher = (list: DriveNode[]) =>
