@@ -1213,32 +1213,10 @@ const Index = () => {
         toast.error("Pack +18 bloqueado. Somente quem comprou pode acessar.");
         return;
       }
-      setActivePublisherId(id);
-      setCrumbs([]);
-      // Lazy-load do conteúdo da pasta +18 via edge function.
-      if (!plus18Children && !plus18Loading) {
-        setPlus18Loading(true);
-        fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-list?id=${PLUS18_DRIVE_ID}&name=${encodeURIComponent("+18")}`,
-          {
-            headers: {
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string}`,
-            },
-          }
-        )
-          .then(async (r) => {
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            const tree = await r.json();
-            setPlus18Children((tree?.children ?? []) as DriveNode[]);
-          })
-          .catch((e) => {
-            toast.error("Falha ao carregar +18: " + String(e));
-          })
-          .finally(() => setPlus18Loading(false));
-      }
+      window.open(PLUS18_DRIVE_URL, "_blank", "noopener,noreferrer");
       return;
     }
+
     if (isTrial) {
       const target = publishers.find((p) => p.id === id);
       if (target && target.name.trim().toLowerCase() === "star wars") {
