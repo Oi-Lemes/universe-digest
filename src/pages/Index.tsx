@@ -20,6 +20,20 @@ import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
+
+const IMPERIO_DRIVE_URL =
+  "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link";
+
+const GoogleDriveIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+    <path fill="#0066DA" d="M1.5 17.25 4.5 22.5h9l-3-5.25z" />
+    <path fill="#00AC47" d="M12 1.5 7.5 9.375 12 17.25l4.5-7.875z" />
+    <path fill="#EA4335" d="M22.5 17.25 19.5 12h-9l3 5.25z" />
+    <path fill="#00832D" d="M4.5 22.5h15l3-5.25h-15z" />
+    <path fill="#2684FC" d="M19.5 12 15 4.125H9L13.5 12z" />
+    <path fill="#FFBA00" d="M19.5 12h-6L10.5 17.25h9z" />
+  </svg>
+);
 import { toast } from "sonner";
 
 type Crumb = { id: string; name: string };
