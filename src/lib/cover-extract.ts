@@ -149,7 +149,33 @@ async function downscaleToDataUrl(blob: Blob): Promise<string> {
   return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
 }
 
-// ---------- Main API ----------
+// Renderiza a 1ª página de um PDF em data URL (mesma escala/qualidade das capas).
+async function pdfFirstPageToDataUrl(blob: Blob): Promise<string> {
+  const pdfjsLib = await import("pdfjs-dist");
+  // worker já é configurado globalmente em PdfReader.tsx, mas garantimos aqui
+  // caso o ChunkedRender carregue antes daquele componente.
+  if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+  }
+  const buf = await blob.arrayBuffer();
+  const loadingTask = pdfjsLib.getDocument({ data: buf, disableAutoFetch: true, disableStream: true });
+  const pdf = await loadingTask.promise;
+  try {
+    const page = await pdf.getPage(1);
+    const baseViewport = page.getViewport({ scale: 1 });
+    const scale = TARGET_WIDTH / Math.max(1, baseViewport.width);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(viewport.width));
+    canvas.height = Math.max(1, Math.round(viewport.height));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("canvas 2d context unavailable");
+    await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+    return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+  } finally {
+    try { await pdf.destroy(); } catch { /* ignore */ }
+  }
+}
 
 const memoryCache = new Map<string, string | null>();
 const inFlightExtract = new Map<string, Promise<string | null>>();
