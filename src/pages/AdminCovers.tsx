@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { loadDriveTree, DriveNode, isArchive } from "@/lib/drive";
+import { loadDriveTree, DriveNode } from "@/lib/drive";
 import { extractCover } from "@/lib/cover-extract";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,10 +11,9 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const ENDPOINT = `${SUPABASE_URL}/functions/v1/upload-cover`;
 const CONCURRENCY = 3;
 
-const PUBLISHER_MATCH: Array<{ key: string; match: (name: string) => boolean }> = [
-  { key: "Marvel", match: (n) => /\bmarvel\b/i.test(n) },
-  { key: "DC", match: (n) => /\bdc\b/i.test(n) },
-];
+// Extensões que conseguimos extrair capa (CBR/CBZ/RAR/ZIP via libarchive,
+// e PDF via pdf.js). Cobre Marvel, DC, independentes, mangás e manhwas.
+const EXTRACTABLE_RE = /\.(cbr|cbz|rar|zip|pdf)$/i;
 
 type Target = { id: string; name: string; publisher: string };
 
@@ -22,15 +21,17 @@ function collectTargets(tree: { children: DriveNode[] }): Target[] {
   const targets: Target[] = [];
   const walk = (node: DriveNode, publisher: string) => {
     if (node.type === "file") {
-      if (isArchive(node.name)) targets.push({ id: node.id, name: node.name, publisher });
+      if (EXTRACTABLE_RE.test(node.name)) {
+        targets.push({ id: node.id, name: node.name, publisher });
+      }
       return;
     }
     node.children?.forEach((c) => walk(c, publisher));
   };
+  // Cada pasta de topo é uma "editora" (Marvel, DC, Mangás, Manhwas, etc.).
   for (const top of tree.children) {
-    const pub = PUBLISHER_MATCH.find((p) => p.match(top.name));
-    if (!pub) continue;
-    top.children?.forEach((c) => walk(c, pub.key));
+    if (top.type !== "folder") continue;
+    top.children?.forEach((c) => walk(c, top.name));
   }
   return targets;
 }

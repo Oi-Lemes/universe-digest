@@ -27,6 +27,7 @@ const CONCURRENCY = IS_MOBILE ? 2 : 4;
 const PARTIAL_BYTES = IS_MOBILE ? 3 * 1024 * 1024 : 0;
 const MAX_ATTEMPTS = 3;
 const IMAGE_RE = /\.(jpe?g|png|webp|gif|bmp|avif)$/i;
+const PDF_RE = /\.pdf$/i;
 
 // ---------- IndexedDB helpers ----------
 
@@ -148,7 +149,33 @@ async function downscaleToDataUrl(blob: Blob): Promise<string> {
   return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
 }
 
-// ---------- Main API ----------
+// Renderiza a 1ª página de um PDF em data URL (mesma escala/qualidade das capas).
+async function pdfFirstPageToDataUrl(blob: Blob): Promise<string> {
+  const pdfjsLib = await import("pdfjs-dist");
+  // worker já é configurado globalmente em PdfReader.tsx, mas garantimos aqui
+  // caso o ChunkedRender carregue antes daquele componente.
+  if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+  }
+  const buf = await blob.arrayBuffer();
+  const loadingTask = pdfjsLib.getDocument({ data: buf, disableAutoFetch: true, disableStream: true });
+  const pdf = await loadingTask.promise;
+  try {
+    const page = await pdf.getPage(1);
+    const baseViewport = page.getViewport({ scale: 1 });
+    const scale = TARGET_WIDTH / Math.max(1, baseViewport.width);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(viewport.width));
+    canvas.height = Math.max(1, Math.round(viewport.height));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("canvas 2d context unavailable");
+    await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+    return canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+  } finally {
+    try { await pdf.destroy(); } catch { /* ignore */ }
+  }
+}
 
 const memoryCache = new Map<string, string | null>();
 const inFlightExtract = new Map<string, Promise<string | null>>();
@@ -207,11 +234,12 @@ export async function extractCover(fileId: string, fileName: string): Promise<st
 
     await acquire();
     try {
+      const isPdf = PDF_RE.test(fileName);
       let lastErr: unknown = null;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        // Tentativa 1 e 2 no mobile: pede só os primeiros MB (Range).
-        // Tentativa 3 (ou desktop): baixa o arquivo inteiro como fallback.
-        const usePartial = PARTIAL_BYTES > 0 && attempt < MAX_ATTEMPTS;
+        // Tentativa 1 e 2 no mobile (apenas CBR/CBZ): pede só os primeiros MB.
+        // PDF precisa do trailer no fim, então sempre baixamos inteiro.
+        const usePartial = !isPdf && PARTIAL_BYTES > 0 && attempt < MAX_ATTEMPTS;
         try {
           const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
           const headers = driveProxyHeaders();
@@ -222,6 +250,13 @@ export async function extractCover(fileId: string, fileName: string): Promise<st
           // 200 (servidor ignorou Range) e 206 (Partial Content) ambos servem.
           if (!res.ok && res.status !== 206) throw new Error(`download ${res.status}`);
           const blob = await res.blob();
+
+          if (isPdf) {
+            const dataUrl = await pdfFirstPageToDataUrl(blob);
+            memoryCache.set(fileId, dataUrl);
+            await cacheSet(fileId, { dataUrl, ts: Date.now() });
+            return dataUrl;
+          }
 
           const { Archive } = await import("libarchive.js");
           Archive.init({ workerUrl: "/libarchive/worker-bundle.js" });
