@@ -37,7 +37,7 @@ export const SupportWidget = () => {
     );
     window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
     toast.success("Mensagem pronta para envio!", {
-      description: `Conclua o envio no seu app de email para ${SUPPORT_EMAIL}.`,
+      description: "Conclua o envio no seu app de email para finalizar.",
     });
     setMessage("");
     setOpen(false);
@@ -50,13 +50,13 @@ export const SupportWidget = () => {
         onClick={() => setOpen((v) => !v)}
         aria-label="Abrir suporte"
         className={cn(
-          "fixed bottom-4 left-4 z-[60] h-14 w-14 rounded-full bg-cta shadow-cta",
+          "fixed bottom-4 left-4 z-[60] h-10 w-10 rounded-full bg-cta shadow-cta",
           "flex items-center justify-center text-primary-foreground",
           "transition-transform hover:scale-105 active:scale-95",
           !open && "animate-pulse",
         )}
       >
-        {open ? <X className="h-6 w-6" /> : <Headphones className="h-6 w-6" />}
+        {open ? <X className="h-4 w-4" /> : <Headphones className="h-4 w-4" />}
         {!open && (
           <span className="absolute inset-0 rounded-full ring-2 ring-primary/60 animate-ping" />
         )}
@@ -118,7 +118,7 @@ export const SupportWidget = () => {
               Enviar
             </Button>
             <p className="text-[10px] text-muted-foreground text-center">
-              Abre seu app de email para enviar a {SUPPORT_EMAIL}
+              Abre seu app de email para finalizar o envio
             </p>
           </div>
         </div>
