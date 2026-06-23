@@ -27,6 +27,7 @@ const CONCURRENCY = IS_MOBILE ? 2 : 4;
 const PARTIAL_BYTES = IS_MOBILE ? 3 * 1024 * 1024 : 0;
 const MAX_ATTEMPTS = 3;
 const IMAGE_RE = /\.(jpe?g|png|webp|gif|bmp|avif)$/i;
+const PDF_RE = /\.pdf$/i;
 
 // ---------- IndexedDB helpers ----------
 
