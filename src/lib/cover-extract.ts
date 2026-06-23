@@ -209,10 +209,18 @@ export async function extractCover(fileId: string, fileName: string): Promise<st
     try {
       let lastErr: unknown = null;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        // Tentativa 1 e 2 no mobile: pede só os primeiros MB (Range).
+        // Tentativa 3 (ou desktop): baixa o arquivo inteiro como fallback.
+        const usePartial = PARTIAL_BYTES > 0 && attempt < MAX_ATTEMPTS;
         try {
           const proxied = `${PROXY_URL}?id=${encodeURIComponent(fileId)}`;
-          const res = await fetch(proxied, { cache: "force-cache", headers: driveProxyHeaders() });
-          if (!res.ok) throw new Error(`download ${res.status}`);
+          const headers = driveProxyHeaders();
+          if (usePartial) {
+            (headers as Record<string, string>)["Range"] = `bytes=0-${PARTIAL_BYTES - 1}`;
+          }
+          const res = await fetch(proxied, { cache: "force-cache", headers });
+          // 200 (servidor ignorou Range) e 206 (Partial Content) ambos servem.
+          if (!res.ok && res.status !== 206) throw new Error(`download ${res.status}`);
           const blob = await res.blob();
 
           const { Archive } = await import("libarchive.js");
