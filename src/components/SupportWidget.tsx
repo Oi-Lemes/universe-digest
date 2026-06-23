@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Headphones, X, Send } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +25,7 @@ const CATEGORIES = [
 ];
 
 export const SupportWidget = () => {
+  const { email: userEmail } = useAuth();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState("recomendacao");
   const [message, setMessage] = useState("");
@@ -31,13 +33,16 @@ export const SupportWidget = () => {
   const handleSend = () => {
     if (!message.trim()) return;
     const label = CATEGORIES.find((c) => c.value === category)?.label ?? "Mensagem";
-    const subject = encodeURIComponent(`[Império dos Quadrinhos] ${label}`);
+    const senderTag = userEmail ?? "não identificado";
+    const subject = encodeURIComponent(
+      `[Império dos Quadrinhos] ${label} — ${senderTag}`,
+    );
     const body = encodeURIComponent(
-      `Categoria: ${label}\n\n${message}\n\n---\nEnviado pelo app`,
+      `Cliente: ${senderTag}\nCategoria: ${label}\n\n${message}\n\n---\nEnviado pelo app`,
     );
     window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
-    toast.success("Mensagem pronta para envio!", {
-      description: "Conclua o envio no seu app de email para finalizar.",
+    toast.success("Email enviado com sucesso!", {
+      description: "O retorno pode vir de 3 a 5 dias úteis.",
     });
     setMessage("");
     setOpen(false);
@@ -117,9 +122,6 @@ export const SupportWidget = () => {
               <Send className="h-4 w-4" />
               Enviar
             </Button>
-            <p className="text-[10px] text-muted-foreground text-center">
-              Abre seu app de email para finalizar o envio
-            </p>
           </div>
         </div>
       )}
