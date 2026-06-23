@@ -89,6 +89,21 @@ export function loadDriveTree(): Promise<DriveTree> {
   return cache;
 }
 
+export async function loadDriveFolderTree(id: string, name: string): Promise<DriveTree> {
+  const params = new URLSearchParams({ id, name });
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/drive-list?${params.toString()}`, {
+    cache: "no-store",
+    headers: SUPABASE_PUBLISHABLE_KEY
+      ? { Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}` }
+      : undefined,
+  });
+  if (!res.ok) {
+    const details = await res.text().catch(() => "");
+    throw new Error(`Falha ao carregar pasta do Drive (${res.status})${details ? `: ${details}` : ""}`);
+  }
+  return (await res.json()) as DriveTree;
+}
+
 export function resolveDriveFileId(id: string, fileName?: string): string {
   if (!fileName) return id;
   return DRIVE_ID_OVERRIDES[fileName] ?? id;
