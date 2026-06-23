@@ -1191,7 +1191,7 @@ const Index = () => {
       (n) => n.type === "file" || (n.children?.length ?? 0) > 0
     );
     return plus18 ? [...deduped, plus18] : deduped;
-  }, [tree]);
+  }, [tree, plus18Children]);
 
   // Seleciona Marvel como padrão. A aba "+18" agora pode ser ativa
   // (carrega o conteúdo via edge function), mas só pra quem não é trial.
