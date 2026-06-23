@@ -1338,46 +1338,6 @@ const Index = () => {
         </div>
       </header>
 
-      <AlertDialog open={driveWarnOpen} onOpenChange={setDriveWarnOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <GoogleDriveIcon className="w-5 h-5" />
-              Antes de abrir o Drive, leia com atenção
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3 text-sm leading-relaxed">
-                <p>
-                  Os arquivos disponíveis nessa pasta do Google Drive são o <strong>acervo antigo</strong>.
-                </p>
-                <p>
-                  As <strong>atualizações recentes</strong>, lançadas <strong>a cada 15 dias</strong>,
-                  ficam em <strong>pastas separadas vinculadas direto ao app</strong>. Isso evita
-                  má-fé de clientes mal-intencionados que baixariam tudo e pediriam reembolso depois.
-                </p>
-                <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive font-semibold">
-                  Ao clicar para abrir o Drive, o <strong>reembolso deixa de estar disponível</strong>.
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Voltar</AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <a
-                href={rootDriveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setDriveWarnOpen(false)}
-              >
-                Entendi, abrir no navegador
-              </a>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-
       {searchQuery.length >= 2 ? (
         (() => {
           const results = tree ? searchTree(tree, searchQuery, 120) : [];
