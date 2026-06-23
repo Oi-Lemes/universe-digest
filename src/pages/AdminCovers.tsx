@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { loadDriveTree, DriveNode, isArchive } from "@/lib/drive";
+import { loadDriveTree, DriveNode } from "@/lib/drive";
 import { extractCover } from "@/lib/cover-extract";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
