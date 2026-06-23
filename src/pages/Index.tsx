@@ -1231,13 +1231,18 @@ const Index = () => {
     [currentFolder]
   );
 
+  const rootDriveUrl = useMemo(
+    () => (tree?.id ? driveFolderUrl(tree.id) : "#"),
+    [tree?.id]
+  );
+
   const handleSelectPublisher = (id: string) => {
     if (id === EXTERNAL_PUBLISHER_ID) {
       if (isTrial) {
         toast.error("Pack +18 bloqueado. Somente quem comprou pode acessar.");
         return;
       }
-      openExternalUrl(PLUS18_DRIVE_URL);
+      openExternalUrl(PLUS18_DRIVE_URL, "_top");
       return;
     }
 
@@ -1411,14 +1416,15 @@ const Index = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Voltar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (tree?.id) {
-                  openExternalUrl(driveFolderUrl(tree.id));
-                }
-              }}
-            >
-              Entendi, abrir mesmo assim
+            <AlertDialogAction asChild>
+              <a
+                href={rootDriveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setDriveWarnOpen(false)}
+              >
+                Entendi, abrir no navegador
+              </a>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
