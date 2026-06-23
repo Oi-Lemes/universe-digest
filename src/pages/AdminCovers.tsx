@@ -18,7 +18,7 @@ const EXTRACTABLE_RE = /\.(cbr|cbz|rar|zip|pdf)$/i;
 type Target = { id: string; name: string; publisher: string };
 
 function collectTargets(tree: { children: DriveNode[] }): Target[] {
-  const targets: Text[] extends never ? Target[] : Target[] = [];
+  const targets: Target[] = [];
   const walk = (node: DriveNode, publisher: string) => {
     if (node.type === "file") {
       if (EXTRACTABLE_RE.test(node.name)) {
