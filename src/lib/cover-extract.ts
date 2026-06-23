@@ -13,7 +13,18 @@ const DB_NAME = "cover-cache-v1";
 const STORE = "covers";
 const TARGET_WIDTH = 360;
 const JPEG_QUALITY = 0.78;
-const CONCURRENCY = 4;
+// Detecta mobile/conexão fraca pra reduzir paralelismo e usar Range parcial.
+// No mobile 4 downloads simultâneos de CBRs grandes saturam a banda e estouram
+// o timeout do browser. 2 de cada vez chega muito mais consistente.
+const IS_MOBILE =
+  typeof navigator !== "undefined" &&
+  /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+const CONCURRENCY = IS_MOBILE ? 2 : 4;
+// Em mobile, pedimos só os primeiros ~3 MB do arquivo. Pra CBR (RAR) o header
+// fica no começo, então normalmente já dá pra extrair a primeira imagem sem
+// baixar o arquivo inteiro (que pode ter 200+ MB). Se a extração parcial falhar
+// (ex.: CBZ com índice no fim), o catch tenta de novo sem Range.
+const PARTIAL_BYTES = IS_MOBILE ? 3 * 1024 * 1024 : 0;
 const MAX_ATTEMPTS = 3;
 const IMAGE_RE = /\.(jpe?g|png|webp|gif|bmp|avif)$/i;
 
