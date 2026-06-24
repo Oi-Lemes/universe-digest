@@ -1372,7 +1372,7 @@ const Index = () => {
                   rel="noopener noreferrer"
                   onClick={(e) => {
                     e.preventDefault();
-                    openDriveUrl(IMPERIO_DRIVE_URL);
+                    openGoogleDriveReference(IMPERIO_DRIVE_REFERENCE);
                   }}
                 >
                   <GoogleDriveIcon className="w-4 h-4" />
@@ -1401,7 +1401,7 @@ const Index = () => {
               rel="noopener noreferrer"
               onClick={(e) => {
                 e.preventDefault();
-                openDriveUrl(IMPERIO_DRIVE_URL);
+                openGoogleDriveReference(IMPERIO_DRIVE_REFERENCE);
               }}
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
