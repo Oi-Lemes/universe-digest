@@ -18,11 +18,12 @@ import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 import { groupLooseSeries } from "@/lib/series-group";
+import { driveRedirectUrl } from "@/lib/open-external";
 
 import { registerSeen } from "@/lib/recency";
 
-const IMPERIO_DRIVE_URL =
-  "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link";
+const IMPERIO_DRIVE_ID = "11SVA323KWtChNn9SdhfqhhkewLlsy683";
+const IMPERIO_DRIVE_URL = driveRedirectUrl(IMPERIO_DRIVE_ID);
 
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
@@ -1338,9 +1339,8 @@ const Index = () => {
               >
                 <a
                   href={IMPERIO_DRIVE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer external"
-                  referrerPolicy="no-referrer"
+                  target="_top"
+                  rel="external"
                 >
                   <GoogleDriveIcon className="w-4 h-4" />
                   <span className="hidden md:inline">Drive</span>
@@ -1364,9 +1364,8 @@ const Index = () => {
           {!isTrial && (
             <a
               href={IMPERIO_DRIVE_URL}
-              target="_blank"
-              rel="noopener noreferrer external"
-              referrerPolicy="no-referrer"
+              target="_top"
+              rel="external"
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
