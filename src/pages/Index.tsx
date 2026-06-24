@@ -1399,7 +1399,15 @@ const Index = () => {
                 title="Abrir pasta Império dos Quadrinhos no Google Drive"
                 className="gap-1.5"
               >
-                <a href={IMPERIO_DRIVE_URL} target="_top" rel="external">
+                <a
+                  href={IMPERIO_DRIVE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openDriveUrl(IMPERIO_DRIVE_URL);
+                  }}
+                >
                   <GoogleDriveIcon className="w-4 h-4" />
                   <span className="hidden md:inline">Drive</span>
                 </a>
