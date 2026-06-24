@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Tabs, TabsList, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -54,10 +54,11 @@ type Crumb = { id: string; name: string };
 type DriveOpenButtonProps = {
   reference: DriveReference;
   className?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
-const DriveOpenButton = ({ reference, className, children }: DriveOpenButtonProps) => {
+const DriveOpenButton = forwardRef<HTMLAnchorElement, DriveOpenButtonProps>(
+  ({ reference, className, children }, ref) => {
   const finalUrl = buildGoogleDriveUrl(reference.driveType, reference.driveId);
 
   useEffect(() => {
@@ -73,6 +74,7 @@ const DriveOpenButton = ({ reference, className, children }: DriveOpenButtonProp
 
   return (
     <a
+      ref={ref}
       href={finalUrl}
       target="_blank"
       rel="noopener noreferrer"
@@ -91,7 +93,10 @@ const DriveOpenButton = ({ reference, className, children }: DriveOpenButtonProp
       {children}
     </a>
   );
-};
+  }
+);
+
+DriveOpenButton.displayName = "DriveOpenButton";
 
 const Index = () => {
   const { email, signOut, isTrial, trialExpiresAt } = useAuth();
