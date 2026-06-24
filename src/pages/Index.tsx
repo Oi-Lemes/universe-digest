@@ -18,14 +18,14 @@ import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 import { groupLooseSeries } from "@/lib/series-group";
+import { driveRedirectUrl } from "@/lib/open-external";
 
 import { registerSeen } from "@/lib/recency";
 
-// Link cru do Drive: sem redirecionamento e sem JavaScript.
-// Usa `_top` para sair do iframe da prévia/Lovable; `_blank` herda o sandbox
-// do preview em alguns navegadores e o Google Drive responde com ERR_BLOCKED_BY_RESPONSE.
-const IMPERIO_DRIVE_URL =
-  "https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW?usp=drive_link";
+// Abre primeiro uma aba do próprio app e ela redireciona para o Drive.
+// Isso evita o bloqueio do Google dentro do iframe da prévia e não depende de `_top`.
+const IMPERIO_DRIVE_ID = "1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW";
+const IMPERIO_DRIVE_URL = driveRedirectUrl(IMPERIO_DRIVE_ID);
 
 // Ícone moderno do Google Drive (paleta oficial atualizada).
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
@@ -1348,7 +1348,7 @@ const Index = () => {
                 title="Abrir pasta Império dos Quadrinhos no Google Drive"
                 className="gap-1.5"
               >
-                <a href={IMPERIO_DRIVE_URL} target="_top" rel="external">
+                <a href={IMPERIO_DRIVE_URL} target="_blank" rel="noopener noreferrer">
                   <GoogleDriveIcon className="w-4 h-4" />
                   <span className="hidden md:inline">Drive</span>
                 </a>
@@ -1371,8 +1371,8 @@ const Index = () => {
           {!isTrial && (
             <a
               href={IMPERIO_DRIVE_URL}
-              target="_top"
-              rel="external"
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
