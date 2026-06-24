@@ -53,12 +53,28 @@ export function parseGoogleDriveLink(rawUrl: string): ParsedDriveLink {
     throw new Error("Use um link válido do Google Drive ou Google Docs.");
   }
 
-  const pathParts = parsed.pathname.split("/").filter(Boolean);
+  // Normaliza segmentos irrelevantes que o Drive insere em links mobile/multi-conta:
+  //   /drive/u/0/mobile/folders/ID  → /drive/folders/ID
+  //   /drive/u/0/folders/ID         → /drive/folders/ID
+  //   /u/0/uc?id=ID                 → /uc?id=ID
+  //   /u/0/open?id=ID               → /open?id=ID
+  const rawParts = parsed.pathname.split("/").filter(Boolean);
+  const pathParts: string[] = [];
+  for (let i = 0; i < rawParts.length; i++) {
+    const p = rawParts[i];
+    if (p === "u" && /^\d+$/.test(rawParts[i + 1] ?? "")) {
+      i += 1; // pula "u" e o número
+      continue;
+    }
+    if (p === "mobile") continue;
+    pathParts.push(p);
+  }
+
   let result: ParsedDriveLink | null = null;
 
   if (parsed.hostname === "drive.google.com" || parsed.hostname.endsWith(".drive.google.com")) {
     const foldersIndex = pathParts.indexOf("folders");
-    if (pathParts[0] === "drive" && foldersIndex >= 0 && pathParts[foldersIndex + 1]) {
+    if (foldersIndex >= 0 && pathParts[foldersIndex + 1]) {
       result = {
         driveType: "folder",
         driveId: assertDriveId(pathParts[foldersIndex + 1]),
@@ -77,7 +93,8 @@ export function parseGoogleDriveLink(rawUrl: string): ParsedDriveLink {
     }
 
     const idParam = parsed.searchParams.get("id");
-    if (!result && (pathParts[0] === "open" || pathParts[0] === "uc") && idParam) {
+    const first = pathParts[0];
+    if (!result && (first === "open" || first === "uc") && idParam) {
       result = {
         driveType: "file",
         driveId: assertDriveId(idParam),
@@ -104,6 +121,22 @@ export function buildGoogleDriveUrl(driveType: DriveType, driveId: string): stri
     return `https://drive.google.com/drive/folders/${id}`;
   }
   return `https://drive.google.com/file/d/${id}/view`;
+}
+
+/**
+ * Recebe qualquer URL do Google Drive (mobile, multi-conta, com query params)
+ * e devolve a forma canônica estável:
+ *   pasta  → https://drive.google.com/drive/folders/{id}
+ *   arquivo → https://drive.google.com/file/d/{id}/view
+ * Retorna null se a URL não for reconhecida.
+ */
+export function normalizeGoogleDriveUrl(rawUrl: string): string | null {
+  try {
+    const parsed = parseGoogleDriveLink(rawUrl);
+    return buildGoogleDriveUrl(parsed.driveType, parsed.driveId);
+  } catch {
+    return null;
+  }
 }
 
 export function normalizeDriveReference(input: DriveReference | string): DriveReference {
