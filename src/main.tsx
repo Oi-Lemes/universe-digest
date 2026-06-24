@@ -20,15 +20,11 @@ if ("serviceWorker" in navigator) {
 
         if ("caches" in window) {
           const keys = await caches.keys();
-          await Promise.all(
-            keys
-              .filter((key) => /^(img-cache|asset-cache|runtime)-/.test(key))
-              .map((key) => caches.delete(key))
-          );
+          await Promise.all(keys.map((key) => caches.delete(key)));
         }
 
-        if (navigator.serviceWorker.controller && !sessionStorage.getItem("iq_sw_removed_v1")) {
-          sessionStorage.setItem("iq_sw_removed_v1", "1");
+        if (navigator.serviceWorker.controller && !sessionStorage.getItem("iq_sw_removed_v2")) {
+          sessionStorage.setItem("iq_sw_removed_v2", "1");
           window.location.reload();
         }
       })
