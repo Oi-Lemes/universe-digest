@@ -21,11 +21,62 @@ import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
 
-// Link cru do Drive: sem redirecionamento e sem JavaScript.
-// Usa `_top` para sair do iframe da prévia/Lovable; `_blank` herda o sandbox
-// do preview em alguns navegadores e o Google Drive responde com ERR_BLOCKED_BY_RESPONSE.
+// Link cru do Drive. Mantemos `usp=sharing` (parâmetro canônico do Drive para
+// pastas compartilhadas — `usp=drive_link` pode disparar 404 quando o visitante
+// não está logado na conta dona do link).
 const IMPERIO_DRIVE_URL =
-  "https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW?usp=drive_link";
+  "https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW?usp=sharing";
+
+/**
+ * Sanitiza, valida e abre uma URL do Google Drive no navegador externo.
+ * - Faz `trim()` para remover espaços invisíveis.
+ * - Valida com `new URL()` antes de navegar.
+ * - Confirma que o host é do Google Drive (evita open-redirect).
+ * - Tenta `window.open(..., "_blank")` primeiro; se for bloqueado (popup blocker
+ *   ou sandbox de iframe/PWA), cai para um `<a target="_blank">` clicado via
+ *   gesto do usuário e, por último, navega o top-level window.
+ */
+function openDriveUrl(rawUrl: string) {
+  const cleaned = (rawUrl ?? "").trim();
+  let parsed: URL;
+  try {
+    parsed = new URL(cleaned);
+  } catch (err) {
+    console.error("[drive] URL inválida:", cleaned, err);
+    return;
+  }
+  if (!/(^|\.)google\.com$/.test(parsed.hostname)) {
+    console.error("[drive] host inesperado:", parsed.hostname);
+    return;
+  }
+  const finalUrl = parsed.toString();
+  console.info("[drive] abrindo URL:", finalUrl);
+
+  try {
+    const win = window.open(finalUrl, "_blank", "noopener,noreferrer");
+    if (win) return;
+  } catch (err) {
+    console.warn("[drive] window.open falhou:", err);
+  }
+  try {
+    const a = document.createElement("a");
+    a.href = finalUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    return;
+  } catch (err) {
+    console.warn("[drive] fallback <a> falhou:", err);
+  }
+  try {
+    window.top?.location.assign(finalUrl);
+  } catch {
+    window.location.assign(finalUrl);
+  }
+}
 
 // Ícone moderno do Google Drive (paleta oficial atualizada).
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
