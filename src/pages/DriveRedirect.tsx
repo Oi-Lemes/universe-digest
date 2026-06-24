@@ -28,10 +28,10 @@ const DriveRedirect = () => {
       <section className="max-w-md text-center space-y-4 rounded-lg border border-border bg-card p-6 shadow-lg">
         <h1 className="text-xl font-bold text-foreground">Abrir Google Drive</h1>
         <p className="text-sm text-muted-foreground">
-          Para evitar o bloqueio do navegador, abra a pasta em uma página nova do próprio Drive.
+          Para evitar o bloqueio do navegador, abra a pasta substituindo esta janela pelo Drive.
         </p>
         <Button asChild className="w-full">
-          <a href={driveUrl} target="_blank" rel="noopener noreferrer external">
+          <a href={driveUrl} target="_top" rel="external">
             Abrir pasta no Google Drive
           </a>
         </Button>
