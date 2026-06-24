@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { MouseEvent } from "react";
 import { Tabs, TabsList, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -19,11 +18,11 @@ import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 import { groupLooseSeries } from "@/lib/series-group";
-// Link direto do Drive. A abertura é feita por clique usando `_top` para não
-// tentar renderizar o Drive dentro de iframe/preview, que o Google bloqueia.
 
 import { registerSeen } from "@/lib/recency";
 
+// Link cru do Drive: sem redirecionamento, sem JavaScript e sem `_top`.
+// Assim o clique se comporta igual a colar a URL na barra do navegador.
 const IMPERIO_DRIVE_URL =
   "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link";
 
@@ -75,30 +74,6 @@ const Index = () => {
   const [plus18Children, setPlus18Children] = useState<DriveNode[] | null>(null);
   const [plus18Loading, setPlus18Loading] = useState(false);
   const [plus18Loaded, setPlus18Loaded] = useState(false);
-
-  const handleOpenImperioDrive = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-
-    let isInsideFrame = false;
-    try {
-      isInsideFrame = window.top !== window.self;
-    } catch {
-      isInsideFrame = true;
-    }
-
-    if (isInsideFrame) {
-      try {
-        window.top?.location.assign(IMPERIO_DRIVE_URL);
-        return;
-      } catch {
-        navigator.clipboard?.writeText(IMPERIO_DRIVE_URL).catch(() => undefined);
-        toast.error("O navegador bloqueou a saída da prévia. Link do Drive copiado; cole na barra do navegador.");
-        return;
-      }
-    }
-
-    window.location.assign(IMPERIO_DRIVE_URL);
-  };
 
   useEffect(() => {
     const isSearchOpen = searchQuery.length >= 2;
@@ -1372,7 +1347,7 @@ const Index = () => {
                 title="Abrir pasta Império dos Quadrinhos no Google Drive"
                 className="gap-1.5"
               >
-                <a href={IMPERIO_DRIVE_URL} target="_top" rel="external" onClick={handleOpenImperioDrive}>
+                <a href={IMPERIO_DRIVE_URL} target="_blank" rel="noopener noreferrer">
                   <GoogleDriveIcon className="w-4 h-4" />
                   <span className="hidden md:inline">Drive</span>
                 </a>
@@ -1395,9 +1370,8 @@ const Index = () => {
           {!isTrial && (
             <a
               href={IMPERIO_DRIVE_URL}
-              target="_top"
-              rel="external"
-              onClick={handleOpenImperioDrive}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
