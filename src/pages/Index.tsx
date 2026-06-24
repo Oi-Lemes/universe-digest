@@ -1430,8 +1430,12 @@ const Index = () => {
           {!isTrial && (
             <a
               href={IMPERIO_DRIVE_URL}
-              target="_top"
-              rel="external"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.preventDefault();
+                openDriveUrl(IMPERIO_DRIVE_URL);
+              }}
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
