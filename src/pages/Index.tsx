@@ -10,6 +10,13 @@ import { InfiniteCoverMarquee } from "@/components/InfiniteCoverMarquee";
 import { ComicReader } from "@/components/ComicReader";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { searchTree } from "@/lib/search";
+import {
+  buildGoogleDriveUrl,
+  DriveReference,
+  logParsedDriveLink,
+  parseGoogleDriveLink,
+} from "@/lib/google-drive-link";
+import { openGoogleDriveReference } from "@/lib/open-external";
 
 import { PublisherTab } from "@/components/PublisherTab";
 import { OnlinePresence } from "@/components/OnlinePresence";
@@ -21,62 +28,22 @@ import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
 
-// Link cru do Drive. Mantemos `usp=sharing` (parâmetro canônico do Drive para
-// pastas compartilhadas — `usp=drive_link` pode disparar 404 quando o visitante
-// não está logado na conta dona do link).
-const IMPERIO_DRIVE_URL =
-  "https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW?usp=sharing";
+const IMPERIO_DRIVE_INPUT_URL =
+  "https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW?usp=drive_link";
 
-/**
- * Sanitiza, valida e abre uma URL do Google Drive no navegador externo.
- * - Faz `trim()` para remover espaços invisíveis.
- * - Valida com `new URL()` antes de navegar.
- * - Confirma que o host é do Google Drive (evita open-redirect).
- * - Tenta `window.open(..., "_blank")` primeiro; se for bloqueado (popup blocker
- *   ou sandbox de iframe/PWA), cai para um `<a target="_blank">` clicado via
- *   gesto do usuário e, por último, navega o top-level window.
- */
-function openDriveUrl(rawUrl: string) {
-  const cleaned = (rawUrl ?? "").trim();
-  let parsed: URL;
-  try {
-    parsed = new URL(cleaned);
-  } catch (err) {
-    console.error("[drive] URL inválida:", cleaned, err);
-    return;
-  }
-  if (!/(^|\.)google\.com$/.test(parsed.hostname)) {
-    console.error("[drive] host inesperado:", parsed.hostname);
-    return;
-  }
-  const finalUrl = parsed.toString();
-  console.info("[drive] abrindo URL:", finalUrl);
+const parsedImperioDrive = parseGoogleDriveLink(IMPERIO_DRIVE_INPUT_URL);
+logParsedDriveLink("cadastro-edicao", parsedImperioDrive);
 
-  try {
-    const win = window.open(finalUrl, "_blank", "noopener,noreferrer");
-    if (win) return;
-  } catch (err) {
-    console.warn("[drive] window.open falhou:", err);
-  }
-  try {
-    const a = document.createElement("a");
-    a.href = finalUrl;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    return;
-  } catch (err) {
-    console.warn("[drive] fallback <a> falhou:", err);
-  }
-  try {
-    window.top?.location.assign(finalUrl);
-  } catch {
-    window.location.assign(finalUrl);
-  }
-}
+const IMPERIO_DRIVE_REFERENCE: DriveReference = {
+  driveType: parsedImperioDrive.driveType,
+  driveId: parsedImperioDrive.driveId,
+  originalDriveUrl: parsedImperioDrive.originalUrl,
+};
+
+const IMPERIO_DRIVE_URL = buildGoogleDriveUrl(
+  IMPERIO_DRIVE_REFERENCE.driveType,
+  IMPERIO_DRIVE_REFERENCE.driveId
+);
 
 // Ícone moderno do Google Drive (paleta oficial atualizada).
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
@@ -1405,7 +1372,7 @@ const Index = () => {
                   rel="noopener noreferrer"
                   onClick={(e) => {
                     e.preventDefault();
-                    openDriveUrl(IMPERIO_DRIVE_URL);
+                    openGoogleDriveReference(IMPERIO_DRIVE_REFERENCE);
                   }}
                 >
                   <GoogleDriveIcon className="w-4 h-4" />
@@ -1434,7 +1401,7 @@ const Index = () => {
               rel="noopener noreferrer"
               onClick={(e) => {
                 e.preventDefault();
-                openDriveUrl(IMPERIO_DRIVE_URL);
+                openGoogleDriveReference(IMPERIO_DRIVE_REFERENCE);
               }}
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >

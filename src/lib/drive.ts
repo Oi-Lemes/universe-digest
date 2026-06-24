@@ -1,3 +1,5 @@
+import { buildGoogleDriveUrl } from "@/lib/google-drive-link";
+
 export type DriveNode = {
   id: string;
   name: string;
@@ -113,7 +115,7 @@ export function resolveDriveFileId(id: string, fileName?: string): string {
 }
 
 export function folderUrl(id: string): string {
-  return `https://drive.google.com/drive/folders/${id}`;
+  return buildGoogleDriveUrl("folder", id);
 }
 
 export function filePreviewUrl(id: string): string {
@@ -122,7 +124,7 @@ export function filePreviewUrl(id: string): string {
 }
 
 export function fileViewUrl(id: string): string {
-  return `https://drive.google.com/file/d/${id}/view`;
+  return buildGoogleDriveUrl("file", id);
 }
 
 export function directDriveDownloadUrl(id: string): string {
