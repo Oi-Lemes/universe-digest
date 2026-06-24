@@ -7,8 +7,17 @@
  * Usa um link real, disparado dentro do clique do usuário. O alvo pode ser
  * `_blank` (nova aba) ou `_top` (sair de iframe/prévia e navegar a janela atual).
  */
-export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank"): void {
+export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank"): boolean {
   try {
+    if (target === "_blank") {
+      const opened = window.open("", "_blank");
+      if (opened) {
+        opened.opener = null;
+        opened.location.href = url;
+        return true;
+      }
+    }
+
     const a = document.createElement("a");
     a.href = url;
     a.target = target;
@@ -18,12 +27,15 @@ export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank
     document.body.appendChild(a);
     a.click();
     a.remove();
+    return true;
   } catch {
     // Último recurso: sai da prévia/iframe quando possível e navega na janela atual.
     try {
       window.top?.location.assign(url);
+      return true;
     } catch {
       window.location.assign(url);
+      return true;
     }
   }
 }
