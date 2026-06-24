@@ -18,12 +18,12 @@ import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 import { groupLooseSeries } from "@/lib/series-group";
-import { driveRedirectUrl } from "@/lib/open-external";
+import { driveFolderUrl, openExternalUrl } from "@/lib/open-external";
 
 import { registerSeen } from "@/lib/recency";
 
 const IMPERIO_DRIVE_ID = "11SVA323KWtChNn9SdhfqhhkewLlsy683";
-const IMPERIO_DRIVE_URL = driveRedirectUrl(IMPERIO_DRIVE_ID);
+const IMPERIO_DRIVE_URL = driveFolderUrl(IMPERIO_DRIVE_ID);
 
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
@@ -1260,6 +1260,10 @@ const Index = () => {
     setCrumbs((c) => [...c, { id: node.id, name: node.name }]);
   };
 
+  const handleOpenImperioDrive = () => {
+    openExternalUrl(IMPERIO_DRIVE_URL, "_blank");
+  };
+
   const handleCrumbClick = (idx: number) => {
     setCrumbs((c) => c.slice(0, idx + 1));
   };
@@ -1331,20 +1335,15 @@ const Index = () => {
             />
             {!isTrial && (
               <Button
-                asChild
+                type="button"
                 variant="outline"
                 size="sm"
                 title="Abrir pasta Império dos Quadrinhos no Google Drive"
                 className="gap-1.5"
+                onClick={handleOpenImperioDrive}
               >
-                <a
-                  href={IMPERIO_DRIVE_URL}
-                  target="_top"
-                  rel="external"
-                >
-                  <GoogleDriveIcon className="w-4 h-4" />
-                  <span className="hidden md:inline">Drive</span>
-                </a>
+                <GoogleDriveIcon className="w-4 h-4" />
+                <span className="hidden md:inline">Drive</span>
               </Button>
             )}
             <Button
@@ -1362,15 +1361,14 @@ const Index = () => {
         {/* mobile: drive button + search */}
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
           {!isTrial && (
-            <a
-              href={IMPERIO_DRIVE_URL}
-              target="_top"
-              rel="external"
+            <button
+              type="button"
+              onClick={handleOpenImperioDrive}
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
               Abrir pasta no Google Drive
-            </a>
+            </button>
           )}
           <GlobalSearch
             tree={tree}
