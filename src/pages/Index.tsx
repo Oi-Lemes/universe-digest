@@ -24,7 +24,7 @@ import { registerSeen } from "@/lib/recency";
 // Link cru do Drive: sem redirecionamento, sem JavaScript e sem `_top`.
 // Assim o clique se comporta igual a colar a URL na barra do navegador.
 const IMPERIO_DRIVE_URL =
-  "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link";
+  "https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW?usp=drive_link";
 
 // Ícone moderno do Google Drive (paleta oficial atualizada).
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
