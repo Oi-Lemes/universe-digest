@@ -29,7 +29,7 @@ import { groupLooseSeries } from "@/lib/series-group";
 import { registerSeen } from "@/lib/recency";
 
 const IMPERIO_DRIVE_INPUT_URL =
-  "https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW?usp=drive_link";
+  "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683";
 
 const parsedImperioDrive = parseGoogleDriveLink(IMPERIO_DRIVE_INPUT_URL);
 logParsedDriveLink("cadastro-edicao", parsedImperioDrive);
