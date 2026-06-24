@@ -16,6 +16,7 @@ import { comicsPopularityScore } from "@/lib/comics-popularity";
 import { getOnlineCover, getCachedOnlineCover, looksLikeChapter } from "@/lib/online-cover";
 import { getFirstSeen, isNew, NEW_WINDOW_DAYS } from "@/lib/recency";
 import { useReadStatus } from "@/lib/read-status";
+import { driveDebugFields } from "@/lib/imperio-drive";
 
 type Props = {
   items: DriveNode[];
@@ -357,9 +358,21 @@ const GridItem = ({ node, mode, hotNow, trendingSet, onOpenFolder, onOpenFile }:
   const isHotNow = hotNow !== null && node.name.toLowerCase() === hotNow.toLowerCase();
   const fresh = isNew(node.id);
   const read = useReadStatus(!isFolder ? node.id : null);
+  const handleClick = () => {
+    console.info("GRID ITEM CLICK - ITEM:", node);
+    console.info("GRID ITEM CLICK - CAMPOS DRIVE:", driveDebugFields(node));
+    console.info("GRID ITEM CLICK - ID RENDERIZADO/CLICADO:", {
+      renderedId: node.id,
+      clickedId: node.id,
+      renderedDriveValue: node.id,
+      clickedDriveValue: node.id,
+    });
+    if (isFolder) onOpenFolder(node);
+    else onOpenFile(node);
+  };
   return (
     <button
-      onClick={() => (isFolder ? onOpenFolder(node) : onOpenFile(node))}
+      onClick={handleClick}
       className={cn(
         "group relative text-left rounded-lg border border-border bg-card p-2 transition-all",
         "hover:border-primary hover:-translate-y-0.5 hover:shadow-[var(--shadow-comic)]",

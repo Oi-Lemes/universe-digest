@@ -4,6 +4,7 @@ import {
   normalizeGoogleDriveUrl,
   parseGoogleDriveLink,
 } from "@/lib/google-drive-link";
+import { IMPERIO_DRIVE_ROOT_REFERENCE, IMPERIO_DRIVE_ROOT_URL } from "@/lib/imperio-drive";
 
 describe("google-drive-link mobile/u-N variants", () => {
   it("normaliza /drive/u/0/mobile/folders/{id} para a URL canônica", () => {
@@ -86,6 +87,16 @@ describe("google-drive-link", () => {
     );
     expect(buildGoogleDriveUrl("file", "1AbCdEfGhIjKlMnOpQrStUvWxYz_12345")).toBe(
       "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view"
+    );
+  });
+
+  it("usa driveType + driveId como fonte única do botão principal", () => {
+    expect(IMPERIO_DRIVE_ROOT_REFERENCE).toMatchObject({
+      driveType: "folder",
+      driveId: "11SVA323KWtChNn9SdhfqhhkewLlsy683",
+    });
+    expect(IMPERIO_DRIVE_ROOT_URL).toBe(
+      "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683"
     );
   });
 });

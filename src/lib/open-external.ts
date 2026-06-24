@@ -36,6 +36,16 @@ export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank
 
 export function openGoogleDriveReference(reference: DriveReference, target: "_blank" | "_top" = "_blank"): boolean {
   const finalUrl = buildGoogleDriveUrl(reference.driveType, reference.driveId);
+  console.info("CLICK DRIVE - ITEM:", {
+    source: "DriveReference",
+    driveType: reference.driveType,
+    driveId: reference.driveId,
+    originalDriveUrl: reference.originalDriveUrl ?? null,
+  });
+  console.info("CLICK DRIVE - URL BRUTA USADA:", reference.originalDriveUrl ?? null);
+  console.info("CLICK DRIVE - DRIVE TYPE:", reference.driveType);
+  console.info("CLICK DRIVE - DRIVE ID:", reference.driveId);
+  console.info("CLICK DRIVE - URL FINAL ABERTA:", finalUrl);
   console.info("[drive:open] abrindo URL canônica", {
     originalDriveUrl: reference.originalDriveUrl ?? null,
     driveType: reference.driveType,

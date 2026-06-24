@@ -1,4 +1,5 @@
 import { buildGoogleDriveUrl } from "@/lib/google-drive-link";
+import { canonicalizeDriveTreeRoot } from "@/lib/imperio-drive";
 
 export type DriveNode = {
   id: string;
@@ -19,7 +20,7 @@ const DRIVE_ID_OVERRIDES: Record<string, string> = {
 };
 
 let cache: Promise<DriveTree> | null = null;
-const DRIVE_TREE_VERSION = "2026-05-12-aot-covers";
+const DRIVE_TREE_VERSION = "2026-06-24-drive-root-11SVA";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
@@ -85,7 +86,9 @@ export function loadDriveTree(): Promise<DriveTree> {
       // Remove duplicatas geradas pelo Drive ("Foo (1).pdf" quando "Foo.pdf" existe).
       const deduped = dedupeClones(tree as unknown as DriveNode) as DriveTree;
       // Aplica capas manuais (acervos CBR/CBZ que o Drive não thumbnaila).
-      return applyCoverOverrides(deduped as unknown as DriveNode, overrides) as unknown as DriveTree;
+      return canonicalizeDriveTreeRoot(
+        applyCoverOverrides(deduped as unknown as DriveNode, overrides) as unknown as DriveTree
+      );
     })();
   }
   return cache;

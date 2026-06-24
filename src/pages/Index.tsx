@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Tabs, TabsList, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,12 @@ import { searchTree } from "@/lib/search";
 import {
   buildGoogleDriveUrl,
   DriveReference,
-  logParsedDriveLink,
-  parseGoogleDriveLink,
 } from "@/lib/google-drive-link";
+import {
+  driveDebugFields,
+  IMPERIO_DRIVE_ROOT_REFERENCE,
+  IMPERIO_DRIVE_ROOT_URL,
+} from "@/lib/imperio-drive";
 import { openGoogleDriveReference } from "@/lib/open-external";
 
 import { PublisherTab } from "@/components/PublisherTab";
@@ -27,23 +30,6 @@ import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
-
-const IMPERIO_DRIVE_INPUT_URL =
-  "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683";
-
-const parsedImperioDrive = parseGoogleDriveLink(IMPERIO_DRIVE_INPUT_URL);
-logParsedDriveLink("cadastro-edicao", parsedImperioDrive);
-
-const IMPERIO_DRIVE_REFERENCE: DriveReference = {
-  driveType: parsedImperioDrive.driveType,
-  driveId: parsedImperioDrive.driveId,
-  originalDriveUrl: parsedImperioDrive.originalUrl,
-};
-
-const IMPERIO_DRIVE_URL = buildGoogleDriveUrl(
-  IMPERIO_DRIVE_REFERENCE.driveType,
-  IMPERIO_DRIVE_REFERENCE.driveId
-);
 
 // Ícone moderno do Google Drive (paleta oficial atualizada).
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
@@ -64,6 +50,53 @@ const GoogleDriveIcon = ({ className }: { className?: string }) => (
 import { toast } from "sonner";
 
 type Crumb = { id: string; name: string };
+
+type DriveOpenButtonProps = {
+  reference: DriveReference;
+  className?: string;
+  children: ReactNode;
+};
+
+const DriveOpenButton = forwardRef<HTMLAnchorElement, DriveOpenButtonProps>(
+  ({ reference, className, children }, ref) => {
+  const finalUrl = buildGoogleDriveUrl(reference.driveType, reference.driveId);
+
+  useEffect(() => {
+    console.info("PROPS DO BOTÃO DRIVE:", {
+      props: {
+        driveType: reference.driveType,
+        driveId: reference.driveId,
+        originalDriveUrl: reference.originalDriveUrl ?? null,
+        finalUrl,
+      },
+    });
+  }, [reference.driveType, reference.driveId, reference.originalDriveUrl, finalUrl]);
+
+  return (
+    <a
+      ref={ref}
+      href={finalUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => {
+        e.preventDefault();
+        console.info("[drive-debug] clique recebido pelo botão canônico", {
+          renderHref: finalUrl,
+          sourceOfTruth: "driveType + driveId",
+          driveType: reference.driveType,
+          driveId: reference.driveId,
+        });
+        openGoogleDriveReference(reference);
+      }}
+      className={className}
+    >
+      {children}
+    </a>
+  );
+  }
+);
+
+DriveOpenButton.displayName = "DriveOpenButton";
 
 const Index = () => {
   const { email, signOut, isTrial, trialExpiresAt } = useAuth();
@@ -122,6 +155,13 @@ const Index = () => {
   useEffect(() => {
     loadDriveTree()
       .then((t) => {
+        console.info("ITEM RENDERIZADO:", t);
+        console.info("Campos de Drive encontrados:", driveDebugFields(t));
+        console.info("[drive-debug] fonte única do botão Drive", {
+          driveType: IMPERIO_DRIVE_ROOT_REFERENCE.driveType,
+          driveId: IMPERIO_DRIVE_ROOT_REFERENCE.driveId,
+          finalUrl: IMPERIO_DRIVE_ROOT_URL,
+        });
         setTree(t);
         // Registra todos os ids do drive pra detectar "novos" entre cargas.
         const ids: string[] = [];
@@ -1243,6 +1283,12 @@ const Index = () => {
     return node;
   }, [activePublisher, crumbs]);
 
+  useEffect(() => {
+    if (!currentFolder) return;
+    console.info("ITEM RENDERIZADO:", currentFolder);
+    console.info("Campos de Drive encontrados:", driveDebugFields(currentFolder));
+  }, [currentFolder?.id, currentFolder]);
+
   const items = useMemo<DriveNode[]>(
     () => currentFolder?.children ?? [],
     [currentFolder]
@@ -1366,18 +1412,10 @@ const Index = () => {
                 title="Abrir pasta Império dos Quadrinhos no Google Drive"
                 className="gap-1.5"
               >
-                <a
-                  href={IMPERIO_DRIVE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    openGoogleDriveReference(IMPERIO_DRIVE_REFERENCE);
-                  }}
-                >
+                <DriveOpenButton reference={IMPERIO_DRIVE_ROOT_REFERENCE}>
                   <GoogleDriveIcon className="w-4 h-4" />
                   <span className="hidden md:inline">Drive</span>
-                </a>
+                </DriveOpenButton>
               </Button>
             )}
             <Button
@@ -1395,19 +1433,13 @@ const Index = () => {
         {/* mobile: drive button + search */}
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
           {!isTrial && (
-            <a
-              href={IMPERIO_DRIVE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                e.preventDefault();
-                openGoogleDriveReference(IMPERIO_DRIVE_REFERENCE);
-              }}
+            <DriveOpenButton
+              reference={IMPERIO_DRIVE_ROOT_REFERENCE}
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
               Abrir pasta no Google Drive
-            </a>
+            </DriveOpenButton>
           )}
           <GlobalSearch
             tree={tree}
