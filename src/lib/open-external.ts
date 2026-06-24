@@ -1,12 +1,6 @@
-/**
- * Abre uma URL externa de forma confiável em qualquer ambiente:
- * - Navegador desktop / mobile
- * - PWA standalone (iOS/Android) onde `window.open` costuma falhar
- * - Webview embarcado (alguns bloqueiam window.open com noopener)
- *
- * Usa um link real, disparado dentro do clique do usuário. O alvo pode ser
- * `_blank` (nova aba) ou `_top` (sair de iframe/prévia e navegar a janela atual).
- */
+import { buildGoogleDriveUrl, DriveReference, DriveType } from "@/lib/google-drive-link";
+
+/** Abre uma URL externa já normalizada, sem alterar query/path. */
 export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank"): boolean {
   try {
     if (target === "_blank") {
@@ -40,20 +34,24 @@ export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank
   }
 }
 
-/**
- * Constrói a URL canônica de uma pasta do Google Drive. `usp=sharing`
- * garante que o link funcione em browser, no app do Drive (Android/iOS)
- * e em PWAs sem cair em rotas internas que retornam 404.
- */
-export function driveFolderUrl(id: string): string {
-  return `https://drive.google.com/drive/folders/${encodeURIComponent(id)}?usp=sharing`;
+export function openGoogleDriveReference(reference: DriveReference, target: "_blank" | "_top" = "_blank"): boolean {
+  const finalUrl = buildGoogleDriveUrl(reference.driveType, reference.driveId);
+  console.info("[drive:open] abrindo referência normalizada", {
+    item: reference,
+    driveType: reference.driveType,
+    driveId: reference.driveId,
+    finalUrl,
+  });
+  return openExternalUrl(finalUrl, target);
 }
 
-/**
- * URL interna que abre primeiro uma página do próprio app e só então redireciona
- * para o Google Drive. Isso evita o bloqueio que alguns navegadores fazem
- * quando o Drive é aberto direto de iframe, webview, preview ou PWA.
- */
-export function driveRedirectUrl(id: string): string {
-  return `/abrir-drive?id=${encodeURIComponent(id)}`;
+/** Compatibilidade: constrói a URL oficial por tipo + id. */
+export function driveFolderUrl(id: string): string {
+  return buildGoogleDriveUrl("folder", id);
+}
+
+/** Compatibilidade: rota interna recebe apenas tipo/id, nunca a URL bruta. */
+export function driveRedirectUrl(id: string, type: DriveType = "folder"): string {
+  const params = new URLSearchParams({ id, type });
+  return `/abrir-drive?${params.toString()}`;
 }
