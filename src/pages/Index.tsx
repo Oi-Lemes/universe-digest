@@ -18,7 +18,7 @@ import logo from "@/assets/logo-spiderman-new.png";
 import { isOrientalLikeName, isManhwaName, popularityScore, pickTrending } from "@/lib/manga-popularity";
 import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 import { groupLooseSeries } from "@/lib/series-group";
-import { driveFolderUrl, openExternalUrl } from "@/lib/open-external";
+// (link do Drive abre direto via &lt;a target="_blank"&gt;, sem helpers)
 
 import { registerSeen } from "@/lib/recency";
 
@@ -1266,9 +1266,8 @@ const Index = () => {
     setCrumbs((c) => [...c, { id: node.id, name: node.name }]);
   };
 
-  const handleOpenImperioDrive = () => {
-    openExternalUrl(IMPERIO_DRIVE_URL, "_blank");
-  };
+
+
 
   const handleCrumbClick = (idx: number) => {
     setCrumbs((c) => c.slice(0, idx + 1));
