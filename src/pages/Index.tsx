@@ -10,16 +10,13 @@ import { InfiniteCoverMarquee } from "@/components/InfiniteCoverMarquee";
 import { ComicReader } from "@/components/ComicReader";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { searchTree } from "@/lib/search";
-import {
-  buildGoogleDriveUrl,
-  DriveReference,
-} from "@/lib/google-drive-link";
+import { DriveReference } from "@/lib/google-drive-link";
 import {
   driveDebugFields,
   IMPERIO_DRIVE_ROOT_REFERENCE,
   IMPERIO_DRIVE_ROOT_URL,
 } from "@/lib/imperio-drive";
-import { openGoogleDriveReference } from "@/lib/open-external";
+import { openExternalUrl } from "@/lib/open-external";
 
 import { PublisherTab } from "@/components/PublisherTab";
 import { OnlinePresence } from "@/components/OnlinePresence";
@@ -59,7 +56,7 @@ type DriveOpenButtonProps = {
 
 const DriveOpenButton = forwardRef<HTMLAnchorElement, DriveOpenButtonProps>(
   ({ reference, className, children }, ref) => {
-  const finalUrl = buildGoogleDriveUrl(reference.driveType, reference.driveId);
+  const finalUrl = IMPERIO_DRIVE_ROOT_URL;
 
   useEffect(() => {
     console.info("PROPS DO BOTÃO DRIVE:", {
@@ -82,11 +79,11 @@ const DriveOpenButton = forwardRef<HTMLAnchorElement, DriveOpenButtonProps>(
         e.preventDefault();
         console.info("[drive-debug] clique recebido pelo botão canônico", {
           renderHref: finalUrl,
-          sourceOfTruth: "driveType + driveId",
+          sourceOfTruth: "URL fixa do botão Drive",
           driveType: reference.driveType,
           driveId: reference.driveId,
         });
-        openGoogleDriveReference(reference);
+        openExternalUrl(finalUrl);
       }}
       className={className}
     >

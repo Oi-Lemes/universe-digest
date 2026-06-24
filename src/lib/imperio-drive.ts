@@ -1,14 +1,11 @@
-import { buildGoogleDriveUrl, DriveReference } from "@/lib/google-drive-link";
+import { DriveReference } from "@/lib/google-drive-link";
 
 export const IMPERIO_DRIVE_ROOT_REFERENCE: DriveReference = {
   driveType: "folder",
   driveId: "11SVA323KWtChNn9SdhfqhhkewLlsy683",
 };
 
-export const IMPERIO_DRIVE_ROOT_URL = buildGoogleDriveUrl(
-  IMPERIO_DRIVE_ROOT_REFERENCE.driveType,
-  IMPERIO_DRIVE_ROOT_REFERENCE.driveId
-);
+export const IMPERIO_DRIVE_ROOT_URL = "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683";
 
 const DRIVE_FIELD_NAMES = [
   "driveLink",
