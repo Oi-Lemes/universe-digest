@@ -22,17 +22,23 @@ import { driveFolderUrl, openExternalUrl } from "@/lib/open-external";
 
 import { registerSeen } from "@/lib/recency";
 
-const IMPERIO_DRIVE_ID = "11SVA323KWtChNn9SdhfqhhkewLlsy683";
-const IMPERIO_DRIVE_URL = driveFolderUrl(IMPERIO_DRIVE_ID);
+const IMPERIO_DRIVE_URL =
+  "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link";
 
+// Ícone moderno do Google Drive (paleta oficial atualizada).
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-    <path fill="#0066DA" d="M1.5 17.25 4.5 22.5h9l-3-5.25z" />
-    <path fill="#00AC47" d="M12 1.5 7.5 9.375 12 17.25l4.5-7.875z" />
-    <path fill="#EA4335" d="M22.5 17.25 19.5 12h-9l3 5.25z" />
-    <path fill="#00832D" d="M4.5 22.5h15l3-5.25h-15z" />
-    <path fill="#2684FC" d="M19.5 12 15 4.125H9L13.5 12z" />
-    <path fill="#FFBA00" d="M19.5 12h-6L10.5 17.25h9z" />
+  <svg
+    viewBox="0 0 87.3 78"
+    className={className}
+    aria-hidden="true"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da" />
+    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47" />
+    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335" />
+    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d" />
+    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc" />
+    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00" />
   </svg>
 );
 import { toast } from "sonner";
@@ -1335,15 +1341,16 @@ const Index = () => {
             />
             {!isTrial && (
               <Button
-                type="button"
+                asChild
                 variant="outline"
                 size="sm"
                 title="Abrir pasta Império dos Quadrinhos no Google Drive"
                 className="gap-1.5"
-                onClick={handleOpenImperioDrive}
               >
-                <GoogleDriveIcon className="w-4 h-4" />
-                <span className="hidden md:inline">Drive</span>
+                <a href={IMPERIO_DRIVE_URL} target="_blank" rel="noopener noreferrer external">
+                  <GoogleDriveIcon className="w-4 h-4" />
+                  <span className="hidden md:inline">Drive</span>
+                </a>
               </Button>
             )}
             <Button
@@ -1361,14 +1368,15 @@ const Index = () => {
         {/* mobile: drive button + search */}
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
           {!isTrial && (
-            <button
-              type="button"
-              onClick={handleOpenImperioDrive}
+            <a
+              href={IMPERIO_DRIVE_URL}
+              target="_blank"
+              rel="noopener noreferrer external"
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
               Abrir pasta no Google Drive
-            </button>
+            </a>
           )}
           <GlobalSearch
             tree={tree}
