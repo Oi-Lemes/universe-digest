@@ -1,5 +1,45 @@
 import { describe, expect, it } from "vitest";
-import { buildGoogleDriveUrl, parseGoogleDriveLink } from "@/lib/google-drive-link";
+import {
+  buildGoogleDriveUrl,
+  normalizeGoogleDriveUrl,
+  parseGoogleDriveLink,
+} from "@/lib/google-drive-link";
+
+describe("google-drive-link mobile/u-N variants", () => {
+  it("normaliza /drive/u/0/mobile/folders/{id} para a URL canônica", () => {
+    const url =
+      "https://drive.google.com/drive/u/0/mobile/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW";
+    expect(parseGoogleDriveLink(url)).toMatchObject({
+      driveType: "folder",
+      driveId: "1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW",
+    });
+    expect(normalizeGoogleDriveUrl(url)).toBe(
+      "https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW"
+    );
+  });
+
+  it("normaliza /drive/u/2/folders/{id}", () => {
+    expect(
+      normalizeGoogleDriveUrl("https://drive.google.com/drive/u/2/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW?usp=sharing")
+    ).toBe("https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW");
+  });
+
+  it("normaliza /u/0/uc?id={id} para /file/d/{id}/view", () => {
+    expect(
+      normalizeGoogleDriveUrl("https://drive.google.com/u/0/uc?id=1AbCdEfGhIjKlMnOpQrStUvWxYz_12345&export=download")
+    ).toBe("https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view");
+  });
+
+  it("normaliza /u/0/mobile/file/d/{id}/view", () => {
+    expect(
+      normalizeGoogleDriveUrl("https://drive.google.com/u/0/mobile/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view")
+    ).toBe("https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz_12345/view");
+  });
+
+  it("URL inválida retorna null em normalizeGoogleDriveUrl", () => {
+    expect(normalizeGoogleDriveUrl("https://example.com/x")).toBeNull();
+  });
+});
 
 describe("google-drive-link", () => {
   it("extrai pasta de link /drive/folders", () => {
