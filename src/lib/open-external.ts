@@ -36,12 +36,15 @@ export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank
 
 export function openGoogleDriveReference(reference: DriveReference, target: "_blank" | "_top" = "_blank"): boolean {
   const finalUrl = buildGoogleDriveUrl(reference.driveType, reference.driveId);
-  console.info("[drive:open] abrindo referência normalizada", {
-    item: reference,
+  console.info("[drive:open] abrindo URL canônica", {
+    originalDriveUrl: reference.originalDriveUrl ?? null,
     driveType: reference.driveType,
     driveId: reference.driveId,
     finalUrl,
   });
+  if (reference.originalDriveUrl && reference.originalDriveUrl !== finalUrl) {
+    console.info("[drive:open] URL original foi normalizada (mobile/u-N/query params removidos)");
+  }
   return openExternalUrl(finalUrl, target);
 }
 
