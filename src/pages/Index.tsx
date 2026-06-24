@@ -1346,7 +1346,7 @@ const Index = () => {
                 title="Abrir pasta Império dos Quadrinhos no Google Drive"
                 className="gap-1.5"
               >
-                <a href={IMPERIO_DRIVE_URL} target="_blank" rel="noopener noreferrer external">
+                <a href={IMPERIO_DRIVE_URL} rel="external">
                   <GoogleDriveIcon className="w-4 h-4" />
                   <span className="hidden md:inline">Drive</span>
                 </a>
@@ -1369,8 +1369,8 @@ const Index = () => {
           {!isTrial && (
             <a
               href={IMPERIO_DRIVE_URL}
-              target="_blank"
-              rel="noopener noreferrer external"
+              rel="external"
+
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
