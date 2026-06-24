@@ -21,8 +21,9 @@ import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
 
-// Link cru do Drive: sem redirecionamento, sem JavaScript e sem `_top`.
-// Assim o clique se comporta igual a colar a URL na barra do navegador.
+// Link cru do Drive: sem redirecionamento e sem JavaScript.
+// Usa `_top` para sair do iframe da prévia/Lovable; `_blank` herda o sandbox
+// do preview em alguns navegadores e o Google Drive responde com ERR_BLOCKED_BY_RESPONSE.
 const IMPERIO_DRIVE_URL =
   "https://drive.google.com/drive/folders/1k-vGJSHIdFxzbwRF17BsN7tBZWXLb-RW?usp=drive_link";
 
@@ -1347,7 +1348,7 @@ const Index = () => {
                 title="Abrir pasta Império dos Quadrinhos no Google Drive"
                 className="gap-1.5"
               >
-                <a href={IMPERIO_DRIVE_URL} target="_blank" rel="noopener noreferrer">
+                <a href={IMPERIO_DRIVE_URL} target="_top" rel="external">
                   <GoogleDriveIcon className="w-4 h-4" />
                   <span className="hidden md:inline">Drive</span>
                 </a>
@@ -1370,8 +1371,8 @@ const Index = () => {
           {!isTrial && (
             <a
               href={IMPERIO_DRIVE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              target="_top"
+              rel="external"
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
