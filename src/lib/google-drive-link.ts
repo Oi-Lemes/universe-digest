@@ -123,6 +123,22 @@ export function buildGoogleDriveUrl(driveType: DriveType, driveId: string): stri
   return `https://drive.google.com/file/d/${id}/view`;
 }
 
+/**
+ * Recebe qualquer URL do Google Drive (mobile, multi-conta, com query params)
+ * e devolve a forma canônica estável:
+ *   pasta  → https://drive.google.com/drive/folders/{id}
+ *   arquivo → https://drive.google.com/file/d/{id}/view
+ * Retorna null se a URL não for reconhecida.
+ */
+export function normalizeGoogleDriveUrl(rawUrl: string): string | null {
+  try {
+    const parsed = parseGoogleDriveLink(rawUrl);
+    return buildGoogleDriveUrl(parsed.driveType, parsed.driveId);
+  } catch {
+    return null;
+  }
+}
+
 export function normalizeDriveReference(input: DriveReference | string): DriveReference {
   if (typeof input === "string") {
     const parsed = parseGoogleDriveLink(input);
