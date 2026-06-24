@@ -10,7 +10,6 @@ import { InfiniteCoverMarquee } from "@/components/InfiniteCoverMarquee";
 import { ComicReader } from "@/components/ComicReader";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { searchTree } from "@/lib/search";
-import { DriveReference } from "@/lib/google-drive-link";
 import {
   driveDebugFields,
   IMPERIO_DRIVE_ROOT_REFERENCE,
@@ -49,25 +48,19 @@ import { toast } from "sonner";
 type Crumb = { id: string; name: string };
 
 type DriveOpenButtonProps = {
-  reference: DriveReference;
   className?: string;
   children: ReactNode;
 };
 
 const DriveOpenButton = forwardRef<HTMLAnchorElement, DriveOpenButtonProps>(
-  ({ reference, className, children }, ref) => {
+  ({ className, children }, ref) => {
   const finalUrl = IMPERIO_DRIVE_ROOT_URL;
 
   useEffect(() => {
     console.info("PROPS DO BOTÃO DRIVE:", {
-      props: {
-        driveType: reference.driveType,
-        driveId: reference.driveId,
-        originalDriveUrl: reference.originalDriveUrl ?? null,
-        finalUrl,
-      },
+      props: { fixedUrl: finalUrl },
     });
-  }, [reference.driveType, reference.driveId, reference.originalDriveUrl, finalUrl]);
+  }, [finalUrl]);
 
   return (
     <a
@@ -80,8 +73,6 @@ const DriveOpenButton = forwardRef<HTMLAnchorElement, DriveOpenButtonProps>(
         console.info("[drive-debug] clique recebido pelo botão canônico", {
           renderHref: finalUrl,
           sourceOfTruth: "URL fixa do botão Drive",
-          driveType: reference.driveType,
-          driveId: reference.driveId,
         });
         openExternalUrl(finalUrl);
       }}
@@ -1409,7 +1400,7 @@ const Index = () => {
                 title="Abrir pasta Império dos Quadrinhos no Google Drive"
                 className="gap-1.5"
               >
-                <DriveOpenButton reference={IMPERIO_DRIVE_ROOT_REFERENCE}>
+                <DriveOpenButton>
                   <GoogleDriveIcon className="w-4 h-4" />
                   <span className="hidden md:inline">Drive</span>
                 </DriveOpenButton>
@@ -1431,7 +1422,6 @@ const Index = () => {
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
           {!isTrial && (
             <DriveOpenButton
-              reference={IMPERIO_DRIVE_ROOT_REFERENCE}
               className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <GoogleDriveIcon className="w-4 h-4" />
