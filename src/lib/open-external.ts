@@ -1,4 +1,4 @@
-import { buildGoogleDriveUrl, DriveReference, DriveType } from "@/lib/google-drive-link";
+import { buildGoogleDriveUrl, DriveReference } from "@/lib/google-drive-link";
 
 /** Abre uma URL externa já normalizada, sem alterar query/path. */
 export function openExternalUrl(url: string, target: "_blank" | "_top" = "_blank"): boolean {
@@ -50,8 +50,3 @@ export function driveFolderUrl(id: string): string {
   return buildGoogleDriveUrl("folder", id);
 }
 
-/** Compatibilidade: rota interna recebe apenas tipo/id, nunca a URL bruta. */
-export function driveRedirectUrl(id: string, type: DriveType = "folder"): string {
-  const params = new URLSearchParams({ id, type });
-  return `/abrir-drive?${params.toString()}`;
-}
