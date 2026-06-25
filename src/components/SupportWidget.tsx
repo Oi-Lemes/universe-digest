@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Headphones, X, Send } from "lucide-react";
+import { Headphones, X, Send, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const SUPPORT_EMAIL = "dacruzmarketing@gmail.com";
+const DRIVE_URL =
+  "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=sharing";
 
 const CATEGORIES = [
+  { value: "drive", label: "Solicitar acesso ao Drive dos arquivos" },
   { value: "recomendacao", label: "Recomendação" },
   { value: "reclamacao", label: "Reclamação" },
   { value: "duvida", label: "Dúvida" },
@@ -27,8 +30,11 @@ const CATEGORIES = [
 export const SupportWidget = () => {
   const { email: userEmail } = useAuth();
   const [open, setOpen] = useState(false);
-  const [category, setCategory] = useState("recomendacao");
+  const [category, setCategory] = useState("drive");
   const [message, setMessage] = useState("");
+  const [driveStep, setDriveStep] = useState<"warning" | "link">("warning");
+
+  const isDrive = category === "drive";
 
   const handleSend = () => {
     if (!message.trim()) return;
@@ -46,6 +52,11 @@ export const SupportWidget = () => {
     });
     setMessage("");
     setOpen(false);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setCategory(value);
+    setDriveStep("warning");
   };
 
   return (
@@ -89,7 +100,7 @@ export const SupportWidget = () => {
           <div className="p-4 space-y-3">
             <div className="space-y-1.5">
               <label className="text-xs text-muted-foreground">Tipo de mensagem</label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select value={category} onValueChange={handleCategoryChange}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -103,25 +114,90 @@ export const SupportWidget = () => {
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground">Sua mensagem</label>
-              <Textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Escreva aqui..."
-                rows={4}
-                className="resize-none"
-              />
-            </div>
+            {isDrive ? (
+              driveStep === "warning" ? (
+                <div className="space-y-3">
+                  <div className="rounded-md border border-border bg-muted/40 p-3 text-xs leading-relaxed text-foreground/90 space-y-2">
+                    <p className="font-semibold text-foreground">
+                      Antes de acessar o Drive, leia com atenção:
+                    </p>
+                    <p>
+                      Ao acessar a pasta do Google Drive você declara estar ciente
+                      e de acordo com os termos abaixo:
+                    </p>
+                    <ul className="list-disc pl-4 space-y-1">
+                      <li>
+                        <strong>Não há reembolso</strong> após o acesso aos arquivos
+                        ser liberado, pois trata-se de produto digital de entrega
+                        imediata.
+                      </li>
+                      <li>
+                        O conteúdo é de uso <strong>pessoal e intransferível</strong>.
+                        É proibido revender, redistribuir ou compartilhar o link.
+                      </li>
+                      <li>
+                        Os arquivos pertencem aos seus respectivos autores e editoras.
+                        Este acervo é disponibilizado apenas para fins de
+                        leitura/colecionismo pessoal.
+                      </li>
+                      <li>
+                        O acesso pode ser revogado em caso de uso indevido.
+                      </li>
+                    </ul>
+                  </div>
+                  <Button
+                    onClick={() => setDriveStep("link")}
+                    className="w-full bg-cta"
+                  >
+                    Li e concordo com os termos
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    Pronto! Acesse o acervo pelo link abaixo:
+                  </p>
+                  <a
+                    href={DRIVE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "flex items-center justify-center gap-2 w-full rounded-md bg-cta",
+                      "px-4 py-2.5 text-sm font-medium text-primary-foreground",
+                      "hover:opacity-90 transition-opacity",
+                    )}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Abrir pasta no Google Drive
+                  </a>
+                  <p className="break-all text-[11px] text-muted-foreground">
+                    {DRIVE_URL}
+                  </p>
+                </div>
+              )
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Sua mensagem</label>
+                  <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Escreva aqui..."
+                    rows={4}
+                    className="resize-none"
+                  />
+                </div>
 
-            <Button
-              onClick={handleSend}
-              disabled={!message.trim()}
-              className="w-full bg-cta"
-            >
-              <Send className="h-4 w-4" />
-              Enviar
-            </Button>
+                <Button
+                  onClick={handleSend}
+                  disabled={!message.trim()}
+                  className="w-full bg-cta"
+                >
+                  <Send className="h-4 w-4" />
+                  Enviar
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}
