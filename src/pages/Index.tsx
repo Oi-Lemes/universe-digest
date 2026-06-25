@@ -1404,16 +1404,9 @@ const Index = () => {
             </Button>
           </div>
         </div>
-        {/* mobile: drive button + search */}
+        {/* mobile: search */}
         <div className="px-4 pb-3 sm:hidden flex flex-col gap-2">
-          {!isTrial && (
-            <DriveOpenButton
-              className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-9 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              <GoogleDriveIcon className="w-4 h-4" />
-              Abrir pasta no Google Drive
-            </DriveOpenButton>
-          )}
+
           <GlobalSearch
             tree={tree}
             onOpenFile={(n) => setReader({ id: n.id, name: n.name })}
