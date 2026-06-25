@@ -1392,20 +1392,6 @@ const Index = () => {
               onQueryChange={setSearchQuery}
               className="w-full max-w-xs hidden sm:block"
             />
-            {!isTrial && (
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                title="Abrir pasta Império dos Quadrinhos no Google Drive"
-                className="gap-1.5"
-              >
-                <DriveOpenButton>
-                  <GoogleDriveIcon className="w-4 h-4" />
-                  <span className="hidden md:inline">Drive</span>
-                </DriveOpenButton>
-              </Button>
-            )}
             <Button
               variant="ghost"
               size="sm"
