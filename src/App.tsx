@@ -24,17 +24,17 @@ const App = () => (
           <PwaInstall />
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/abrir-drive" element={<OpenDrive />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/admin/covers" element={<AdminCovers />} />
             <Route
               path="/"
               element={
                 <ProtectedRoute>
-                  <>
-                    <Index />
-                    <SupportWidget />
-                  </>
+                  <Index />
+                </ProtectedRoute>
+              }
+            />
+
                 </ProtectedRoute>
               }
             />
