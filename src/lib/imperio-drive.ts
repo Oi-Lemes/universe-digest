@@ -5,7 +5,7 @@ export const IMPERIO_DRIVE_ROOT_REFERENCE: DriveReference = {
   driveId: "11SVA323KWtChNn9SdhfqhhkewLlsy683",
 };
 
-export const IMPERIO_DRIVE_ROOT_URL = "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683";
+export const IMPERIO_DRIVE_ROOT_URL = "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link";
 
 const DRIVE_FIELD_NAMES = [
   "driveLink",

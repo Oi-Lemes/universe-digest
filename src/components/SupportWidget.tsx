@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 const SUPPORT_EMAIL = "dacruzmarketing@gmail.com";
 const DRIVE_URL =
-  "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=sharing";
+  "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link";
 
 // Ícone oficial do Google Drive
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
@@ -181,32 +181,15 @@ export const SupportWidget = () => {
                     href={DRIVE_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // Escapa o iframe da preview e abre direto na janela top.
-                      try {
-                        const win = window.open(DRIVE_URL, "_blank", "noopener,noreferrer");
-                        if (win) {
-                          win.opener = null;
-                          return;
-                        }
-                      } catch {
-                        /* fallback abaixo */
-                      }
-                      try {
-                        if (window.top && window.top !== window.self) {
-                          window.top.location.href = DRIVE_URL;
-                          return;
-                        }
-                      } catch {
-                        /* fallback abaixo */
-                      }
-                      window.location.href = DRIVE_URL;
-                    }}
                     className="block break-all text-sm text-primary underline underline-offset-2 hover:opacity-80"
                   >
                     {DRIVE_URL}
                   </a>
+                  <Button asChild className="w-full bg-cta">
+                    <a href={DRIVE_URL} target="_blank" rel="noopener noreferrer">
+                      Abrir Google Drive
+                    </a>
+                  </Button>
                   <Button
                     type="button"
                     onClick={async () => {

@@ -96,7 +96,7 @@ describe("google-drive-link", () => {
       driveId: "11SVA323KWtChNn9SdhfqhhkewLlsy683",
     });
     expect(IMPERIO_DRIVE_ROOT_URL).toBe(
-      "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683"
+      "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link"
     );
   });
 });
