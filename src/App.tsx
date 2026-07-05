@@ -10,6 +10,7 @@ import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import AdminCovers from "./pages/AdminCovers.tsx";
+import OpenDrive from "./pages/OpenDrive.tsx";
 import PwaInstall from "./components/PwaInstall";
 import { SupportWidget } from "./components/SupportWidget";
 
@@ -25,6 +26,7 @@ const App = () => (
           <PwaInstall />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/abrir-drive" element={<OpenDrive />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/admin/covers" element={<AdminCovers />} />
             <Route

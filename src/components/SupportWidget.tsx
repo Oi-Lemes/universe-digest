@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 const SUPPORT_EMAIL = "dacruzmarketing@gmail.com";
 const DRIVE_URL =
   "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683?usp=drive_link";
+const DRIVE_REDIRECT_PATH = "/abrir-drive";
 
 // Ícone oficial do Google Drive
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
@@ -178,7 +179,7 @@ export const SupportWidget = () => {
                     <span>Clique no link abaixo para abrir o acervo:</span>
                   </div>
                   <a
-                    href={DRIVE_URL}
+                    href={DRIVE_REDIRECT_PATH}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block break-all text-sm text-primary underline underline-offset-2 hover:opacity-80"
@@ -186,7 +187,7 @@ export const SupportWidget = () => {
                     {DRIVE_URL}
                   </a>
                   <Button asChild className="w-full bg-cta">
-                    <a href={DRIVE_URL} target="_blank" rel="noopener noreferrer">
+                    <a href={DRIVE_REDIRECT_PATH} target="_blank" rel="noopener noreferrer">
                       Abrir Google Drive
                     </a>
                   </Button>
