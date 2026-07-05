@@ -10,9 +10,7 @@ import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import AdminCovers from "./pages/AdminCovers.tsx";
-import OpenDrive from "./pages/OpenDrive.tsx";
 import PwaInstall from "./components/PwaInstall";
-import { SupportWidget } from "./components/SupportWidget";
 
 const queryClient = new QueryClient();
 
