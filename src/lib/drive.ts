@@ -154,51 +154,20 @@ export function driveProxyHeaders(): HeadersInit {
   };
 }
 
-function isMobileUA(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent || "";
-  return /Android|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i.test(ua);
-}
 
-function saveBlobWithLink(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
+export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
+  // Navegação direta pro edge function — content-disposition: attachment garante
+  // o download nativo do navegador em desktop, iOS e Android, sem baixar o
+  // arquivo inteiro pra memória (o que quebrava CBR/PDF grandes em mobile e PWA).
+  const proxyUrl = fileDownloadUrl(id, fileName);
   const link = document.createElement("a");
-  link.href = url;
+  link.href = proxyUrl;
   link.download = fileName;
   link.rel = "noopener";
+  link.target = "_self";
   document.body.appendChild(link);
   link.click();
   link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
-
-async function shareBlobIfPossible(blob: Blob, fileName: string): Promise<boolean> {
-  if (!isMobileUA() || typeof navigator === "undefined" || !("share" in navigator)) return false;
-  const file = new File([blob], fileName, { type: blob.type || "application/octet-stream" });
-  const nav = navigator as Navigator & {
-    canShare?: (data: { files?: File[] }) => boolean;
-    share: (data: { files?: File[]; title?: string }) => Promise<void>;
-  };
-  if (nav.canShare && !nav.canShare({ files: [file] })) return false;
-  await nav.share({ files: [file], title: fileName });
-  return true;
-}
-
-export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  const proxyUrl = fileDownloadUrl(id, fileName);
-
-  const res = await fetch(proxyUrl, {
-    cache: "no-store",
-    headers: driveProxyHeaders(),
-  });
-  if (!res.ok) {
-    const details = await res.text().catch(() => "");
-    throw new Error(`Falha ao baixar (${res.status})${details ? `: ${details}` : ""}`);
-  }
-
-  const blob = await res.blob();
-  const shared = await shareBlobIfPossible(blob, fileName);
-  if (!shared) saveBlobWithLink(blob, fileName);
 }
 
 export function thumbnailUrl(id: string, size = 400): string {
