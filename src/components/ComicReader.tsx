@@ -8,6 +8,7 @@ import {
 } from "@/lib/drive";
 import { Check, Download, FileWarning, Lock, X } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
+import { SendToKindleButton } from "./SendToKindleButton";
 import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
 import { toggleRead, useReadStatus } from "@/lib/read-status";
