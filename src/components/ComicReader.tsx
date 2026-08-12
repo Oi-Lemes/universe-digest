@@ -92,6 +92,11 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
                 </Button>
               )}
 
+              {!isTrial && isArchive && fileId && (
+                <SendToKindleButton fileId={fileId} fileName={fileName} />
+              )}
+
+
               {isTrial && (
                 <span
                   className="h-8 inline-flex items-center gap-1 px-2.5 rounded-full text-[11px] font-semibold border border-destructive/40 bg-destructive/15 text-destructive"
