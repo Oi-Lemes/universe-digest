@@ -97,13 +97,23 @@ Deno.serve(async (req) => {
     }
 
     const data = await aiRes.json();
+    const msg = data?.choices?.[0]?.message;
+    // O gateway pode devolver a imagem em formatos diferentes — tenta todos.
     const imgDataUrl: string | undefined =
-      data?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      msg?.images?.[0]?.image_url?.url ??
+      msg?.images?.[0]?.url ??
+      (Array.isArray(msg?.content)
+        ? msg.content.find((c: any) => c?.image_url?.url || c?.type === "image_url")?.image_url?.url
+        : undefined) ??
+      data?.data?.[0]?.b64_json?.replace(/^/, "data:image/png;base64,");
+
     if (!imgDataUrl?.startsWith("data:image")) {
-      return new Response(JSON.stringify({ error: "no image returned" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error("no image in AI response", JSON.stringify(data).slice(0, 500));
+      // 200 + fallback pro frontend seguir sem quebrar a tela.
+      return new Response(
+        JSON.stringify({ error: "no_image", fallback: true, url: null }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const base64 = imgDataUrl.split(",")[1];
