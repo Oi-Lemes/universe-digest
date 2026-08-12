@@ -8,6 +8,7 @@ import {
 } from "@/lib/drive";
 import { Check, Download, FileWarning, Lock, X } from "lucide-react";
 import { ComicArchiveReader } from "./ComicArchiveReader";
+import { SendToKindleButton } from "./SendToKindleButton";
 import { PdfReader } from "./PdfReader";
 import { useAuth } from "@/hooks/useAuth";
 import { toggleRead, useReadStatus } from "@/lib/read-status";
@@ -90,6 +91,11 @@ export const ComicReader = ({ fileId, fileName, onClose }: Props) => {
                   <span className="hidden sm:inline text-xs font-semibold">Baixar</span>
                 </Button>
               )}
+
+              {!isTrial && isArchive && fileId && (
+                <SendToKindleButton fileId={fileId} fileName={fileName} />
+              )}
+
 
               {isTrial && (
                 <span
