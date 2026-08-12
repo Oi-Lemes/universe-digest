@@ -156,19 +156,36 @@ export function driveProxyHeaders(): HeadersInit {
 
 
 export async function downloadDriveFile(id: string, fileName: string): Promise<void> {
-  // Navegação direta pro edge function — content-disposition: attachment garante
-  // o download nativo do navegador em desktop, iOS e Android, sem baixar o
-  // arquivo inteiro pra memória (o que quebrava CBR/PDF grandes em mobile e PWA).
+  // content-disposition: attachment garante o download nativo, sem carregar o
+  // arquivo inteiro na memória (o que quebrava CBR/CBZ/PDF grandes no mobile/PWA).
   const proxyUrl = fileDownloadUrl(id, fileName);
-  const link = document.createElement("a");
-  link.href = proxyUrl;
-  link.download = fileName;
-  link.rel = "noopener";
-  link.target = "_self";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+
+  // 1) iframe oculto: baixa sem sair da página e funciona dentro de iframes/PWA,
+  // onde uma navegação top-level (_self) é frequentemente bloqueada.
+  try {
+    const frame = document.createElement("iframe");
+    frame.style.display = "none";
+    frame.src = proxyUrl;
+    document.body.appendChild(frame);
+    setTimeout(() => frame.remove(), 120_000);
+  } catch {
+    /* segue pro fallback */
+  }
+
+  // 2) Fallback em nova aba (iOS Safari/PWA ignoram download via iframe).
+  const isIos = /iP(hone|ad|od)/.test(navigator.userAgent);
+  if (isIos) {
+    const link = document.createElement("a");
+    link.href = proxyUrl;
+    link.download = fileName;
+    link.rel = "noopener";
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
 }
+
 
 export function thumbnailUrl(id: string, size = 400): string {
   return `https://drive.google.com/thumbnail?id=${id}&sz=w${size}`;
