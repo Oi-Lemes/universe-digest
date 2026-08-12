@@ -220,14 +220,20 @@ async function buildEpub(
   return new Blob([zipped as unknown as BlobPart], { type: "application/epub+zip" });
 }
 
+export type EpubDelivery = "shared" | "downloaded";
+
 /**
- * Baixa o arquivo, converte para EPUB e dispara o download do .epub.
+ * Baixa o arquivo, converte para EPUB e entrega ao usuário.
+ *
+ * No iPhone/iPad o atributo `download` é ignorado (o arquivo some sem aviso),
+ * então usamos a folha de compartilhamento do iOS — de lá dá pra "Salvar em
+ * Arquivos" ou mandar direto pro app Kindle / e-mail @kindle.com.
  */
 export async function downloadAsEpub(
   fileId: string,
   fileName: string,
   onProgress: Progress = () => {}
-): Promise<void> {
+): Promise<EpubDelivery> {
   onProgress("Baixando arquivo…");
   const blob = await fetchArchive(fileId, fileName, onProgress);
 
@@ -237,14 +243,34 @@ export async function downloadAsEpub(
   onProgress("Montando EPUB…");
   const title = baseName(fileName);
   const epub = await buildEpub(title, images);
+  const outName = `${title}.epub`;
+
+  const file = new File([epub], outName, { type: "application/epub+zip" });
+  const nav = navigator as Navigator & {
+    canShare?: (data: { files?: File[] }) => boolean;
+    share?: (data: { files?: File[]; title?: string }) => Promise<void>;
+  };
+
+  if (nav.share && nav.canShare?.({ files: [file] })) {
+    try {
+      onProgress("Abrindo compartilhamento…");
+      await nav.share({ files: [file], title: outName });
+      return "shared";
+    } catch (e) {
+      // Usuário cancelou a folha de compartilhamento — não é erro.
+      if (e instanceof DOMException && e.name === "AbortError") return "shared";
+    }
+  }
 
   const url = URL.createObjectURL(epub);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${title}.epub`;
+  link.download = outName;
   link.rel = "noopener";
   document.body.appendChild(link);
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return "downloaded";
 }
+
