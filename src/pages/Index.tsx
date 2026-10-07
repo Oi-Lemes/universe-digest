@@ -26,6 +26,7 @@ import { dedupeVisibleNodes } from "@/lib/content-dedupe";
 import { groupLooseSeries } from "@/lib/series-group";
 
 import { registerSeen } from "@/lib/recency";
+import { DriveAccessButton } from "@/components/DriveAccessButton";
 
 // Ícone moderno do Google Drive (paleta oficial atualizada).
 const GoogleDriveIcon = ({ className }: { className?: string }) => (
@@ -1392,6 +1393,7 @@ const Index = () => {
               onQueryChange={setSearchQuery}
               className="w-full max-w-xs hidden sm:block"
             />
+            <DriveAccessButton icon={<GoogleDriveIcon className="w-5 h-5" />} />
             <Button
               variant="ghost"
               size="sm"
