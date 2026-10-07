@@ -1,59 +1,53 @@
 import { useState, type ReactNode } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
 const DRIVE_URL = "https://drive.google.com/drive/folders/11SVA323KWtChNn9SdhfqhhkewLlsy683";
 
 export const DriveAccessButton = ({ icon }: { icon: ReactNode }) => {
   const [open, setOpen] = useState(false);
-  const [agreed, setAgreed] = useState(false);
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="gap-1.5"
-        title="Acessar Google Drive"
-        onClick={() => {
-          setAgreed(false);
-          setOpen(true);
-        }}
-      >
+      <Button variant="ghost" size="sm" className="gap-1.5" title="Acessar Google Drive" onClick={() => setOpen(true)}>
         {icon}
         <span className="hidden md:inline">Drive</span>
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">{icon} Acesso ao Drive dos arquivos</DialogTitle>
-            <DialogDescription>
-              {agreed
-                ? "Clique no link abaixo para abrir a pasta. Se pedir acesso, solicite com o e-mail usado na compra."
-                : "Atenção: o acesso ao Drive é liberado apenas para quem comprou. Ao abrir, você poderá precisar solicitar acesso com o mesmo e-mail da compra e aguardar a liberação."}
-            </DialogDescription>
-          </DialogHeader>
-          {agreed ? (
-            <div className="flex flex-col gap-3">
-              <a
-                href={DRIVE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="break-all text-sm font-medium text-primary underline"
-              >
-                {DRIVE_URL}
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">{icon} Antes de abrir o Drive</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>
+                  Os arquivos disponíveis no Google Drive são do <strong>acervo antigo</strong>. As atualizações
+                  recentes, feitas de 15 em 15 dias, ficam em pastas separadas vinculadas ao app, para evitar má-fé
+                  de clientes mal-intencionados.
+                </p>
+                <p className="font-semibold text-destructive">
+                  Ao clicar para entrar no Drive, o reembolso não estará mais disponível.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <Button asChild>
+              <a href={DRIVE_URL} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+                Entendi, entrar no Drive
               </a>
-              <Button asChild>
-                <a href={DRIVE_URL} target="_blank" rel="noopener noreferrer">
-                  Abrir Google Drive
-                </a>
-              </Button>
-            </div>
-          ) : (
-            <Button onClick={() => setAgreed(true)}>Entendi, continuar</Button>
-          )}
-        </DialogContent>
-      </Dialog>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
